@@ -1,0 +1,1 @@
+{"version":3,"file":"realServer.d.ts","sourceRoot":"","sources":["../src/realServer.ts"],"names":[],"mappings":"AAMA,cAAM,oBAAoB;IACxB,OAAO,CAAC,GAAG,CAAsB;IACjC,OAAO,CAAC,eAAe,CAAkB;IACzC,OAAO,CAAC,eAAe,CAAkB;IACzC,OAAO,CAAC,SAAS,CAAkB;;IAUnC,OAAO,CAAC,eAAe;IAevB,OAAO,CAAC,WAAW;IAiQZ,KAAK,CAAC,IAAI,GAAE,MAAa,GAAG,IAAI;CAexC;AAGD,QAAA,MAAM,MAAM,sBAA6B,CAAC;AAG1C,eAAe,MAAM,CAAC"}

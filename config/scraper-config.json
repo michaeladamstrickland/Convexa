@@ -1,0 +1,118 @@
+{
+{
+  "general": {
+    "headless": true,
+    "screenshotsEnabled": true,
+    "screenshotDir": "./data/screenshots",
+    "logLevel": "info",
+    "logFile": "./data/scraper.log",
+    "maxRetries": 3,
+    "defaultTimeout": 30000
+  },
+  "proxyConfig": {
+    "enabled": false,
+    "rotation": "session",
+    "providers": [
+      {
+        "name": "brightdata",
+        "type": "residential",
+        "url": "http://USERNAME:PASSWORD@brd.superproxy.io:22225",
+        "enabled": false,
+        "countryCode": "us"
+      },
+      {
+        "name": "smartproxy",
+        "type": "residential",
+        "url": "http://USERNAME:PASSWORD@us.smartproxy.com:10000",
+        "enabled": false,
+        "countryCode": "us"
+      },
+      {
+        "name": "proxy-local",
+        "type": "datacenter",
+        "url": "http://localhost:8080",
+        "enabled": false
+      }
+    ]
+  },
+  "userAgents": [
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.110 Safari/537.36",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.1 Safari/605.1.15",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:94.0) Gecko/20100101 Firefox/94.0",
+    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36"
+  ],
+  "scraperSpecific": {
+    "zillow": {
+      "baseUrl": "https://www.zillow.com",
+      "searchResultsLimit": 5,
+      "searchDelay": 2000,
+      "requestDelay": {
+        "min": 500,
+        "max": 3000
+      },
+      "blacklist": [
+        "captcha",
+        "blocked",
+        "detected"
+      ]
+    },
+    "redfin": {
+      "baseUrl": "https://www.redfin.com",
+      "searchResultsLimit": 5,
+      "searchDelay": 2000,
+      "requestDelay": {
+        "min": 800,
+        "max": 3500
+      },
+      "blacklist": [
+        "captcha",
+        "blocked",
+        "detected"
+      ]
+    },
+    "realtor": {
+      "baseUrl": "https://www.realtor.com",
+      "searchResultsLimit": 5,
+      "searchDelay": 2000,
+      "requestDelay": {
+        "min": 1000,
+        "max": 4000
+      },
+      "blacklist": [
+        "captcha",
+        "blocked",
+        "detected"
+      ]
+    },
+    "auction": {
+      "baseUrl": "https://www.auction.com",
+      "searchResultsLimit": 10,
+      "searchDelay": 2000,
+      "requestDelay": {
+        "min": 500,
+        "max": 2500
+      },
+      "blacklist": [
+        "captcha",
+        "blocked",
+        "detected"
+      ]
+    }
+  },
+  "schedules": {
+    "zillow": {
+      "cron": "0 1 * * *",
+      "targets": ["Los Angeles, CA", "Miami, FL", "Chicago, IL"],
+      "distressedOnly": true
+    },
+    "redfin": {
+      "cron": "0 3 * * *",
+      "targets": ["Los Angeles, CA", "Miami, FL", "Chicago, IL"],
+      "distressedOnly": true
+    },
+    "auction": {
+      "cron": "0 5 * * *",
+      "distressedOnly": true
+    }
+  }
+}

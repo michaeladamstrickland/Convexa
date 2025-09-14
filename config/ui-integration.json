@@ -1,0 +1,198 @@
+{
+  "api": {
+    "baseUrl": "/api",
+    "endpoints": {
+      "health": "/health",
+      "leads": {
+        "hot": "/leads/hot"
+      },
+      "properties": {
+        "search": "/properties/search"
+      },
+      "scraper": {
+        "start": "/scraper/start",
+        "status": "/scraper/status/:scraperId"
+      },
+      "score": {
+        "property": "/score/property"
+      }
+    },
+    "pollingInterval": 5000
+  },
+  "ui": {
+    "sections": {
+      "dashboard": {
+        "enabled": true,
+        "hotLeadsCount": 10,
+        "recentScrapesCount": 5
+      },
+      "leads": {
+        "enabled": true,
+        "pageSize": 20,
+        "columns": [
+          {
+            "field": "address",
+            "headerName": "Address",
+            "width": 250
+          },
+          {
+            "field": "scoring.classification",
+            "headerName": "Score",
+            "width": 100,
+            "renderCell": "LeadScoreCell"
+          },
+          {
+            "field": "scoring.totalScore",
+            "headerName": "Score Value",
+            "width": 110,
+            "type": "number"
+          },
+          {
+            "field": "ownerName",
+            "headerName": "Owner",
+            "width": 200
+          },
+          {
+            "field": "distressSignals",
+            "headerName": "Distress Signals",
+            "width": 200,
+            "renderCell": "DistressSignalsCell"
+          },
+          {
+            "field": "status",
+            "headerName": "Status",
+            "width": 120
+          },
+          {
+            "field": "actions",
+            "headerName": "Actions",
+            "width": 150,
+            "renderCell": "LeadActionsCell"
+          }
+        ]
+      },
+      "properties": {
+        "enabled": true,
+        "pageSize": 25,
+        "columns": [
+          {
+            "field": "address",
+            "headerName": "Address",
+            "width": 250
+          },
+          {
+            "field": "attributes.bedrooms",
+            "headerName": "Beds",
+            "width": 80,
+            "type": "number"
+          },
+          {
+            "field": "attributes.bathrooms",
+            "headerName": "Baths",
+            "width": 80,
+            "type": "number"
+          },
+          {
+            "field": "attributes.squareFeet",
+            "headerName": "Sq Ft",
+            "width": 100,
+            "type": "number"
+          },
+          {
+            "field": "attributes.yearBuilt",
+            "headerName": "Year",
+            "width": 90,
+            "type": "number"
+          },
+          {
+            "field": "ownerName",
+            "headerName": "Owner",
+            "width": 200
+          },
+          {
+            "field": "distressSignals",
+            "headerName": "Distress Signals",
+            "width": 200,
+            "renderCell": "DistressSignalsCell"
+          },
+          {
+            "field": "actions",
+            "headerName": "Actions",
+            "width": 150,
+            "renderCell": "PropertyActionsCell"
+          }
+        ]
+      },
+      "scraper": {
+        "enabled": true,
+        "types": [
+          {
+            "id": "address",
+            "name": "Address Search",
+            "description": "Search for a specific property address",
+            "icon": "SearchIcon"
+          },
+          {
+            "id": "area",
+            "name": "Area Search",
+            "description": "Search for distressed properties in an area",
+            "icon": "MapIcon"
+          }
+        ],
+        "defaultOptions": {
+          "headless": true,
+          "screenshots": true,
+          "maxResults": 10
+        }
+      }
+    },
+    "visualizations": {
+      "scoreDistribution": {
+        "enabled": true,
+        "colors": {
+          "HOT": "#ff4d4d",
+          "WARM": "#ffaa00",
+          "LUKEWARM": "#ffdd00",
+          "COLD": "#aaaaaa"
+        }
+      },
+      "map": {
+        "enabled": true,
+        "defaultCenter": {
+          "lat": 34.0522,
+          "lng": -118.2437
+        },
+        "defaultZoom": 10
+      }
+    }
+  },
+  "machine_learning": {
+    "enabled": false,
+    "endpoints": {
+      "predict": "/ml/predict",
+      "train": "/ml/train",
+      "models": "/ml/models"
+    },
+    "models": {
+      "distressPredictor": {
+        "enabled": false,
+        "description": "Predicts properties likely to become distressed",
+        "threshold": 0.7
+      },
+      "valueEstimator": {
+        "enabled": false,
+        "description": "Estimates property values based on market data",
+        "threshold": 0.85
+      },
+      "contactFinder": {
+        "enabled": false,
+        "description": "Suggests best contact methods for property owners",
+        "threshold": 0.6
+      }
+    },
+    "training": {
+      "scheduledIntervalDays": 30,
+      "minTrainingSamples": 1000
+    }
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "address": "123 Main St., Anytown, CA 90210",
+  "addressHash": "",
+  "ownerName": "Smith, John A.",
+  "parcelId": null,
+  "apn": null,
+  "avm": null,
+  "lastEventDate": null,
+  "attributes": {
+    "bedrooms": 3,
+    "squareFeet": 1820
+  },
+  "distressSignals": [
+    "auction-scheduled",
+    "pre-foreclosure"
+  ],
+  "sources": [
+    {
+      "key": "auction-com",
+      "url": "https://auction.com/property/abc123",
+      "capturedAt": "2025-09-09T11:34:12.662Z",
+      "reliability": 4
+    }
+  ],
+  "conflicts": {},
+  "contacts": [
+    {
+      "type": "email",
+      "value": "john.smith@example.com",
+      "sources": [
+        "auction"
+      ],
+      "confidence": 0.7
+    },
+    {
+      "type": "phone",
+      "value": "555-123-4567",
+      "sources": [
+        "auction"
+      ],
+      "confidence": 0.6
+    }
+  ],
+  "score": 95,
+  "normalizedAddress": "",
+  "storedAt": "2025-09-09T11:34:12.683Z",
+  "updatedAt": "2025-09-09T11:34:12.683Z"
+}

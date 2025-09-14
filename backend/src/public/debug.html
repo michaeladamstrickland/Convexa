@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scraper Debug Client</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .card {
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    button {
+      background-color: #4CAF50;
+      border: none;
+      color: white;
+      padding: 10px 15px;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+      font-size: 16px;
+      margin: 4px 2px;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    input, select {
+      padding: 8px;
+      margin: 8px 0;
+      display: block;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box;
+      width: 100%;
+    }
+    .toggle {
+      position: relative;
+      display: inline-block;
+      width: 60px;
+      height: 34px;
+      margin: 8px 0;
+    }
+    .toggle input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccc;
+      transition: .4s;
+      border-radius: 34px;
+    }
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 26px;
+      width: 26px;
+      left: 4px;
+      bottom: 4px;
+      background-color: white;
+      transition: .4s;
+      border-radius: 50%;
+    }
+    input:checked + .slider {
+      background-color: #2196F3;
+    }
+    input:checked + .slider:before {
+      transform: translateX(26px);
+    }
+    .result {
+      background-color: #f5f5f5;
+      border-radius: 4px;
+      padding: 10px;
+      margin-top: 20px;
+      overflow: auto;
+      max-height: 300px;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+    }
+    .flex-row {
+      display: flex;
+      align-items: center;
+    }
+    .flex-row label {
+      margin-right: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Scraper Debug Client</h1>
+  
+  <div class="card">
+    <h2>Zillow Scraper Test</h2>
+    <form id="zillowForm">
+      <label for="zipCodes">Zip Codes (comma separated)</label>
+      <input type="text" id="zipCodes" name="zipCodes" value="07001, 07002, 07003">
+      
+      <label for="maxPages">Max Pages</label>
+      <input type="number" id="maxPages" name="maxPages" value="3" min="1" max="10">
+      
+      <div class="flex-row">
+        <label for="useEnhanced">Use Enhanced Version</label>
+        <label class="toggle">
+          <input type="checkbox" id="useEnhanced" name="useEnhanced" checked>
+          <span class="slider"></span>
+        </label>
+      </div>
+      
+      <button type="button" id="testZillow">Test Zillow</button>
+      <button type="button" id="debugZillow">Debug Only</button>
+    </form>
+    
+    <div class="result" id="zillowResult">
+      <p>Results will appear here...</p>
+    </div>
+  </div>
+  
+  <div class="card">
+    <h2>Auction.com Scraper Test</h2>
+    <form id="auctionForm">
+      <label for="state">State</label>
+      <select id="state" name="state">
+        <option value="">Select State</option>
+        <option value="FL">Florida</option>
+        <option value="CA">California</option>
+        <option value="TX">Texas</option>
+        <option value="NY">New York</option>
+      </select>
+      
+      <label for="auctionType">Auction Type</label>
+      <select id="auctionType" name="auctionType">
+        <option value="all">All Types</option>
+        <option value="foreclosure">Foreclosure</option>
+        <option value="bankruptcy">Bankruptcy</option>
+        <option value="tax">Tax Sale</option>
+      </select>
+      
+      <label for="auctionMaxPages">Max Pages</label>
+      <input type="number" id="auctionMaxPages" name="maxPages" value="3" min="1" max="10">
+      
+      <div class="flex-row">
+        <label for="auctionUseEnhanced">Use Enhanced Version</label>
+        <label class="toggle">
+          <input type="checkbox" id="auctionUseEnhanced" name="useEnhanced" checked>
+          <span class="slider"></span>
+        </label>
+      </div>
+      
+      <button type="button" id="testAuction">Test Auction.com</button>
+    </form>
+    
+    <div class="result" id="auctionResult">
+      <p>Results will appear here...</p>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('testZillow').addEventListener('click', async () => {
+      const resultDiv = document.getElementById('zillowResult');
+      resultDiv.innerHTML = '<p>Testing Zillow scraper...</p>';
+      
+      try {
+        const zipCodes = document.getElementById('zipCodes').value.split(',').map(zip => zip.trim()).filter(Boolean);
+        const maxPages = parseInt(document.getElementById('maxPages').value);
+        const useEnhanced = document.getElementById('useEnhanced').checked;
+        
+        const payload = {
+          zipCodes,
+          maxPages,
+          useEnhanced
+        };
+        
+        const response = await fetch('/api/scraper/zillow', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload),
+        });
+        
+        const data = await response.json();
+        resultDiv.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+      } catch (error) {
+        resultDiv.innerHTML = `<p style="color: red;">Error: ${error.message}</p>`;
+        console.error('Error testing Zillow scraper:', error);
+      }
+    });
+    
+    document.getElementById('debugZillow').addEventListener('click', async () => {
+      const resultDiv = document.getElementById('zillowResult');
+      resultDiv.innerHTML = '<p>Debugging Zillow payload...</p>';
+      
+      try {
+        const zipCodes = document.getElementById('zipCodes').value.split(',').map(zip => zip.trim()).filter(Boolean);
+        const maxPages = parseInt(document.getElementById('maxPages').value);
+        const useEnhanced = document.getElementById('useEnhanced').checked;
+        
+        const payload = {
+          zipCodes,
+          maxPages,
+          useEnhanced
+        };
+        
+        const response = await fetch('/api/scraper-debug/debug-zillow', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload),
+        });
+        
+        const data = await response.json();
+        resultDiv.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+      } catch (error) {
+        resultDiv.innerHTML = `<p style="color: red;">Error: ${error.message}</p>`;
+        console.error('Error debugging Zillow payload:', error);
+      }
+    });
+    
+    document.getElementById('testAuction').addEventListener('click', async () => {
+      const resultDiv = document.getElementById('auctionResult');
+      resultDiv.innerHTML = '<p>Testing Auction.com scraper...</p>';
+      
+      try {
+        const state = document.getElementById('state').value;
+        const auctionType = document.getElementById('auctionType').value;
+        const maxPages = parseInt(document.getElementById('auctionMaxPages').value);
+        const useEnhanced = document.getElementById('auctionUseEnhanced').checked;
+        
+        if (!state) {
+          resultDiv.innerHTML = '<p style="color: red;">Error: Please select a state</p>';
+          return;
+        }
+        
+        const payload = {
+          state,
+          auctionType,
+          maxPages,
+          useEnhanced
+        };
+        
+        const response = await fetch('/api/scraper/auction', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload),
+        });
+        
+        const data = await response.json();
+        resultDiv.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+      } catch (error) {
+        resultDiv.innerHTML = `<p style="color: red;">Error: ${error.message}</p>`;
+        console.error('Error testing Auction.com scraper:', error);
+      }
+    });
+  </script>
+</body>
+</html>

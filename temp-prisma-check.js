@@ -1,0 +1,1 @@
+const { PrismaClient } = require('@prisma/client'); const prisma = new PrismaClient(); (async () => { const lead = await prisma.lead.findFirst(); console.log('Lead fields:', Object.keys(lead)); process.exit(0); })().catch(console.error);

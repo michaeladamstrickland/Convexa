@@ -1,0 +1,31 @@
+2025-09-09T11:51:28.030Z - INFO: === Starting Zillow Scraper Pipeline Test ===
+2025-09-09T11:51:28.057Z - INFO: Starting simulated test with mock Zillow data
+2025-09-09T11:51:28.059Z - ERROR: Error in simulated test:
+TypeError: processScrapedProperties is not a function
+    at runSimulatedTest (C:\Projects\FlipTracker\FlipTracker\flip_tracker_full\leadflow_ai\zillow-scraper-test.cjs:100:27)
+    at main (C:\Projects\FlipTracker\FlipTracker\flip_tracker_full\leadflow_ai\zillow-scraper-test.cjs:206:11)
+    at Object.<anonymous> (C:\Projects\FlipTracker\FlipTracker\flip_tracker_full\leadflow_ai\zillow-scraper-test.cjs:219:1)
+    at Module._compile (node:internal/modules/cjs/loader:1706:14)
+    at Object..js (node:internal/modules/cjs/loader:1839:10)
+    at Module.load (node:internal/modules/cjs/loader:1441:32)
+    at Function._load (node:internal/modules/cjs/loader:1263:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:171:5)
+2025-09-09T11:51:28.062Z - ERROR: Test failed:
+TypeError: processScrapedProperties is not a function
+    at runSimulatedTest (C:\Projects\FlipTracker\FlipTracker\flip_tracker_full\leadflow_ai\zillow-scraper-test.cjs:100:27)
+    at main (C:\Projects\FlipTracker\FlipTracker\flip_tracker_full\leadflow_ai\zillow-scraper-test.cjs:206:11)
+    at Object.<anonymous> (C:\Projects\FlipTracker\FlipTracker\flip_tracker_full\leadflow_ai\zillow-scraper-test.cjs:219:1)
+    at Module._compile (node:internal/modules/cjs/loader:1706:14)
+    at Object..js (node:internal/modules/cjs/loader:1839:10)
+    at Module.load (node:internal/modules/cjs/loader:1441:32)
+    at Function._load (node:internal/modules/cjs/loader:1263:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:171:5)
+2025-09-09T11:52:35.809Z - INFO: === Starting Zillow Scraper Pipeline Test ===
+2025-09-09T11:52:35.818Z - INFO: Starting simulated test with mock Zillow data
+2025-09-09T11:52:35.829Z - INFO: Successfully processed 2 simulated properties
+2025-09-09T11:52:35.850Z - INFO: Simulated test results saved to zillow-simulated-results.json
+2025-09-09T11:52:35.852Z - INFO: === Zillow Scraper Pipeline Test Complete ===

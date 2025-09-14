@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Deal Analysis Report</title>
+  <style>
+    /* Reset and base styles */
+    body {
+      font-family: 'Roboto', 'Arial', sans-serif;
+      margin: 0;
+      padding: 0;
+      font-size: 12px;
+      color: #333;
+      line-height: 1.5;
+    }
+    
+    /* Page layout */
+    .page {
+      padding: 20px;
+      box-sizing: border-box;
+    }
+    
+    /* Header styles */
+    .header {
+      text-align: center;
+      padding: 20px 0;
+      border-bottom: 1px solid #ddd;
+      margin-bottom: 20px;
+    }
+    
+    .logo {
+      max-height: 50px;
+      margin-bottom: 10px;
+    }
+    
+    .report-title {
+      font-size: 24px;
+      font-weight: bold;
+      color: #2c3e50;
+      margin: 0 0 5px 0;
+    }
+    
+    .property-address {
+      font-size: 16px;
+      margin: 0 0 5px 0;
+    }
+    
+    .report-date {
+      font-size: 14px;
+      color: #666;
+    }
+    
+    /* Section styles */
+    .section {
+      margin-bottom: 20px;
+      page-break-inside: avoid;
+    }
+    
+    .section-title {
+      font-size: 16px;
+      font-weight: bold;
+      color: #2c3e50;
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 5px;
+      margin-bottom: 10px;
+    }
+    
+    /* Summary metrics grid */
+    .metrics-grid {
+      display: flex;
+      flex-wrap: wrap;
+      margin: 0 -10px;
+    }
+    
+    .metric-card {
+      flex: 1 0 calc(33.333% - 20px);
+      margin: 0 10px 20px 10px;
+      background-color: #f8f9fa;
+      border-radius: 5px;
+      padding: 10px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      min-width: 150px;
+      text-align: center;
+    }
+    
+    .metric-label {
+      font-size: 12px;
+      color: #666;
+      margin-bottom: 5px;
+    }
+    
+    .metric-value {
+      font-size: 16px;
+      font-weight: bold;
+      color: #2980b9;
+    }
+    
+    /* Property details */
+    .property-details {
+      display: flex;
+      flex-wrap: wrap;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+    
+    .property-image {
+      flex: 1;
+      min-width: 200px;
+      background-color: #eee;
+      height: 200px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .property-image img {
+      max-width: 100%;
+      max-height: 100%;
+    }
+    
+    .property-info {
+      flex: 2;
+      padding: 15px;
+      min-width: 300px;
+    }
+    
+    .property-specs {
+      display: flex;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+    
+    .property-spec {
+      flex: 1 0 auto;
+      margin-right: 15px;
+      margin-bottom: 10px;
+    }
+    
+    .spec-label {
+      font-size: 12px;
+      color: #666;
+    }
+    
+    .spec-value {
+      font-size: 14px;
+      font-weight: bold;
+    }
+    
+    /* Tables */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+      font-size: 11px;
+    }
+    
+    th, td {
+      padding: 8px;
+      border: 1px solid #ddd;
+      text-align: left;
+    }
+    
+    th {
+      background-color: #f2f2f2;
+      font-weight: 500;
+    }
+    
+    /* ROI section */
+    .roi-calculation {
+      display: flex;
+      flex-wrap: wrap;
+    }
+    
+    .roi-column {
+      flex: 1;
+      min-width: 250px;
+      padding: 0 10px;
+    }
+    
+    .calculation-table {
+      width: 100%;
+    }
+    
+    .calc-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 5px 0;
+      border-bottom: 1px solid #eee;
+    }
+    
+    .calc-label {
+      font-size: 12px;
+    }
+    
+    .calc-value {
+      font-size: 12px;
+      font-weight: bold;
+    }
+    
+    .calc-total {
+      font-size: 14px;
+      font-weight: bold;
+      border-top: 2px solid #ddd;
+      padding-top: 10px;
+    }
+    
+    /* Recommendation box */
+    .recommendation-box {
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      padding: 15px;
+      margin-top: 20px;
+      background-color: #f9f9f9;
+    }
+    
+    .recommendation-status {
+      font-size: 16px;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    
+    .status-proceed {
+      color: #27ae60;
+    }
+    
+    .status-review {
+      color: #f39c12;
+    }
+    
+    .status-pass {
+      color: #e74c3c;
+    }
+    
+    /* Notes */
+    .notes-list {
+      padding-left: 20px;
+      margin: 10px 0;
+    }
+    
+    .note-item {
+      margin-bottom: 5px;
+    }
+    
+    /* Footer */
+    .footer {
+      text-align: center;
+      font-size: 10px;
+      color: #666;
+      border-top: 1px solid #ddd;
+      padding-top: 10px;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <!-- Header -->
+    <div class="header">
+      <img src="data:image/png;base64,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" alt="FlipTracker Logo" class="logo">
+      
+      <h1 class="report-title">Deal Analysis Report</h1>
+      <p class="property-address">{{deal.property.address}}, {{deal.property.city}}, {{deal.property.state}} {{deal.property.zip}}</p>
+      <p class="report-date">Generated on {{generatedDate}}</p>
+    </div>
+    
+    <!-- Summary Metrics -->
+    <div class="section">
+      <h2 class="section-title">Deal Summary</h2>
+      
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <div class="metric-label">After Repair Value</div>
+          <div class="metric-value">{{formatCurrency deal.property.arv}}</div>
+        </div>
+        
+        <div class="metric-card">
+          <div class="metric-label">Purchase Price</div>
+          <div class="metric-value">{{formatCurrency deal.purchase.offerPrice}}</div>
+        </div>
+        
+        <div class="metric-card">
+          <div class="metric-label">Renovation Budget</div>
+          <div class="metric-value">{{formatCurrency deal.renovation.budget}}</div>
+        </div>
+        
+        <div class="metric-card">
+          <div class="metric-label">Total Investment</div>
+          <div class="metric-value">{{formatCurrency deal.results.totalInvestment}}</div>
+        </div>
+        
+        <div class="metric-card">
+          <div class="metric-label">Net Profit</div>
+          <div class="metric-value">{{formatCurrency deal.results.netProfit}}</div>
+        </div>
+        
+        <div class="metric-card">
+          <div class="metric-label">ROI</div>
+          <div class="metric-value">{{formatPercent deal.results.roiPct}}</div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Property Details -->
+    <div class="section">
+      <h2 class="section-title">Property Details</h2>
+      
+      <div class="property-details">
+        <div class="property-image">
+          <div style="text-align: center; color: #999;">Property Image</div>
+        </div>
+        
+        <div class="property-info">
+          <div class="property-specs">
+            <div class="property-spec">
+              <div class="spec-label">Beds</div>
+              <div class="spec-value">{{deal.property.beds}}</div>
+            </div>
+            
+            <div class="property-spec">
+              <div class="spec-label">Baths</div>
+              <div class="spec-value">{{deal.property.baths}}</div>
+            </div>
+            
+            <div class="property-spec">
+              <div class="spec-label">Square Feet</div>
+              <div class="spec-value">{{deal.property.sqft}}</div>
+            </div>
+            
+            <div class="property-spec">
+              <div class="spec-label">Year Built</div>
+              <div class="spec-value">{{deal.property.yearBuilt}}</div>
+            </div>
+            
+            <div class="property-spec">
+              <div class="spec-label">Lot Size</div>
+              <div class="spec-value">{{deal.property.lotSqft}} sqft</div>
+            </div>
+            
+            <div class="property-spec">
+              <div class="spec-label">APN</div>
+              <div class="spec-value">{{deal.property.apn}}</div>
+            </div>
+          </div>
+          
+          <div style="margin-top: 10px;">
+            <div class="spec-label">Data Source</div>
+            <div class="spec-value">{{deal.source}}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Comparable Sales -->
+    <div class="section">
+      <h2 class="section-title">Comparable Sales Analysis</h2>
+      
+      <table>
+        <thead>
+          <tr>
+            <th>Address</th>
+            <th>Sale Date</th>
+            <th>Sale Price</th>
+            <th>Beds</th>
+            <th>Baths</th>
+            <th>Sq Ft</th>
+            <th>$/SqFt</th>
+            <th>Dist.</th>
+            <th>Adjusted</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{#each deal.comps}}
+          <tr>
+            <td>{{address}}</td>
+            <td>{{formatDate saleDate}}</td>
+            <td>{{formatCurrency salePrice}}</td>
+            <td>{{beds}}</td>
+            <td>{{baths}}</td>
+            <td>{{sqft}}</td>
+            <td>${{toFixed (divide salePrice sqft) 0}}</td>
+            <td>{{toFixed distanceMi 1}} mi</td>
+            <td>{{formatCurrency adjustedPrice}}</td>
+          </tr>
+          {{/each}}
+        </tbody>
+      </table>
+    </div>
+    
+    <!-- ROI Analysis -->
+    <div class="section">
+      <h2 class="section-title">Return on Investment Analysis</h2>
+      
+      <div class="roi-calculation">
+        <div class="roi-column">
+          <h3>Investment</h3>
+          <div class="calculation-table">
+            <div class="calc-row">
+              <div class="calc-label">Purchase Price</div>
+              <div class="calc-value">{{formatCurrency deal.purchase.offerPrice}}</div>
+            </div>
+            <div class="calc-row">
+              <div class="calc-label">Closing Costs ({{formatPercent deal.purchase.closingCostsPct}})</div>
+              <div class="calc-value">{{formatCurrency (multiply deal.purchase.offerPrice deal.purchase.closingCostsPct)}}</div>
+            </div>
+            <div class="calc-row">
+              <div class="calc-label">Renovation Budget</div>
+              <div class="calc-value">{{formatCurrency deal.renovation.budget}}</div>
+            </div>
+            <div class="calc-row">
+              <div class="calc-label">Holding Costs ({{deal.purchase.holdingMonths}} months)</div>
+              <div class="calc-value">{{formatCurrency (subtract deal.results.totalInvestment (add deal.purchase.offerPrice (multiply deal.purchase.offerPrice deal.purchase.closingCostsPct) deal.renovation.budget))}}</div>
+            </div>
+            <div class="calc-row calc-total">
+              <div class="calc-label">Total Investment</div>
+              <div class="calc-value">{{formatCurrency deal.results.totalInvestment}}</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="roi-column">
+          <h3>Return</h3>
+          <div class="calculation-table">
+            <div class="calc-row">
+              <div class="calc-label">After Repair Value</div>
+              <div class="calc-value">{{formatCurrency deal.property.arv}}</div>
+            </div>
+            <div class="calc-row">
+              <div class="calc-label">Selling Costs ({{formatPercent deal.purchase.sellingCostsPct}})</div>
+              <div class="calc-value">{{formatCurrency (multiply deal.property.arv deal.purchase.sellingCostsPct)}}</div>
+            </div>
+            <div class="calc-row">
+              <div class="calc-label">Net Sale Proceeds</div>
+              <div class="calc-value">{{formatCurrency (subtract deal.property.arv (multiply deal.property.arv deal.purchase.sellingCostsPct))}}</div>
+            </div>
+            <div class="calc-row calc-total">
+              <div class="calc-label">Net Profit</div>
+              <div class="calc-value">{{formatCurrency deal.results.netProfit}}</div>
+            </div>
+            <div class="calc-row calc-total">
+              <div class="calc-label">ROI</div>
+              <div class="calc-value">{{formatPercent deal.results.roiPct}}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Renovation Budget -->
+    <div class="section">
+      <h2 class="section-title">Renovation Budget</h2>
+      
+      <table>
+        <thead>
+          <tr>
+            <th>Category</th>
+            <th>Item</th>
+            <th>Quantity</th>
+            <th>Unit</th>
+            <th>Unit Cost</th>
+            <th>Subtotal</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{#each deal.renovation.lineItems}}
+          <tr>
+            <td>{{category}}</td>
+            <td>{{name}}</td>
+            <td>{{qty}}</td>
+            <td>{{unit}}</td>
+            <td>{{formatCurrency unitCost}}</td>
+            <td>{{formatCurrency subtotal}}</td>
+          </tr>
+          {{/each}}
+          <tr>
+            <td colspan="5" style="text-align: right; font-weight: bold;">Total:</td>
+            <td style="font-weight: bold;">{{formatCurrency deal.renovation.budget}}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    
+    <!-- Recommendation -->
+    <div class="section">
+      <h2 class="section-title">Deal Analysis</h2>
+      
+      <div class="recommendation-box">
+        <div class="recommendation-status {{#if (eq deal.results.recommendation "PROCEED")}}status-proceed{{/if}}{{#if (eq deal.results.recommendation "REVIEW")}}status-review{{/if}}{{#if (eq deal.results.recommendation "PASS")}}status-pass{{/if}}">
+          Recommendation: {{deal.results.recommendation}}
+        </div>
+        
+        <div>Risk Score: {{deal.results.riskScore}}/100</div>
+        
+        {{#if deal.results.notes}}
+        <div style="margin-top: 10px;">
+          <strong>Analysis Notes:</strong>
+          <ul class="notes-list">
+            {{#each deal.results.notes}}
+            <li class="note-item">{{this}}</li>
+            {{/each}}
+          </ul>
+        </div>
+        {{/if}}
+      </div>
+    </div>
+    
+    <!-- Footer -->
+    <div class="footer">
+      <p>Generated by FlipTracker Deal Analysis Tool | Confidential - For internal use only</p>
+      <p>Report ID: {{deal.leadId}} | Generated on {{generatedDate}}</p>
+    </div>
+  </div>
+</body>
+</html>

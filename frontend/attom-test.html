@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FlipTracker ATTOM API Test</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #f5f5f5;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background-color: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    h1 {
+      color: #333;
+    }
+    .property-card {
+      border: 1px solid #ddd;
+      padding: 15px;
+      margin-bottom: 20px;
+      border-radius: 5px;
+    }
+    .property-detail {
+      display: flex;
+      flex-wrap: wrap;
+    }
+    .detail-item {
+      width: 33.33%;
+      padding: 10px;
+      box-sizing: border-box;
+    }
+    .detail-label {
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+    .detail-value {
+      color: #555;
+    }
+    .error {
+      color: red;
+      padding: 10px;
+      background-color: #ffeeee;
+      border-radius: 4px;
+    }
+    button {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+      font-size: 16px;
+      margin: 10px 0;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    #status {
+      margin: 20px 0;
+      padding: 10px;
+      background-color: #f0f0f0;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>FlipTracker ATTOM API Test</h1>
+    
+    <div id="status">Ready to test...</div>
+    
+    <button id="testHealth">Test Health Endpoint</button>
+    <button id="testProperty">Test Property Detail</button>
+    
+    <div id="healthResult"></div>
+    <div id="propertyResult"></div>
+  </div>
+
+  <script>
+    document.getElementById('testHealth').addEventListener('click', testHealth);
+    document.getElementById('testProperty').addEventListener('click', testProperty);
+
+    async function testHealth() {
+      const statusEl = document.getElementById('status');
+      const resultEl = document.getElementById('healthResult');
+      
+      statusEl.textContent = 'Testing health endpoint...';
+      
+      try {
+        const response = await fetch('http://localhost:5002/health');
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        resultEl.innerHTML = `
+          <h2>Health Check Result</h2>
+          <pre>${JSON.stringify(data, null, 2)}</pre>
+        `;
+        
+        statusEl.textContent = 'Health check successful!';
+      } catch (error) {
+        resultEl.innerHTML = `
+          <h2>Health Check Failed</h2>
+          <div class="error">${error.message}</div>
+        `;
+        
+        statusEl.textContent = 'Health check failed. See error details below.';
+      }
+    }
+
+    async function testProperty() {
+      const statusEl = document.getElementById('status');
+      const resultEl = document.getElementById('propertyResult');
+      const testId = '42116'; // Using our test property ID
+      
+      statusEl.textContent = `Testing property detail for ID ${testId}...`;
+      
+      try {
+        const response = await fetch(`http://localhost:5002/api/attom/property/${testId}/detail`);
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        if (!data.property) {
+          throw new Error('No property data found in response');
+        }
+        
+        const property = data.property;
+        
+        // Check for N/A values
+        let naCount = 0;
+        const totalFields = Object.keys(property).length;
+        const naFields = [];
+        
+        for (const [key, value] of Object.entries(property)) {
+          if (value === null || value === undefined || value === 'N/A') {
+            naCount++;
+            naFields.push(key);
+          }
+        }
+        
+        const naPercentage = Math.round((naCount / totalFields) * 100);
+        
+        // Create property card with all fields
+        let propertyHtml = `
+          <h2>Property Detail Result</h2>
+          <div class="property-card">
+            <h3>${property.address || 'Unknown Address'}</h3>
+            <p>${property.city || 'Unknown City'}, ${property.state || 'Unknown State'} ${property.zipCode || ''}</p>
+            
+            <h4>Field Statistics:</h4>
+            <p>Total fields: ${totalFields}</p>
+            <p>N/A values: ${naCount} (${naPercentage}%)</p>
+            
+            <h4>N/A Fields:</h4>
+            <p>${naFields.join(', ') || 'None'}</p>
+            
+            <h4>All Property Details:</h4>
+            <div class="property-detail">
+        `;
+        
+        for (const [key, value] of Object.entries(property)) {
+          const displayValue = value === null || value === undefined ? 'N/A' : value;
+          const valueClass = value === null || value === undefined ? 'na-value' : 'detail-value';
+          
+          propertyHtml += `
+            <div class="detail-item">
+              <div class="detail-label">${key}</div>
+              <div class="${valueClass}">${displayValue}</div>
+            </div>
+          `;
+        }
+        
+        propertyHtml += `
+            </div>
+          </div>
+        `;
+        
+        resultEl.innerHTML = propertyHtml;
+        
+        statusEl.textContent = `Property detail test complete. ${naPercentage}% of fields are N/A.`;
+      } catch (error) {
+        resultEl.innerHTML = `
+          <h2>Property Detail Test Failed</h2>
+          <div class="error">${error.message}</div>
+        `;
+        
+        statusEl.textContent = 'Property detail test failed. See error details below.';
+      }
+    }
+  </script>
+</body>
+</html>

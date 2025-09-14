@@ -1,0 +1,105 @@
+{
+  "status": {
+    "version": "1.0.0",
+    "code": 0,
+    "msg": "SuccessWithResult",
+    "total": 1,
+    "page": 1,
+    "pagesize": 10,
+    "responseDateTime": "2025-09-08T15:46:55.338Z",
+    "transactionID": "b6de6cb61cf0bc0dd383996a8d611a8b",
+    "attomId": 42116
+  },
+  "property": [
+    {
+      "identifier": {
+        "Id": 42116,
+        "fips": "34007",
+        "apn": "01  00114-  01-00008",
+        "attomId": 42116
+      },
+      "lot": {
+        "lotSize1": 0.1921028
+      },
+      "address": {
+        "country": "US",
+        "countrySubd": "NJ",
+        "line1": "29 WARD AVE",
+        "line2": "AUDUBON, NJ 08106",
+        "locality": "AUDUBON",
+        "matchCode": "ExaStr",
+        "oneLine": "29 WARD AVE, AUDUBON, NJ 08106",
+        "postal1": "08106",
+        "postal2": "1917",
+        "postal3": "C022"
+      },
+      "location": {
+        "accuracy": "Rooftop",
+        "latitude": "39.891927",
+        "longitude": "-75.081091",
+        "distance": 0,
+        "geoid": "CO34007, CS3402200, DB3401050, PL3402200, RS0005119987, SB0000102415, SB0000102416, SB0000102417, ZI08106",
+        "geoIdV4": {
+          "CO": "7972540a49137ada29864ef69bf4554b",
+          "CS": "02e58ae472f1aabc1045967fc689049f",
+          "DB": "546be3ecadce5ffbfb5778758a1236f7",
+          "N4": "8a7859ee9198a086b535c10bf1afebc2",
+          "PL": "24e7b1d088232245e9df07d707e3f466",
+          "SB": "4428b16abc8c34e9edd15ebf649f563c, d8153c9532eee75d267c66e781f5fa34, 3738cd068b0364e9ca3c08d753e56dfb",
+          "ZI": "2366646314688b8cd7962d765cf570bd"
+        }
+      },
+      "summary": {
+        "propclass": "Single Family Residence / Townhouse",
+        "propsubtype": "Residential",
+        "proptype": "SFR",
+        "propertyType": "SINGLE FAMILY RESIDENCE",
+        "yearbuilt": 1953,
+        "propLandUse": "SFR",
+        "propIndicator": "10"
+      },
+      "building": {
+        "size": {
+          "universalsize": 1216
+        },
+        "rooms": {}
+      },
+      "vintage": {
+        "lastModified": "2024-09-03",
+        "pubDate": "2024-09-03"
+      },
+      "assessment": {
+        "appraised": {},
+        "assessed": {
+          "assdimprpersizeunit": 77.63,
+          "assdimprvalue": 94400,
+          "assdlandpersizeunit": 12.05,
+          "assdlandvalue": 100800,
+          "assdttlpersizeunit": 160.53,
+          "assdttlvalue": 195200
+        },
+        "calculations": {
+          "calcimprind": "ASSESSED VALUE",
+          "calcimprpersizeunit": 77.63,
+          "calcimprvalue": 94400,
+          "calclandind": "ASSESSED VALUE",
+          "calclandpersizeunit": 12.05,
+          "calclandvalue": 100800,
+          "calcttlind": "ASSESSED VALUE",
+          "calcttlvalue": 195200,
+          "calcvaluepersizeunit": 160.53
+        },
+        "market": {
+          "mktimprvalue": 94400,
+          "mktlandvalue": 100800,
+          "mktttlvalue": 195200
+        },
+        "tax": {
+          "taxamt": 7618.66,
+          "taxpersizeunit": 6.27,
+          "taxyear": 2023
+        }
+      }
+    }
+  ]
+}

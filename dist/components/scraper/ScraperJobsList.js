@@ -1,0 +1,193 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.ScraperJobsList = void 0;
+const jsx_runtime_1 = require("react/jsx-runtime");
+const react_1 = require("react");
+const date_fns_1 = require("date-fns");
+const useScraperWebSocket_1 = require("../../hooks/useScraperWebSocket");
+const Spinner_1 = require("../common/Spinner");
+const react_hot_toast_1 = __importDefault(require("react-hot-toast"));
+const scraperApi_1 = require("../../services/scraperApi");
+/**
+ * Component for displaying a list of scraping jobs with real-time updates
+ */
+const ScraperJobsList = ({ limit = 10, showRefresh = true }) => {
+    const [jobs, setJobs] = (0, react_1.useState)([]);
+    const [loading, setLoading] = (0, react_1.useState)(false);
+    const [selectedJob, setSelectedJob] = (0, react_1.useState)(null);
+    const [showModal, setShowModal] = (0, react_1.useState)(false);
+    // Connect to WebSocket for real-time updates
+    const { isConnected, jobUpdates } = (0, useScraperWebSocket_1.useScraperWebSocket)();
+    const fetchJobs = async () => {
+        try {
+            setLoading(true);
+            const response = await scraperApi_1.scraperApi.getJobs({
+                limit,
+                page: 1
+            });
+            if (response.data.success && Array.isArray(response.data.data.jobs)) {
+                setJobs(response.data.data.jobs);
+            }
+            else {
+                console.error('Invalid response format:', response.data);
+                react_hot_toast_1.default.error('Failed to load scraping jobs');
+            }
+        }
+        catch (error) {
+            console.error('Error fetching jobs:', error);
+            react_hot_toast_1.default.error('Failed to load scraping jobs');
+        }
+        finally {
+            setLoading(false);
+        }
+    };
+    // Initial fetch
+    (0, react_1.useEffect)(() => {
+        fetchJobs();
+    }, []);
+    // Handle job updates from WebSocket
+    (0, react_1.useEffect)(() => {
+        if (jobUpdates.length > 0) {
+            const latestUpdate = jobUpdates[0];
+            // Fetch the latest job data to ensure we have the most up-to-date information
+            if (latestUpdate?.job?.id) {
+                scraperApi_1.scraperApi.getJobById(latestUpdate.job.id)
+                    .then((response) => {
+                    if (response.data.success) {
+                        // Update the job in our list
+                        setJobs(prevJobs => {
+                            const updatedJobs = [...prevJobs];
+                            const index = updatedJobs.findIndex(job => job.id === latestUpdate.job.id);
+                            if (index !== -1) {
+                                // Update existing job
+                                updatedJobs[index] = response.data.data;
+                            }
+                            else {
+                                // Add new job at the beginning
+                                updatedJobs.unshift(response.data.data);
+                                // Keep within limit
+                                if (updatedJobs.length > limit) {
+                                    updatedJobs.pop();
+                                }
+                            }
+                            return updatedJobs;
+                        });
+                        // Show toast notification
+                        if (latestUpdate.action === 'job_completed') {
+                            react_hot_toast_1.default.success(`${capitalizeFirstLetter(latestUpdate.job.source)} scraping job completed`);
+                        }
+                        else if (latestUpdate.action === 'job_failed') {
+                            react_hot_toast_1.default.error(`${capitalizeFirstLetter(latestUpdate.job.source)} scraping job failed`);
+                        }
+                    }
+                })
+                    .catch((error) => {
+                    console.error('Error fetching updated job:', error);
+                });
+            }
+        }
+    }, [jobUpdates, limit]);
+    const handleRefresh = () => {
+        fetchJobs();
+        react_hot_toast_1.default.success('Jobs refreshed');
+    };
+    const viewJobDetails = (job) => {
+        setSelectedJob(job);
+        setShowModal(true);
+    };
+    const closeModal = () => {
+        setShowModal(false);
+        setSelectedJob(null);
+    };
+    const processRecords = async (jobId) => {
+        try {
+            react_hot_toast_1.default.loading('Processing records...');
+            const response = await scraperApi_1.scraperApi.processRecords(jobId);
+            if (response.data.success) {
+                react_hot_toast_1.default.dismiss();
+                react_hot_toast_1.default.success(`Processed ${response.data.data.processedCount} records`);
+            }
+            else {
+                react_hot_toast_1.default.dismiss();
+                react_hot_toast_1.default.error('Failed to process records');
+            }
+        }
+        catch (error) {
+            react_hot_toast_1.default.dismiss();
+            console.error('Error processing records:', error);
+            react_hot_toast_1.default.error('Failed to process records');
+        }
+    };
+    return ((0, jsx_runtime_1.jsxs)("div", { className: "bg-white shadow-md rounded-lg p-4", children: [(0, jsx_runtime_1.jsxs)("div", { className: "flex justify-between items-center mb-4", children: [(0, jsx_runtime_1.jsx)("h2", { className: "text-lg font-semibold", children: "Recent Scraping Jobs" }), (0, jsx_runtime_1.jsxs)("div", { className: "flex items-center", children: [isConnected && ((0, jsx_runtime_1.jsxs)("span", { className: "inline-flex items-center mr-3 text-xs text-green-600", children: [(0, jsx_runtime_1.jsx)("span", { className: "w-2 h-2 bg-green-500 rounded-full mr-1" }), "Live"] })), showRefresh && ((0, jsx_runtime_1.jsx)("button", { onClick: handleRefresh, className: "px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm", disabled: loading, children: loading ? (0, jsx_runtime_1.jsx)(Spinner_1.Spinner, { size: "sm" }) : 'Refresh' }))] })] }), loading && jobs.length === 0 ? ((0, jsx_runtime_1.jsx)("div", { className: "flex justify-center py-10", children: (0, jsx_runtime_1.jsx)(Spinner_1.Spinner, { size: "lg" }) })) : jobs.length === 0 ? ((0, jsx_runtime_1.jsx)("div", { className: "text-center py-10 text-gray-500", children: "No scraping jobs found" })) : ((0, jsx_runtime_1.jsx)("div", { className: "overflow-x-auto", children: (0, jsx_runtime_1.jsxs)("table", { className: "min-w-full", children: [(0, jsx_runtime_1.jsx)("thead", { children: (0, jsx_runtime_1.jsxs)("tr", { className: "bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider", children: [(0, jsx_runtime_1.jsx)("th", { className: "px-4 py-2", children: "Source" }), (0, jsx_runtime_1.jsx)("th", { className: "px-4 py-2", children: "Status" }), (0, jsx_runtime_1.jsx)("th", { className: "px-4 py-2", children: "Results" }), (0, jsx_runtime_1.jsx)("th", { className: "px-4 py-2", children: "Started" }), (0, jsx_runtime_1.jsx)("th", { className: "px-4 py-2", children: "Duration" }), (0, jsx_runtime_1.jsx)("th", { className: "px-4 py-2", children: "Actions" })] }) }), (0, jsx_runtime_1.jsx)("tbody", { className: "divide-y divide-gray-200", children: jobs.map(job => ((0, jsx_runtime_1.jsxs)("tr", { className: "hover:bg-gray-50", children: [(0, jsx_runtime_1.jsx)("td", { className: "px-4 py-2", children: capitalizeFirstLetter(job.source) }), (0, jsx_runtime_1.jsx)("td", { className: "px-4 py-2", children: (0, jsx_runtime_1.jsx)(StatusBadge, { status: job.status }) }), (0, jsx_runtime_1.jsx)("td", { className: "px-4 py-2", children: job.resultsCount !== undefined ? job.resultsCount : '-' }), (0, jsx_runtime_1.jsx)("td", { className: "px-4 py-2 text-sm text-gray-600", children: formatTime(job.startedAt) }), (0, jsx_runtime_1.jsx)("td", { className: "px-4 py-2 text-sm text-gray-600", children: job.completedAt
+                                            ? calculateDuration(job.startedAt, job.completedAt)
+                                            : job.status === 'pending' || job.status === 'running'
+                                                ? 'Running...'
+                                                : '-' }), (0, jsx_runtime_1.jsx)("td", { className: "px-4 py-2", children: (0, jsx_runtime_1.jsxs)("div", { className: "flex space-x-2", children: [(0, jsx_runtime_1.jsx)("button", { onClick: () => viewJobDetails(job), className: "px-2 py-1 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 text-xs", children: "Details" }), job.status === 'completed' && ((0, jsx_runtime_1.jsx)("button", { onClick: () => processRecords(job.id), className: "px-2 py-1 bg-green-100 text-green-700 rounded hover:bg-green-200 text-xs", children: "Process" }))] }) })] }, job.id))) })] }) })), showModal && selectedJob && ((0, jsx_runtime_1.jsx)(JobDetailsModal, { job: selectedJob, onClose: closeModal, onProcess: () => processRecords(selectedJob.id) }))] }));
+};
+exports.ScraperJobsList = ScraperJobsList;
+const StatusBadge = ({ status }) => {
+    let bgColor = 'bg-gray-100';
+    let textColor = 'text-gray-800';
+    switch (status.toLowerCase()) {
+        case 'completed':
+            bgColor = 'bg-green-100';
+            textColor = 'text-green-800';
+            break;
+        case 'failed':
+            bgColor = 'bg-red-100';
+            textColor = 'text-red-800';
+            break;
+        case 'running':
+            bgColor = 'bg-blue-100';
+            textColor = 'text-blue-800';
+            break;
+        case 'pending':
+            bgColor = 'bg-yellow-100';
+            textColor = 'text-yellow-800';
+            break;
+    }
+    return ((0, jsx_runtime_1.jsx)("span", { className: `px-2 py-1 rounded-full text-xs ${bgColor} ${textColor}`, children: capitalizeFirstLetter(status) }));
+};
+const JobDetailsModal = ({ job, onClose, onProcess }) => {
+    const configObj = JSON.parse(job.config || '{}');
+    return ((0, jsx_runtime_1.jsx)("div", { className: "fixed inset-0 bg-black bg-opacity-30 flex justify-center items-center z-50", children: (0, jsx_runtime_1.jsxs)("div", { className: "bg-white rounded-lg max-w-2xl w-full max-h-[80vh] overflow-y-auto", children: [(0, jsx_runtime_1.jsx)("div", { className: "p-4 border-b", children: (0, jsx_runtime_1.jsx)("h2", { className: "text-lg font-semibold", children: "Scraping Job Details" }) }), (0, jsx_runtime_1.jsxs)("div", { className: "p-4", children: [(0, jsx_runtime_1.jsxs)("div", { className: "grid grid-cols-2 gap-4 mb-4", children: [(0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("span", { className: "text-gray-500 text-sm", children: "ID" }), (0, jsx_runtime_1.jsx)("p", { className: "font-mono text-xs", children: job.id })] }), (0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("span", { className: "text-gray-500 text-sm", children: "Source" }), (0, jsx_runtime_1.jsx)("p", { children: capitalizeFirstLetter(job.source) })] }), (0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("span", { className: "text-gray-500 text-sm", children: "Status" }), (0, jsx_runtime_1.jsx)("p", { children: (0, jsx_runtime_1.jsx)(StatusBadge, { status: job.status }) })] }), (0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("span", { className: "text-gray-500 text-sm", children: "Results" }), (0, jsx_runtime_1.jsx)("p", { children: job.resultsCount !== undefined ? job.resultsCount : '-' })] }), (0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("span", { className: "text-gray-500 text-sm", children: "Started At" }), (0, jsx_runtime_1.jsx)("p", { children: new Date(job.startedAt).toLocaleString() })] }), job.completedAt && ((0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("span", { className: "text-gray-500 text-sm", children: "Completed At" }), (0, jsx_runtime_1.jsx)("p", { children: new Date(job.completedAt).toLocaleString() })] }))] }), (0, jsx_runtime_1.jsxs)("div", { className: "mb-4", children: [(0, jsx_runtime_1.jsx)("h3", { className: "text-gray-500 text-sm mb-1", children: "Configuration" }), (0, jsx_runtime_1.jsx)("div", { className: "bg-gray-50 p-3 rounded font-mono text-xs max-h-40 overflow-y-auto", children: (0, jsx_runtime_1.jsx)("pre", { children: JSON.stringify(configObj, null, 2) }) })] }), job.logs && ((0, jsx_runtime_1.jsxs)("div", { className: "mb-4", children: [(0, jsx_runtime_1.jsx)("h3", { className: "text-gray-500 text-sm mb-1", children: "Logs" }), (0, jsx_runtime_1.jsx)("div", { className: "bg-gray-50 p-3 rounded font-mono text-xs max-h-40 overflow-y-auto", children: job.logs })] }))] }), (0, jsx_runtime_1.jsxs)("div", { className: "p-4 border-t flex justify-end space-x-2", children: [job.status === 'completed' && ((0, jsx_runtime_1.jsx)("button", { onClick: onProcess, className: "px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600", children: "Process Records" })), (0, jsx_runtime_1.jsx)("button", { onClick: onClose, className: "px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300", children: "Close" })] })] }) }));
+};
+// Helper functions
+function capitalizeFirstLetter(string) {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+}
+function formatTime(dateString) {
+    try {
+        const date = new Date(dateString);
+        return (0, date_fns_1.formatDistanceToNow)(date, { addSuffix: true });
+    }
+    catch {
+        return dateString;
+    }
+}
+function calculateDuration(start, end) {
+    try {
+        const startDate = new Date(start);
+        const endDate = new Date(end);
+        const durationMs = endDate.getTime() - startDate.getTime();
+        if (durationMs < 1000) {
+            return `${durationMs}ms`;
+        }
+        else if (durationMs < 60000) {
+            return `${Math.round(durationMs / 1000)}s`;
+        }
+        else if (durationMs < 3600000) {
+            return `${Math.round(durationMs / 60000)}m`;
+        }
+        else {
+            return `${Math.round(durationMs / 3600000)}h ${Math.round((durationMs % 3600000) / 60000)}m`;
+        }
+    }
+    catch {
+        return '-';
+    }
+}
+//# sourceMappingURL=ScraperJobsList.js.map

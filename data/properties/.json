@@ -1,0 +1,32 @@
+{
+  "sourceKey": "ZILLOW",
+  "sourceUrl": "https://www.zillow.com/homedetails/456-oak-ave/789012_zpid/",
+  "capturedAt": "2025-09-09T11:52:35.819Z",
+  "address": "456 Oak Ave, Los Angeles, CA 90002",
+  "normalizedAddress": "",
+  "attributes": {
+    "bedrooms": 4,
+    "bathrooms": 3,
+    "squareFeet": 2200,
+    "yearBuilt": 1992,
+    "lotSize": "0.3 acres",
+    "propertyType": "Single Family"
+  },
+  "priceHint": 550000,
+  "distressSignals": [
+    "fixer-upper"
+  ],
+  "contacts": [],
+  "addressHash": "",
+  "scoring": {
+    "distressScore": 30,
+    "equityScore": 0,
+    "contactScore": 0,
+    "motivationScore": 0,
+    "locationScore": 0,
+    "totalScore": 11,
+    "classification": "COLD"
+  },
+  "storedAt": "2025-09-09T11:52:35.829Z",
+  "updatedAt": "2025-09-09T11:52:35.829Z"
+}

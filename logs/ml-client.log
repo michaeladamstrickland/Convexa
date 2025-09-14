@@ -1,0 +1,49 @@
+[2025-09-09T13:49:18.062Z] [INFO] Initializing ML client
+[2025-09-09T13:49:18.136Z] [ERROR] Health check failed: 
+[2025-09-09T13:49:18.137Z] [ERROR] ML client initialization failed: ML service is unavailable
+[2025-09-09T13:49:18.139Z] [INFO] Predicting property value for 123 Test St, Testville, TX 12345
+[2025-09-09T13:49:18.141Z] [ERROR] Model request failed: Invalid model endpoint
+[2025-09-09T13:49:18.142Z] [ERROR] Property value prediction failed: Invalid model endpoint
+[2025-09-09T13:49:18.146Z] [INFO] Predicting distress signals for 123 Test St, Testville, TX 12345
+[2025-09-09T13:49:18.349Z] [ERROR] Model request failed: Invalid model endpoint
+[2025-09-09T13:49:18.370Z] [ERROR] Distress prediction failed: Invalid model endpoint
+[2025-09-09T13:49:18.376Z] [INFO] Generating lead score for 123 Test St, Testville, TX 12345
+[2025-09-09T13:49:18.581Z] [ERROR] Model request failed: Invalid model endpoint
+[2025-09-09T13:49:18.583Z] [ERROR] Lead scoring failed: Invalid model endpoint
+[2025-09-09T13:49:18.585Z] [INFO] Finding best contact method for owner John Doe
+[2025-09-09T13:49:18.783Z] [ERROR] Model request failed: Invalid model endpoint
+[2025-09-09T13:49:18.785Z] [ERROR] Contact method recommendation failed: Invalid model endpoint
+[2025-09-09T13:49:18.786Z] [INFO] Closing ML client
+[2025-09-09T13:49:18.788Z] [INFO] Model cache saved successfully
+[2025-09-09T13:49:18.788Z] [INFO] ML client closed
+[2025-09-09T13:52:11.752Z] [INFO] Initializing ML client
+[2025-09-09T13:52:11.805Z] [ERROR] Health check failed: 
+[2025-09-09T13:52:11.806Z] [ERROR] ML client initialization failed: ML service is unavailable
+[2025-09-09T13:52:11.826Z] [INFO] Predicting property value for 123 Test St, Testville, TX 12345
+[2025-09-09T13:52:11.828Z] [ERROR] Model request failed: Invalid model endpoint
+[2025-09-09T13:52:11.829Z] [ERROR] Property value prediction failed: Invalid model endpoint
+[2025-09-09T13:52:11.832Z] [INFO] Predicting distress signals for 123 Test St, Testville, TX 12345
+[2025-09-09T13:52:12.035Z] [ERROR] Model request failed: Invalid model endpoint
+[2025-09-09T13:52:12.036Z] [ERROR] Distress prediction failed: Invalid model endpoint
+[2025-09-09T13:52:12.039Z] [INFO] Generating lead score for 123 Test St, Testville, TX 12345
+[2025-09-09T13:52:12.249Z] [ERROR] Model request failed: Invalid model endpoint
+[2025-09-09T13:52:12.250Z] [ERROR] Lead scoring failed: Invalid model endpoint
+[2025-09-09T13:52:12.253Z] [INFO] Finding best contact method for owner John Doe
+[2025-09-09T13:52:12.462Z] [ERROR] Model request failed: Invalid model endpoint
+[2025-09-09T13:52:12.463Z] [ERROR] Contact method recommendation failed: Invalid model endpoint
+[2025-09-09T13:52:12.464Z] [INFO] Closing ML client
+[2025-09-09T13:52:12.466Z] [INFO] Model cache saved successfully
+[2025-09-09T13:52:12.467Z] [INFO] ML client closed
+[2025-09-09T13:56:36.427Z] [INFO] Initializing ML client
+[2025-09-09T13:56:36.476Z] [ERROR] Health check failed: 
+[2025-09-09T13:56:36.477Z] [ERROR] ML client initialization failed: ML service is unavailable
+[2025-09-09T13:59:57.133Z] [INFO] Initializing ML client
+[2025-09-09T13:59:57.181Z] [ERROR] Health check failed: 
+[2025-09-09T13:59:57.183Z] [ERROR] Health check failed: ML service is unavailable
+[2025-09-09T13:59:57.183Z] [INFO] Continuing in fallback mode
+[2025-09-09T13:59:57.184Z] [INFO] Loaded 0 models from cache
+[2025-09-09T14:14:04.137Z] [INFO] Initializing ML client
+[2025-09-09T14:14:04.185Z] [ERROR] Health check failed: 
+[2025-09-09T14:14:04.186Z] [ERROR] Health check failed: ML service is unavailable
+[2025-09-09T14:14:04.187Z] [INFO] Continuing in fallback mode
+[2025-09-09T14:14:04.189Z] [INFO] Loaded 0 models from cache

@@ -1,0 +1,58 @@
+[18:15:36] Checking environment configuration...
+[18:15:37] .env file already exists.
+[18:15:37] Installing dependencies...
+[18:15:37] EXECUTING: Installing required npm packages
+[18:15:37] npm install axios dotenv
+
+up to date, audited 501 packages in 2s
+
+86 packages are looking for funding
+  run `npm fund` for details
+
+found 0 vulnerabilities
+[18:15:42] SUCCESS: Installing required npm packages
+[18:15:42] Creating address normalization utility...
+[18:15:42] Creating vendor client utility...
+[18:15:43] Setting up ATTOM client service...
+[18:15:43] Setting up BatchData skip tracing service...
+[18:15:43] Creating test scripts...
+[18:15:43] Creating Windows batch file for running the test...
+[18:15:43] Updating the implementation guide...
+[18:15:44] Creating shell script to run the test...
+[18:15:44] Running the test script...
+[18:15:44] EXECUTING: Testing ATTOM and BatchData integration
+[18:15:44] node test-attom-batch.js
+[35m===== LeadFlow AI - ATTOM + BatchData Integration Test =====[0m
+Testing API connectivity and integration setup...
+
+[34m===== Testing ATTOM API =====[0m
+Using API key: eb0...69b
+[31m✗ ATTOM API connection failed:[0m
+[31m✗ Status: 400[0m
+[31m✗ Response data:[0m {
+  status: {
+    version: '1.0.0',
+    code: 400,
+    msg: 'SuccessWithoutResult',
+    total: 0,
+    responseDateTime: '2025-09-06T22:15:46.189Z',
+    transactionID: 'd1ecbfa3b8ff6d0b28c1f3ea60ae68a4'
+  }
+}
+
+[34m===== Testing BatchData API =====[0m
+Using API key: gLD...5zF
+Using API URL: https://api.batchdata.com/v1
+[31m✗ BatchData API connection failed:[0m
+[31m✗ Status: 404[0m
+[31m✗ Response data:[0m {
+  status: { code: 404, text: 'Not Found', message: 'URL not found.', data: [] }
+}
+
+[35m===== Test Summary =====[0m
+ATTOM API: [31m✗ FAILED[0m
+BatchData API: [31m✗ FAILED[0m
+
+[33m⚠ Some tests failed. Please review the errors above.[0m
+[33m⚠ Make sure your API keys are correct and the services are available.[0m
+[18:15:46] FAILED: Testing ATTOM and BatchData integration (exit code: 1)

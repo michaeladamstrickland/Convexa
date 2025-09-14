@@ -1,0 +1,75 @@
+[
+  {
+    "sourceKey": "ZILLOW",
+    "sourceUrl": "https://www.zillow.com/homedetails/123-main-st/123456_zpid/",
+    "capturedAt": "2025-09-09T11:52:35.818Z",
+    "address": "123 Main St, Los Angeles, CA 90001",
+    "normalizedAddress": "",
+    "ownerName": "John Smith",
+    "attributes": {
+      "bedrooms": 3,
+      "bathrooms": 2,
+      "squareFeet": 1800,
+      "yearBuilt": 1985,
+      "lotSize": "0.25 acres",
+      "propertyType": "Single Family"
+    },
+    "priceHint": 450000,
+    "distressSignals": [
+      "pre-foreclosure",
+      "motivated-seller"
+    ],
+    "contacts": [
+      {
+        "type": "phone",
+        "value": "213-555-1234",
+        "confidence": 0.8,
+        "source": "listing"
+      }
+    ],
+    "addressHash": "",
+    "scoring": {
+      "distressScore": 100,
+      "equityScore": 0,
+      "contactScore": 45,
+      "motivationScore": 50,
+      "locationScore": 0,
+      "totalScore": 49,
+      "classification": "LUKEWARM"
+    },
+    "storedAt": "2025-09-09T11:52:35.827Z",
+    "updatedAt": "2025-09-09T11:52:35.827Z"
+  },
+  {
+    "sourceKey": "ZILLOW",
+    "sourceUrl": "https://www.zillow.com/homedetails/456-oak-ave/789012_zpid/",
+    "capturedAt": "2025-09-09T11:52:35.819Z",
+    "address": "456 Oak Ave, Los Angeles, CA 90002",
+    "normalizedAddress": "",
+    "attributes": {
+      "bedrooms": 4,
+      "bathrooms": 3,
+      "squareFeet": 2200,
+      "yearBuilt": 1992,
+      "lotSize": "0.3 acres",
+      "propertyType": "Single Family"
+    },
+    "priceHint": 550000,
+    "distressSignals": [
+      "fixer-upper"
+    ],
+    "contacts": [],
+    "addressHash": "",
+    "scoring": {
+      "distressScore": 30,
+      "equityScore": 0,
+      "contactScore": 0,
+      "motivationScore": 0,
+      "locationScore": 0,
+      "totalScore": 11,
+      "classification": "COLD"
+    },
+    "storedAt": "2025-09-09T11:52:35.829Z",
+    "updatedAt": "2025-09-09T11:52:35.829Z"
+  }
+]

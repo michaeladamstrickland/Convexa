@@ -1,0 +1,16 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "baseUrl": ".",
+    "types": ["node", "./types/bullmq-shim"]
+  },
+  "include": [
+    "src/queues/**/*",
+    "src/workers/**/*",
+    "src/routes/devQueueRoutes.ts",
+    "backend/src/packages/schemas/**/*",
+    "types/bullmq-shim.d.ts"
+  ],
+  "exclude": ["node_modules", "dist"]
+}

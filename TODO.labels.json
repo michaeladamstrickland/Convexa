@@ -1,0 +1,342 @@
+[
+  {
+    "id": "SEC-001",
+    "area": "security",
+    "severity": "high",
+    "title": "JWT refresh tokens with rotation and revocation",
+    "files": [
+      "backend/src/middleware/auth.ts",
+      "backend/src/routes/auth.ts",
+      "backend/prisma/schema.prisma"
+    ],
+    "acceptance": [
+      "Add RefreshToken table (userId, tokenHash, expiresAt, revokedAt, userAgent, ip)",
+      "Implement POST /api/auth/refresh to rotate tokens",
+      "Implement POST /api/auth/logout to revoke current refresh token",
+      "Short-lived access token (<= 1h), refresh <= 90d",
+      "Unit tests for login/refresh/logout and revoked token behavior"
+    ],
+    "eta_days": 2
+  },
+  {
+    "id": "SEC-002",
+    "area": "security",
+    "severity": "high",
+    "title": "Config hardening: .env.example + zod-based runtime validation",
+    "files": [
+      ".env.example",
+      "backend/src/config/masterConfig.ts",
+      "backend/src/server.ts"
+    ],
+    "acceptance": [
+      "Commit .env.example listing all required variables",
+      "Add config loader that validates env at boot (zod)",
+      "Server fails fast with clear error when required env missing",
+      "Docs updated in README"
+    ],
+    "eta_days": 1
+  },
+  {
+    "id": "COM-001",
+    "area": "compliance",
+    "severity": "high",
+    "title": "DNC/TCPA baseline (DNC checks, consent logs, quiet hours)",
+    "files": [
+      "backend/prisma/schema.prisma",
+      "backend/src/services/telephony.ts",
+      "backend/src/routes/campaigns.ts"
+    ],
+    "acceptance": [
+      "Add DNCCheck and ConsentLog tables",
+      "Block sends for DNC-listed numbers",
+      "Persist STOP opt-out and enforce",
+      "Quiet hours enforced per org (default ET 8am–9pm)",
+      "Unit/integration tests for sends blocked/enabled"
+    ],
+    "eta_days": 3
+  },
+  {
+    "id": "OBS-001",
+    "area": "observability",
+    "severity": "high",
+    "title": "Add Sentry, correlation IDs, and Prometheus metrics",
+    "files": [
+      "backend/src/server.ts",
+      "backend/src/utils/logger.ts"
+    ],
+    "acceptance": [
+      "Middleware sets X-Request-Id on every request",
+      "Sentry initialized with environment/release tags",
+      "/metrics exposes http and external API metrics",
+      "Logs include requestId, orgId, userId (when present)"
+    ],
+    "eta_days": 2
+  },
+  {
+    "id": "REL-001",
+    "area": "reliability",
+    "severity": "high",
+    "title": "Idempotency for POST /api/leads and skip-trace",
+    "files": [
+      "backend/src/server.ts",
+      "backend/src/controllers/leadController.ts"
+    ],
+    "acceptance": [
+      "Honor Idempotency-Key header with 24h TTL",
+      "Second identical request returns original result (status 200/201)",
+      "Tests covering duplicate create and skip-trace calls"
+    ],
+    "eta_days": 1
+  },
+  {
+    "id": "DATA-001",
+    "area": "database",
+    "severity": "critical",
+    "title": "Unify Prisma schema (deprecate root SQLite schema)",
+    "files": [
+      "backend/prisma/schema.prisma",
+      "prisma/schema.prisma",
+      "README.md"
+    ],
+    "acceptance": [
+      "Decide authoritative schema (backend/Postgres)",
+      "CI validates only the authoritative schema",
+      "Migration plan documented; root prisma marked demo-only",
+      "Prisma generate/validate passes in CI"
+    ],
+    "eta_days": 2
+  },
+  {
+    "id": "COST-001",
+    "area": "cost",
+    "severity": "high",
+    "title": "API cost guardrails (cache, retries, budget caps)",
+    "files": [
+      "backend/src/services/realPropertyDataService.ts",
+      "backend/src/services/masterRealEstateService.ts",
+      "backend/src/config/masterConfig.ts"
+    ],
+    "acceptance": [
+      "Cache results per (zip, filters, day)",
+      "Axios timeouts (10s) and retries (2) with backoff",
+      "Daily budget enforced from masterConfig; hard-stop at 100%",
+      "Costs returned in response metadata and aggregated in /api-usage-stats"
+    ],
+    "eta_days": 2
+  },
+  {
+    "id": "SCRAPE-001",
+    "area": "scraping",
+    "severity": "medium",
+    "title": "Harden Zillow Puppeteer scraper (stealth, proxy, randomization)",
+    "files": [
+      "backend/src/scrapers/zillowScraper.ts"
+    ],
+    "acceptance": [
+      "Use puppeteer-extra-plugin-stealth",
+      "Optional proxy rotation",
+      "Randomized delays and user agents",
+      "Persist sample raw HTML for failures for debugging"
+    ],
+    "eta_days": 2
+  },
+  {
+    "id": "CAMP-001",
+    "area": "campaigns",
+    "severity": "high",
+    "title": "Twilio SMS MVP (send, logs, opt-out)",
+    "files": [
+      "backend/src/routes/campaigns.ts",
+      "backend/src/services/telephony.ts",
+      "backend/prisma/schema.prisma"
+    ],
+    "acceptance": [
+      "POST /api/campaigns/send sends SMS to filtered leads",
+      "CampaignLog records sent/delivered/replied/failed",
+      "Inbound webhook handles replies and STOP opt-out",
+      "Per-org throttle (1 msg/sec) with backoff"
+    ],
+    "eta_days": 3
+  },
+  {
+    "id": "FE-001",
+    "area": "frontend",
+    "severity": "medium",
+    "title": "Persisted auth and route guards",
+    "files": [
+      "frontend/src/api/client.ts",
+      "frontend/src/App.tsx",
+      "frontend/src/pages/Login.tsx"
+    ],
+    "acceptance": [
+      "JWT stored in localStorage",
+      "Axios attaches Authorization header automatically",
+      "401 triggers logout/refresh flow",
+      "Protected routes require auth"
+    ],
+    "eta_days": 1
+  },
+  {
+    "id": "TEST-001",
+    "area": "testing",
+    "severity": "medium",
+    "title": "Expand unit/integration tests and add frontend test runner",
+    "files": [
+      "backend/src/tests",
+      "frontend"
+    ],
+    "acceptance": [
+      "Backend unit tests for controllers/services/middleware",
+      "Integration tests using supertest for key endpoints",
+      "Frontend tests with Vitest + Testing Library + MSW",
+      "Coverage >= 60% lines initially"
+    ],
+    "eta_days": 2
+  },
+  {
+    "id": "CI-001",
+    "area": "ci",
+    "severity": "medium",
+    "title": "GitHub Actions CI (lint, typecheck, test, prisma validate, build)",
+    "files": [
+      ".github/workflows/ci.yml"
+    ],
+    "acceptance": [
+      "Backend and frontend jobs run on PRs",
+      "Prisma validate executed with dummy env",
+      "Coverage artifacts uploaded",
+      "Status checks required on main"
+    ],
+    "eta_days": 1
+  },
+  {
+    "id": "API-001",
+    "area": "documentation",
+    "severity": "low",
+    "title": "OpenAPI spec for core routes",
+    "files": [
+      "backend/openapi.yaml"
+    ],
+    "acceptance": [
+      "Auth, Leads, ZipSearch, RealEstate, Master endpoints documented",
+      "Schematized request/response bodies",
+      "CI publishes Redoc artifact"
+    ],
+    "eta_days": 1
+  },
+  {
+    "id": "BUILD-001",
+    "area": "build",
+    "severity": "low",
+    "title": "Align Puppeteer versions across repo",
+    "files": [
+      "package.json",
+      "backend/package.json"
+    ],
+    "acceptance": [
+      "Single Puppeteer dependency (backend only)",
+      "Chromium download occurs once",
+      "Scraper runs in dev and CI (with skip in CI if headless required)"
+    ],
+    "eta_days": 0.5
+  },
+  {
+    "id": "QUEUE-001",
+    "area": "platform",
+    "severity": "medium",
+    "title": "Introduce background job queue for scraping/enrichment",
+    "files": [
+      "backend/src/jobs",
+      "backend/src/server.ts"
+    ],
+    "acceptance": [
+      "Queue worker for scraping/enrichment",
+      "Cron or BullMQ scheduled jobs",
+      "Endpoint triggers enqueue (non-blocking)"
+    ],
+    "eta_days": 2
+  },
+  {
+    "id": "STORAGE-001",
+    "area": "storage",
+    "severity": "medium",
+    "title": "File uploads via S3 with validation and signed URLs",
+    "files": [
+      "backend/src/routes/uploads.ts",
+      "backend/src/services/storage.ts",
+      "frontend/src/components"
+    ],
+    "acceptance": [
+      "POST upload with size/type validation",
+      "Get signed URL for download",
+      "Unit tests for validation and access controls"
+    ],
+    "eta_days": 2
+  },
+  {
+    "id": "NORM-001",
+    "area": "data",
+    "severity": "medium",
+    "title": "Normalization and deduplication module",
+    "files": [
+      "backend/src/services/realPropertyDataService.ts",
+      "backend/src/services/masterRealEstateService.ts",
+      "backend/src/scrapers/zillowScraper.ts"
+    ],
+    "acceptance": [
+      "Central normalizeProperty() function",
+      "Consistent propertyHash across pipelines",
+      "Unit tests for normalization outputs"
+    ],
+    "eta_days": 1
+  },
+  {
+    "id": "ANALYTICS-001",
+    "area": "analytics",
+    "severity": "low",
+    "title": "Provider and cost dashboards",
+    "files": [
+      "backend/src/server.ts",
+      "OBSERVABILITY.md"
+    ],
+    "acceptance": [
+      "Prometheus metrics for costs per provider",
+      "Grafana dashboard JSON committed",
+      "Budget alerts at 80% threshold"
+    ],
+    "eta_days": 1
+  },
+  {
+    "id": "LEGAL-001",
+    "area": "compliance",
+    "severity": "medium",
+    "title": "PII retention policy and log redaction",
+    "files": [
+      "backend/src/utils/logger.ts",
+      "backend/prisma/schema.prisma",
+      "SECURITY_CHECKLIST.md"
+    ],
+    "acceptance": [
+      "Retention windows defined and enforced for PII-heavy tables",
+      "Logger masks phone/email and never logs secrets",
+      "Runbook documented"
+    ],
+    "eta_days": 1
+  },
+  {
+    "id": "BILL-001",
+    "area": "billing",
+    "severity": "medium",
+    "title": "Billing limits enforcement middleware",
+    "files": [
+      "backend/src/server.ts",
+      "backend/src/config/masterConfig.ts"
+    ],
+    "acceptance": [
+      "Middleware blocks expensive endpoints when budget exceeded",
+      "Warning header at 80% budget usage",
+      "Tests verifying blocked responses when over budget"
+    ],
+    "eta_days": 1
+  }
+]

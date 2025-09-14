@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scraper Debugger</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        h1, h2, h3 {
+            color: #2c3e50;
+        }
+        .container {
+            background: white;
+            border-radius: 5px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .job-list {
+            margin-top: 20px;
+        }
+        .job-card {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 15px;
+            margin-bottom: 10px;
+            background: white;
+        }
+        .job-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        .status-badge {
+            padding: 5px 10px;
+            border-radius: 3px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .status-pending {
+            background: #f39c12;
+            color: white;
+        }
+        .status-running {
+            background: #3498db;
+            color: white;
+        }
+        .status-completed {
+            background: #2ecc71;
+            color: white;
+        }
+        .status-failed {
+            background: #e74c3c;
+            color: white;
+        }
+        .job-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .detail-item {
+            font-size: 14px;
+        }
+        .detail-label {
+            font-weight: bold;
+            color: #7f8c8d;
+        }
+        pre {
+            background: #f8f8f8;
+            padding: 10px;
+            border-radius: 3px;
+            overflow: auto;
+            font-size: 13px;
+            border: 1px solid #ddd;
+        }
+        button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+            font-size: 14px;
+        }
+        button:hover {
+            background: #2980b9;
+        }
+        .controls {
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+        }
+        .error-box {
+            background: #fee;
+            border: 1px solid #e74c3c;
+            padding: 10px;
+            border-radius: 3px;
+            margin-top: 10px;
+            color: #c0392b;
+            font-size: 14px;
+        }
+        .results-summary {
+            margin-top: 10px;
+            font-size: 14px;
+            background: #eafaf1;
+            padding: 10px;
+            border-radius: 3px;
+            border: 1px solid #2ecc71;
+        }
+        .job-results {
+            margin-top: 15px;
+        }
+        .hidden {
+            display: none;
+        }
+        .auto-refresh {
+            margin-left: 10px;
+            display: flex;
+            align-items: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Scraper Job Debugger</h1>
+        
+        <div class="controls">
+            <button id="refresh-btn">Refresh Jobs</button>
+            <button id="log-btn">Log Status to Server</button>
+            <div class="auto-refresh">
+                <input type="checkbox" id="auto-refresh-cb" checked>
+                <label for="auto-refresh-cb">Auto refresh every 5 seconds</label>
+            </div>
+        </div>
+        
+        <div id="error-message" class="error-box hidden"></div>
+        
+        <h2>Active Jobs</h2>
+        <div id="job-list" class="job-list">
+            <p>Loading jobs...</p>
+        </div>
+    </div>
+
+    <script>
+        // DOM elements
+        const jobList = document.getElementById('job-list');
+        const refreshBtn = document.getElementById('refresh-btn');
+        const logBtn = document.getElementById('log-btn');
+        const errorMessage = document.getElementById('error-message');
+        const autoRefreshCb = document.getElementById('auto-refresh-cb');
+        
+        // State
+        let refreshInterval = null;
+        let jobs = [];
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchJobs();
+            
+            // Set up auto refresh
+            refreshInterval = setInterval(fetchJobs, 5000);
+            
+            // Event listeners
+            refreshBtn.addEventListener('click', fetchJobs);
+            logBtn.addEventListener('click', logStatus);
+            autoRefreshCb.addEventListener('change', toggleAutoRefresh);
+        });
+        
+        // Toggle auto refresh
+        function toggleAutoRefresh() {
+            if (autoRefreshCb.checked) {
+                refreshInterval = setInterval(fetchJobs, 5000);
+            } else {
+                clearInterval(refreshInterval);
+            }
+        }
+        
+        // Fetch job status
+        async function fetchJobs() {
+            try {
+                const response = await fetch('/api/scraper-monitor/status');
+                const data = await response.json();
+                
+                if (data.success) {
+                    jobs = data.jobs || [];
+                    renderJobs();
+                    errorMessage.classList.add('hidden');
+                } else {
+                    showError('Failed to fetch jobs: ' + data.message);
+                }
+            } catch (error) {
+                showError('Error fetching jobs: ' + error.message);
+            }
+        }
+        
+        // Log status to server
+        async function logStatus() {
+            try {
+                const response = await fetch('/api/scraper-monitor/log', {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    showSuccess('Job status logged to server');
+                } else {
+                    showError('Failed to log status: ' + data.message);
+                }
+            } catch (error) {
+                showError('Error logging status: ' + error.message);
+            }
+        }
+        
+        // Display error message
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.classList.remove('hidden');
+        }
+        
+        // Display success message
+        function showSuccess(message) {
+            errorMessage.textContent = message;
+            errorMessage.classList.remove('hidden');
+            errorMessage.style.background = '#eafaf1';
+            errorMessage.style.borderColor = '#2ecc71';
+            errorMessage.style.color = '#27ae60';
+            
+            // Reset after 3 seconds
+            setTimeout(() => {
+                errorMessage.classList.add('hidden');
+                errorMessage.style.background = '#fee';
+                errorMessage.style.borderColor = '#e74c3c';
+                errorMessage.style.color = '#c0392b';
+            }, 3000);
+        }
+        
+        // Render jobs
+        function renderJobs() {
+            if (jobs.length === 0) {
+                jobList.innerHTML = '<p>No active jobs found.</p>';
+                return;
+            }
+            
+            // Sort jobs by start time (newest first)
+            jobs.sort((a, b) => new Date(b.startTime) - new Date(a.startTime));
+            
+            let html = '';
+            
+            jobs.forEach(job => {
+                const duration = calculateDuration(job.startTime);
+                const statusClass = `status-${job.status}`;
+                
+                html += `
+                    <div class="job-card">
+                        <div class="job-header">
+                            <div>
+                                <strong>${job.type.toUpperCase()}</strong> 
+                                <span>(${job.enhanced ? '🚀 Enhanced' : '📄 Standard'})</span>
+                                <small>ID: ${job.jobId}</small>
+                            </div>
+                            <span class="status-badge ${statusClass}">${job.status.toUpperCase()}</span>
+                        </div>
+                        
+                        <div class="job-details">
+                            <div class="detail-item">
+                                <span class="detail-label">Started:</span>
+                                ${formatDate(job.startTime)}
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Duration:</span>
+                                ${duration}
+                            </div>
+                        </div>
+                        
+                        ${renderJobResults(job)}
+                    </div>
+                `;
+            });
+            
+            jobList.innerHTML = html;
+        }
+        
+        // Render job results or error
+        function renderJobResults(job) {
+            if (job.status === 'completed' && job.results) {
+                const resultCount = Array.isArray(job.results) ? job.results.length : 0;
+                
+                return `
+                    <div class="job-results">
+                        <div class="results-summary">
+                            <strong>Results:</strong> ${resultCount} listings found
+                        </div>
+                        ${resultCount > 0 ? `<button onclick="alert('View results not implemented')">View Results</button>` : ''}
+                    </div>
+                `;
+            } else if (job.status === 'failed' && job.error) {
+                return `
+                    <div class="job-results">
+                        <div class="error-box">
+                            <strong>Error:</strong> ${job.error.message || 'Unknown error'}
+                            ${job.error.name ? `<br><strong>Type:</strong> ${job.error.name}` : ''}
+                            ${job.error.code ? `<br><strong>Code:</strong> ${job.error.code}` : ''}
+                        </div>
+                    </div>
+                `;
+            }
+            
+            return '';
+        }
+        
+        // Format date
+        function formatDate(dateStr) {
+            const date = new Date(dateStr);
+            return date.toLocaleTimeString();
+        }
+        
+        // Calculate duration
+        function calculateDuration(startTimeStr) {
+            const startTime = new Date(startTimeStr).getTime();
+            const now = Date.now();
+            const diffSeconds = Math.floor((now - startTime) / 1000);
+            
+            if (diffSeconds < 60) {
+                return `${diffSeconds} seconds`;
+            } else if (diffSeconds < 3600) {
+                return `${Math.floor(diffSeconds / 60)} minutes`;
+            } else {
+                return `${Math.floor(diffSeconds / 3600)} hours`;
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,221 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const prisma_1 = require("../db/prisma");
+const crypto_1 = require("crypto");
+const webhookQueue_1 = require("../queues/webhookQueue");
+const crypto_2 = __importDefault(require("crypto"));
+const webhookWorker_1 = require("../workers/webhookWorker");
+const router = (0, express_1.Router)();
+function generateSecret() { return (0, crypto_1.randomBytes)(32).toString('hex'); }
+router.get('/webhooks', async (_req, res) => {
+    const subs = await prisma_1.prisma.webhookSubscription.findMany({ orderBy: { createdAt: 'desc' } });
+    res.json({ data: subs });
+});
+router.post('/webhooks', async (req, res) => {
+    const { targetUrl, eventTypes } = req.body || {};
+    if (!targetUrl || !Array.isArray(eventTypes) || !eventTypes.length)
+        return res.status(400).json({ error: 'invalid_payload' });
+    const sub = await prisma_1.prisma.webhookSubscription.create({ data: { targetUrl, eventTypes, signingSecret: generateSecret() } });
+    res.json({ data: sub });
+});
+router.patch('/webhooks/:id', async (req, res) => {
+    const { id } = req.params;
+    const { targetUrl, isActive, eventTypes } = req.body || {};
+    const data = {};
+    if (targetUrl)
+        data.targetUrl = targetUrl;
+    if (typeof isActive === 'boolean')
+        data.isActive = isActive;
+    if (Array.isArray(eventTypes))
+        data.eventTypes = eventTypes;
+    const sub = await prisma_1.prisma.webhookSubscription.update({ where: { id }, data }).catch(() => null);
+    if (!sub)
+        return res.status(404).json({ error: 'not_found' });
+    res.json({ data: sub });
+});
+router.delete('/webhooks/:id', async (req, res) => {
+    const { id } = req.params;
+    await prisma_1.prisma.webhookSubscription.delete({ where: { id } }).catch(() => null);
+    res.json({ success: true });
+});
+// Manual test fire
+router.post('/webhook-test', async (req, res) => {
+    const { subscriptionId, eventType = 'test.event', payload = { ok: true } } = req.body || {};
+    if (!subscriptionId)
+        return res.status(400).json({ error: 'subscriptionId_required' });
+    const job = await (0, webhookQueue_1.enqueueWebhookDelivery)({ subscriptionId, eventType, payload });
+    res.json({ queued: true });
+});
+// Verification endpoint: send a challenge event to arbitrary URL without creating subscription
+router.post('/webhooks/verify', async (req, res) => {
+    const { url, eventType = 'webhook.challenge' } = req.body || {};
+    if (!url)
+        return res.status(400).json({ error: 'url_required' });
+    const body = JSON.stringify({ event: eventType, data: { challenge: true, timestamp: Date.now() } });
+    const secret = crypto_2.default.randomBytes(16).toString('hex');
+    const sig = crypto_2.default.createHmac('sha256', secret).update(body).digest('hex');
+    const started = Date.now();
+    let status = 0;
+    let error = null;
+    try {
+        const resp = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Signature': `sha256=${sig}`, 'X-Timestamp': Date.now().toString(), 'X-Event-Type': eventType, 'X-Webhook-Verification': 'true' }, body });
+        status = resp.status;
+    }
+    catch (e) {
+        error = e.message;
+    }
+    const duration = Date.now() - started;
+    res.json({ delivered: status >= 200 && status < 300, status, durationMs: duration, error });
+});
+// Failures list with filters: subscriptionId, eventType, since, limit, offset
+router.get('/webhook-failures', async (req, res) => {
+    const { subscriptionId, eventType, since, limit = '50', offset = '0', includeResolved } = req.query;
+    const take = Math.min(parseInt(limit) || 50, 200);
+    const skip = parseInt(offset) || 0;
+    const where = {};
+    if (subscriptionId)
+        where.subscriptionId = subscriptionId;
+    if (eventType)
+        where.eventType = eventType;
+    if (since)
+        where.createdAt = { gte: new Date(since) };
+    if (!includeResolved)
+        where.isResolved = false;
+    const [rows, total] = await Promise.all([
+        prisma_1.prisma.webhookDeliveryFailure.findMany({ where, orderBy: { createdAt: 'desc' }, take, skip }),
+        prisma_1.prisma.webhookDeliveryFailure.count({ where })
+    ]);
+    const enriched = rows.map((r) => ({
+        ...r,
+        attemptsMade: r.attempts,
+        lastError: r.lastError || r.finalError,
+        lastAttemptAt: r.lastAttemptAt || r.createdAt
+    }));
+    res.json({ data: enriched, total, limit: take, offset: skip });
+});
+// Delivery history listing
+router.get('/webhook-deliveries', async (req, res) => {
+    const { subscriptionId, eventType, status, isResolved, createdAfter, createdBefore, limit = '50', offset = '0' } = req.query;
+    const take = Math.min(parseInt(limit) || 50, 200);
+    const skip = parseInt(offset) || 0;
+    const where = {};
+    const filtersApplied = [];
+    if (subscriptionId) {
+        where.subscriptionId = subscriptionId;
+        filtersApplied.push('subscriptionId');
+    }
+    if (eventType) {
+        where.eventType = eventType;
+        filtersApplied.push('eventType');
+    }
+    if (status) {
+        where.status = status;
+        filtersApplied.push('status');
+    }
+    if (typeof isResolved !== 'undefined') {
+        where.isResolved = isResolved === 'true';
+        filtersApplied.push('isResolved');
+    }
+    if (createdAfter || createdBefore) {
+        where.createdAt = {};
+        if (createdAfter) {
+            where.createdAt.gte = new Date(createdAfter);
+            filtersApplied.push('createdAfter');
+        }
+        if (createdBefore) {
+            where.createdAt.lte = new Date(createdBefore);
+            filtersApplied.push('createdBefore');
+        }
+    }
+    // Fail fast if model is missing (migration drift) to avoid cryptic undefined errors
+    if (!prisma_1.prisma.webhookDeliveryLog) {
+        return res.status(500).json({ error: 'webhookDeliveryLog_model_missing', detail: 'Pending migration or schema drift detected' });
+    }
+    const [rows, total] = await Promise.all([
+        prisma_1.prisma.webhookDeliveryLog.findMany({ where, orderBy: { createdAt: 'desc' }, take, skip }).catch(() => []),
+        prisma_1.prisma.webhookDeliveryLog.count({ where }).catch(() => 0)
+    ]);
+    res.json({ data: rows, meta: { totalCount: total, filtersApplied, pagination: { limit: take, offset: skip } } });
+});
+// Retry single failure
+router.post('/webhook-failures/:id/retry', async (req, res) => {
+    const { id } = req.params;
+    const failure = await prisma_1.prisma.webhookDeliveryFailure.findUnique({ where: { id } });
+    if (!failure)
+        return res.status(404).json({ error: 'not_found' });
+    // Fire again
+    const job = await (0, webhookQueue_1.enqueueWebhookDelivery)({ subscriptionId: failure.subscriptionId, eventType: failure.eventType, payload: failure.payload, failureId: failure.id });
+    res.json({ retried: true, jobId: job.id });
+});
+// Bulk retry with optional filters
+router.post('/webhook-failures/retry-all', async (req, res) => {
+    const { subscriptionId, eventType } = req.body || {};
+    const where = {};
+    if (subscriptionId)
+        where.subscriptionId = subscriptionId;
+    if (eventType)
+        where.eventType = eventType;
+    const failures = await prisma_1.prisma.webhookDeliveryFailure.findMany({ where, take: 500 });
+    const jobs = [];
+    for (const f of failures) {
+        const job = await (0, webhookQueue_1.enqueueWebhookDelivery)({ subscriptionId: f.subscriptionId, eventType: f.eventType, payload: f.payload, failureId: f.id });
+        jobs.push(job.id);
+    }
+    res.json({ retried: failures.length, jobIds: jobs });
+});
+// Replay single failure (manual explicit replay distinct from retry)
+router.post('/webhook-failures/:id/replay', async (req, res) => {
+    const { id } = req.params;
+    const failure = await prisma_1.prisma.webhookDeliveryFailure.findUnique({ where: { id } });
+    if (!failure)
+        return res.status(404).json({ error: 'not_found' });
+    if (failure.isResolved)
+        return res.status(400).json({ error: 'already_resolved' });
+    try {
+        const job = await (0, webhookQueue_1.enqueueWebhookDelivery)({ subscriptionId: failure.subscriptionId, eventType: failure.eventType, payload: failure.payload, failureId: failure.id, replayMode: 'single' });
+        // Track replay attempt (we only mark resolved on success inside worker)
+        global.__WEBHOOK_REPLAY_PENDING__ = (global.__WEBHOOK_REPLAY_PENDING__ || 0) + 1;
+        res.json({ jobId: job.id, replayed: true });
+    }
+    catch (e) {
+        res.status(500).json({ error: 'enqueue_failed', detail: e?.message });
+    }
+});
+// Replay all unresolved failures matching optional filters
+router.post('/webhook-failures/replay-all', async (req, res) => {
+    const { subscriptionId, eventType } = req.body || {};
+    const where = { isResolved: false };
+    if (subscriptionId)
+        where.subscriptionId = subscriptionId;
+    if (eventType)
+        where.eventType = eventType;
+    const failures = await prisma_1.prisma.webhookDeliveryFailure.findMany({ where, take: 500 });
+    const jobIds = [];
+    for (const f of failures) {
+        try {
+            const job = await (0, webhookQueue_1.enqueueWebhookDelivery)({ subscriptionId: f.subscriptionId, eventType: f.eventType, payload: f.payload, failureId: f.id, replayMode: 'bulk' });
+            jobIds.push(job.id.toString());
+        }
+        catch { }
+    }
+    global.__WEBHOOK_REPLAY_PENDING__ = (global.__WEBHOOK_REPLAY_PENDING__ || 0) + jobIds.length;
+    res.json({ replayed: jobIds.length, jobIds });
+});
+// Simple metrics exposition specific to webhooks (to be merged into global /metrics later)
+router.get('/webhook-metrics', async (_req, res) => {
+    const activeSubs = await prisma_1.prisma.webhookSubscription.count({ where: { isActive: true } });
+    res.json({ delivered: webhookWorker_1.webhookMetrics.delivered, failed: webhookWorker_1.webhookMetrics.failed, p50: percentile(webhookWorker_1.webhookMetrics.durations, 50), p95: percentile(webhookWorker_1.webhookMetrics.durations, 95), activeSubscriptions: activeSubs });
+});
+function percentile(values, p) {
+    if (!values.length)
+        return 0;
+    const sorted = [...values].sort((a, b) => a - b);
+    const idx = Math.floor((p / 100) * (sorted.length - 1));
+    return sorted[idx];
+}
+exports.default = router;
+//# sourceMappingURL=webhookAdmin.js.map

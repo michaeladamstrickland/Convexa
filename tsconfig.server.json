@@ -1,0 +1,38 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+  // Set root to workspace to allow imports from backend schemas
+  "rootDir": ".",
+    "outDir": "./dist-server",
+    "noEmit": true,
+    // Keep fast, strict-enough server checks without pulling in JSX/React
+    "skipLibCheck": true
+  },
+  "include": [
+  "src/**/*.ts",
+  "backend/src/packages/schemas/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "dist-server",
+    "tests",
+    "frontend",
+    "app.js",
+    "**/*.test.ts",
+    // Exclude legacy/experimental or FE/SQLite paths not part of server backend
+    "src/components/**",
+    "src/pages/**",
+    "src/index.tsx",
+    "src/App.tsx",
+  "src/app.ts",
+  "src/server.ts",
+    "src/routes/experimentalRoutes.ts",
+  "src/routes/propertySearchRoutes.ts",
+    "src/controllers/unifiedSearchController.ts",
+    "src/zip-search-integration.ts",
+    "src/services/dealAnalysisService.ts",
+  "src/services/realDataService.ts",
+  "src/realServer.ts"
+  ]
+}

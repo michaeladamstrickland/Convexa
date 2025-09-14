@@ -1,0 +1,5 @@
+- [ ] Migrate to PostgreSQL
+- [ ] Implement BullMQ with Redis
+- [ ] Add proxy rotation system
+- [ ] Implement zod validation
+- [ ] Build feature store schema
