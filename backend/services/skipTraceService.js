@@ -78,9 +78,19 @@ class SkipTraceService {
         const schemaPath = path.join(__dirname, '../db/skip_trace_schema_update.sql');
         
         if (fs.existsSync(schemaPath)) {
-          const schemaSQL = fs.readFileSync(schemaPath, 'utf8');
-          this.db.exec(schemaSQL);
-          console.log('Applied full skip trace schema update');
+          let schemaSQL = fs.readFileSync(schemaPath, 'utf8');
+          // Strip ALTER statements to avoid duplicate-column errors; runtime ensures columns.
+          schemaSQL = schemaSQL
+            .split('\n')
+            .filter(line => !/^\s*ALTER\s+TABLE\s+/i.test(line))
+            .join('\n');
+          try {
+            this.db.exec(schemaSQL);
+            console.log('Applied skip trace schema (CREATE statements only)');
+          } catch (e) {
+            console.warn('Schema exec warning (continuing with basic tables):', e?.message || e);
+            this.createBasicTables();
+          }
         } else {
           // Fallback to basic tables if schema file not found
           this.createBasicTables();

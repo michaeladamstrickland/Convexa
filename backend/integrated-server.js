@@ -1412,7 +1412,25 @@ const startServer = async () => {
 
   // === Artifacts listing & signed download ===
   const ARTIFACT_ROOT = path.resolve(__dirname, '..', 'run_reports');
-  const { signPath: signUtil, verifyPath: verifyUtil } = await import('../src/lib/signedUrl.js').catch(() => import('../src/lib/signedUrl.ts'));
+  // Robustly load artifact signer with safe JS fallback (no TS at runtime)
+  let signUtil, verifyUtil;
+  try {
+    ({ signPath: signUtil, verifyPath: verifyUtil } = await import('../src/lib/signedUrl.js'));
+  } catch (_) {
+    try {
+      ({ signPath: signUtil, verifyPath: verifyUtil } = await import('../src/lib/signedUrl.ts'));
+    } catch (_) {
+      const cryptoMod = await import('crypto');
+      signUtil = (pathRel, expEpochSec, secret) =>
+        cryptoMod.createHmac('sha256', String(secret)).update(`${String(pathRel)}|${Number(expEpochSec)}`).digest('hex');
+      verifyUtil = (pathRel, expEpochSec, sig, secret) => {
+        const now = Math.floor(Date.now() / 1000);
+        if (!expEpochSec || Number(expEpochSec) < now) return false;
+        const expected = signUtil(pathRel, expEpochSec, secret);
+        try { return cryptoMod.timingSafeEqual(Buffer.from(expected), Buffer.from(String(sig))); } catch { return false; }
+      };
+    }
+  }
   const defaultTtl = parseInt(process.env.ARTIFACT_URL_TTL_SECONDS || '86400', 10);
   app.get('/admin/artifacts', (req, res) => {
     try {
