@@ -26,8 +26,8 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install dependencies
-        run: npm install
+      - name: Install dependencies (clean)
+        run: npm ci
 
       - name: Run tests (Vitest with coverage)
         run: npm run coverage
