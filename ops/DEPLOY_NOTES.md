@@ -1,3 +1,27 @@
+## Railway (Docker) deploy — staging
+
+See `ops/deploy/railway.md` for the full step-by-step.
+
+Required service env vars:
+
+- PORT=8080
+- NODE_ENV=staging
+- SQLITE_DB_PATH=/data/convexa.db
+- LOCAL_STORAGE_PATH=/data/run_storage
+- STORAGE_BACKEND=local
+- ARTIFACT_SIGNING_SECRET=<64-hex>
+- ARTIFACT_URL_TTL_SECONDS=86400
+- REDIS_URL=<from Railway>
+- TWILIO_AUTH_TOKEN=dev-token
+- SKIP_TRACE_DEMO_MODE=true  # keep provider spend at $0
+- X_ADMIN_TOKEN=<64-hex>
+- BASIC_AUTH_USER=staging
+- BASIC_AUTH_PASS=<strong-pass>
+
+Smoke:
+
+Run `npm run ops:staging:smoke` with BASE set to the Railway URL and BASIC_AUTH_USER/PASS if enabled.
+
 # Staging Deployment Notes
 
 ## Provider Choice

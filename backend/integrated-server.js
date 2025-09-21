@@ -199,6 +199,24 @@ const startServer = async () => {
   // Needed for Twilio form-encoded webhooks
   app.use(express.urlencoded({ extended: true }));
 
+  // Optional basic auth for /metrics and /admin, gated by env
+  const basicAuthUser = process.env.BASIC_AUTH_USER;
+  const basicAuthPass = process.env.BASIC_AUTH_PASS;
+  function basicAuth(req, res, next) {
+    if (!basicAuthUser || !basicAuthPass) return next();
+    const hdr = req.headers['authorization'] || '';
+    const ok = hdr.startsWith('Basic ')
+      && Buffer.from(hdr.slice(6), 'base64').toString() === `${basicAuthUser}:${basicAuthPass}`;
+    if (!ok) {
+      res.set('WWW-Authenticate', 'Basic realm="convexa"');
+      return res.status(401).send('Unauthorized');
+    }
+    next();
+  }
+  // Gate only if creds provided
+  app.use('/metrics', basicAuth);
+  app.use('/admin', basicAuth);
+
   // --- Lightweight Problem+JSON helpers and validation wrappers (local, additive) ---
   function sendProblem(res, code, message, field, status = 400) {
     res.status(status).json({ code, message, ...(field ? { field } : {}) });

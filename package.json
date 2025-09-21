@@ -52,7 +52,8 @@
     "ops:prom:restart": "docker compose restart prometheus",
     "ops:warm": "node scripts/smoke/warmMetrics.mjs",
     "ops:prom:check": "node scripts/ops/checkProm.mjs",
-    "ops:dashboard:notes": "echo Import ops/dashboards/convexa.json in Grafana, pick Prometheus DS, set Last 30m + 10s refresh."
+    "ops:dashboard:notes": "echo Import ops/dashboards/convexa.json in Grafana, pick Prometheus DS, set Last 30m + 10s refresh.",
+    "ops:staging:smoke": "node scripts/smoke/stagingSmoke.mjs"
   },
   "keywords": [
     "real-estate",
