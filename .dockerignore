@@ -1,0 +1,7 @@
+# ignore everything by default
+**
+# keep only these
+!package*.json
+!backend/**
+!ops/**
+!Dockerfile

@@ -199,6 +199,24 @@ const startServer = async () => {
   // Needed for Twilio form-encoded webhooks
   app.use(express.urlencoded({ extended: true }));
 
+  // Optional basic auth for /metrics and /admin, gated by env
+  const basicAuthUser = process.env.BASIC_AUTH_USER;
+  const basicAuthPass = process.env.BASIC_AUTH_PASS;
+  function basicAuth(req, res, next) {
+    if (!basicAuthUser || !basicAuthPass) return next();
+    const hdr = req.headers['authorization'] || '';
+    const ok = hdr.startsWith('Basic ')
+      && Buffer.from(hdr.slice(6), 'base64').toString() === `${basicAuthUser}:${basicAuthPass}`;
+    if (!ok) {
+      res.set('WWW-Authenticate', 'Basic realm="convexa"');
+      return res.status(401).send('Unauthorized');
+    }
+    next();
+  }
+  // Gate only if creds provided
+  app.use('/metrics', basicAuth);
+  app.use('/admin', basicAuth);
+
   // --- Lightweight Problem+JSON helpers and validation wrappers (local, additive) ---
   function sendProblem(res, code, message, field, status = 400) {
     res.status(status).json({ code, message, ...(field ? { field } : {}) });
@@ -1300,6 +1318,11 @@ const startServer = async () => {
     }
   });
 
+  // Resolve storage root (persistent if LOCAL_STORAGE_PATH provided)
+  const STORAGE_ROOT = process.env.LOCAL_STORAGE_PATH
+    ? path.resolve(process.env.LOCAL_STORAGE_PATH)
+    : path.resolve(__dirname, '..');
+
   // === Dialer v1 — Vertical slice (minimal, stub-friendly) ===
   // Metrics (will be initialized if prom-client is present)
   let dialAttemptsCounter = null;
@@ -1324,7 +1347,7 @@ const startServer = async () => {
       // Emit metric
       try { dialAttemptsCounter && dialAttemptsCounter.inc({ provider: 'twilio', status: 'queued' }); } catch {}
       // Persist a tiny dial stub record on disk for later hooks
-      const baseDir = path.resolve(__dirname, '..', 'artifacts', 'dialer');
+  const baseDir = path.resolve(STORAGE_ROOT, 'artifacts', 'dialer');
       fs.mkdirSync(baseDir, { recursive: true });
       const dialRec = { dialId, leadId, toNumber, fromNumber, record, createdAt: new Date().toISOString() };
       fs.writeFileSync(path.join(baseDir, `${dialId}.json`), JSON.stringify(dialRec, null, 2));
@@ -1371,7 +1394,7 @@ const startServer = async () => {
         return sendProblem(res, 'validation_error', issue?.message || 'Invalid webhook', field, 400);
       }
       const { CallSid, RecordingUrl, RecordingDuration } = parsed.data;
-      const baseDir = path.resolve(__dirname, '..', 'artifacts', 'dialer', 'recordings');
+  const baseDir = path.resolve(STORAGE_ROOT, 'artifacts', 'dialer', 'recordings');
       fs.mkdirSync(baseDir, { recursive: true });
       fs.writeFileSync(path.join(baseDir, `${CallSid}.json`), JSON.stringify({ CallSid, RecordingUrl, RecordingDuration, at: new Date().toISOString() }, null, 2));
       // In a future step: enqueue ASR job here
@@ -1399,7 +1422,7 @@ const startServer = async () => {
       }
       const { dialId, transcriptUrl, words, latencyMs } = parsed.data;
       // Store transcript reference
-      const baseDir = path.resolve(__dirname, '..', 'artifacts', 'dialer', 'transcripts');
+  const baseDir = path.resolve(STORAGE_ROOT, 'artifacts', 'dialer', 'transcripts');
       fs.mkdirSync(baseDir, { recursive: true });
       fs.writeFileSync(path.join(baseDir, `${dialId}.json`), JSON.stringify({ dialId, transcriptUrl, words, latencyMs, at: new Date().toISOString() }, null, 2));
       // Observe latency metric (seconds)
@@ -1411,7 +1434,7 @@ const startServer = async () => {
   });
 
   // === Artifacts listing & signed download ===
-  const ARTIFACT_ROOT = path.resolve(__dirname, '..', 'run_reports');
+  const ARTIFACT_ROOT = path.resolve(STORAGE_ROOT, 'run_reports');
   // Robustly load artifact signer with safe JS fallback (never import TS at runtime)
   let signUtil, verifyUtil;
   try {
