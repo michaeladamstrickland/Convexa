@@ -10,7 +10,7 @@ const PORT = 3030;
 
 // Simple route
 app.get('/', (req, res) => {
-  res.send('Hello from LeadFlow AI');
+  res.send('Hello from Convexa AI');
 });
 
 // Health check

@@ -1,0 +1,35 @@
+[SQLite] Using DB at: C:/Projects/Convexa/backend/data/convexa.db
+[SkipTrace] DEMO_MODE = false
+[SkipTrace] PRIMARY_PROVIDER = batchdata
+[SkipTrace] FALLBACK_ENABLED = true
+[Server] Port = 6003
+Using BatchData URL: https://api.batchdata.com/api/v1/property/skip-trace
+Auth: Authorization: Bearer <REDACTED>
+Looking for SQLite database file at: C:\Projects\Convexa\backend\data\convexa.db
+✓ Database found at: C:\Projects\Convexa\backend\data\convexa.db
+[SQLite] PRAGMA journal_mode=wal busy_timeout=5000 synchronous=NORMAL
+prom-client not available; /metrics disabled
+🚀 FlipTracker Integrated API Server running on port 6003
+💾 Connected to database with 926 leads
+🏠 ATTOM Property Data API enabled
+✅ API endpoints ready for use:
+  - Health: http://localhost:6003/health
+  - Search: http://localhost:6003/api/zip-search-new/search?limit=5
+  - Analytics: http://localhost:6003/api/zip-search-new/revenue-analytics
+  - ATTOM Property Lookup: http://localhost:6003/api/attom/property/address?address=123+Main+St&city=Beverly+Hills&state=CA&zip=90210
+2025-09-19T11:46:07.752Z - GET /health
+2025-09-19T11:46:07.792Z - GET /health
+2025-09-19T11:46:19.754Z - GET /api/zip-search-new/search
+2025-09-19T11:46:19.761Z - POST /api/leads/8eb71d56-47c0-464f-8e2b-164cd48f4f36/skiptrace
+2025-09-19T11:47:05.575Z - GET /api/zip-search-new/search
+2025-09-19T11:47:05.582Z - POST /api/leads/8eb71d56-47c0-464f-8e2b-164cd48f4f36/skiptrace
+Failed to update provider_calls with idempotency: SqliteError: no such column: cost_cents
+    at Database.prepare (C:\Projects\Convexa\backend\node_modules\better-sqlite3\lib\methods\wrappers.js:5:21)
+    at SkipTraceService.updateLastProviderCallWithIdem (file:///C:/Projects/Convexa/backend/services/skipTraceService.js:359:15)
+    at SkipTraceService.skipTraceLeadById (file:///C:/Projects/Convexa/backend/services/skipTraceService.js:1330:18)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///C:/Projects/Convexa/backend/integrated-server.js:999:18 {
+  code: 'SQLITE_ERROR'
+}
+2025-09-19T11:47:13.134Z - GET /api/zip-search-new/search
+2025-09-19T11:47:13.140Z - POST /api/leads/8eb71d56-47c0-464f-8e2b-164cd48f4f36/skiptrace

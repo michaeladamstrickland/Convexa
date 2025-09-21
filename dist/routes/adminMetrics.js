@@ -37,7 +37,72 @@ const express_1 = require("express");
 const prisma_1 = require("../db/prisma");
 const matchmakingQueue_1 = require("../queues/matchmakingQueue");
 const enqueueEnrichmentJob_1 = require("../utils/enqueueEnrichmentJob");
+const webhookQueue_1 = require("../queues/webhookQueue");
 const router = (0, express_1.Router)();
+// ---- CRM Activity Logging ----
+const crmMetrics = global.__CRM_ACTIVITY_METRICS__ || { total: 0, webhook: { success: 0, fail: 0 } };
+global.__CRM_ACTIVITY_METRICS__ = crmMetrics;
+// POST /api/admin/crm-activity — manual log + optional webhook emit
+router.post('/crm-activity', async (req, res) => {
+    try {
+        const { type, propertyId, leadId, userId, metadata, emitWebhook = true } = req.body || {};
+        if (!type)
+            return res.status(400).json({ error: 'missing_type' });
+        const p = prisma_1.prisma;
+        const row = await p.crmActivity.create({ data: { type, propertyId, leadId, userId, metadata } });
+        crmMetrics.total++;
+        if (emitWebhook) {
+            try {
+                const subs = await p.webhookSubscription.findMany({ where: { isActive: true } }).catch(() => []);
+                const interested = subs.filter(s => Array.isArray(s.eventTypes) && s.eventTypes.includes('crm.activity'));
+                if (interested.length) {
+                    const payload = { id: row.id, type: row.type, propertyId: row.propertyId, leadId: row.leadId, userId: row.userId, metadata: row.metadata, createdAt: row.createdAt };
+                    await Promise.all(interested.map(s => (0, webhookQueue_1.enqueueWebhookDelivery)({ subscriptionId: s.id, eventType: 'crm.activity', payload })));
+                    crmMetrics.webhook.success += interested.length;
+                }
+            }
+            catch {
+                crmMetrics.webhook.fail++;
+            }
+        }
+        return res.status(201).json({ success: true, data: row });
+    }
+    catch (e) {
+        return res.status(500).json({ error: 'crm_activity_create_failed', message: e?.message });
+    }
+});
+// GET /api/admin/crm-activity — cursor pagination
+router.get('/crm-activity', async (req, res) => {
+    try {
+        const { type, propertyId, userId, leadId, 'createdAt[from]': from, 'createdAt[to]': to, limit = '50', cursor, order = 'desc' } = req.query;
+        const take = Math.min(parseInt(limit) || 50, 200);
+        const where = {};
+        if (type)
+            where.type = type;
+        if (propertyId)
+            where.propertyId = propertyId;
+        if (userId)
+            where.userId = userId;
+        if (leadId)
+            where.leadId = leadId;
+        if (from || to) {
+            where.createdAt = {};
+            if (from)
+                where.createdAt.gte = new Date(from);
+            if (to)
+                where.createdAt.lte = new Date(to);
+        }
+        const orderBy = { createdAt: (String(order).toLowerCase() === 'asc' ? 'asc' : 'desc') };
+        const p = prisma_1.prisma;
+        const rows = await p.crmActivity.findMany({ where, orderBy, take: take + 1, ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}) });
+        const nextCursor = rows.length > take ? rows[take].id : null;
+        const data = rows.slice(0, take);
+        res.json({ data, meta: { nextCursor, pagination: { limit: take } } });
+    }
+    catch (e) {
+        res.status(500).json({ error: 'crm_activity_query_failed', message: e?.message });
+    }
+});
 function parseDate(d) { if (!d)
     return null; const dt = new Date(d); return isNaN(dt.getTime()) ? null : dt; }
 // GET /api/admin/dashboard-metrics

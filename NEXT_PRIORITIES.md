@@ -1,4 +1,4 @@
-# 🚀 LeadFlow AI - Next Development Priorities
+# 🚀 Convexa AI - Next Development Priorities
 
 ## ✅ Already Implemented
 - **Kanban Board System** - Visual lead management pipeline

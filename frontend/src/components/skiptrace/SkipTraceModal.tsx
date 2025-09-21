@@ -1,21 +1,12 @@
 import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { skipTraceLead } from "../../services/skipTraceAPI";
+import { useSkipTrace } from "../../hooks/useSkipTrace";
 import { PhoneIcon, MailIcon } from "lucide-react";
 
 type Props = { leadId: string; onClose: () => void };
 
 export function SkipTraceModal({ leadId, onClose }: Props) {
-  const queryClient = useQueryClient();
   const [respectQuietHours, setRespectQuietHours] = useState(true);
-
-  const m = useMutation({
-    mutationFn: () => skipTraceLead(leadId, { respectQuietHours }),
-    onSuccess: () => {
-      // Invalidate the lead contacts query to refresh data
-      queryClient.invalidateQueries({ queryKey: ["leadContacts", leadId] });
-    }
-  });
+  const m = useSkipTrace(leadId);
 
   return (
     <div className="fixed inset-0 z-50 grid place-items-center bg-black/50">
@@ -36,15 +27,15 @@ export function SkipTraceModal({ leadId, onClose }: Props) {
               Respect quiet hours (by lead timezone)
             </label>
             <button
-              onClick={() => m.mutate()}
-              disabled={m.isLoading}
+              onClick={() => m.mutate({ respectQuietHours })}
+              disabled={m.isPending}
               className="px-3 py-1.5 rounded-md bg-indigo-600 text-white disabled:opacity-50"
             >
-              {m.isLoading ? "Tracing…" : "Run Trace"}
+              {m.isPending ? "Tracing…" : "Run Trace"}
             </button>
           </div>
 
-          {m.isLoading && (
+          {m.isPending && (
             <div className="rounded-md bg-indigo-50 p-3 text-sm text-indigo-700">
               Contacting providers… Batch → Whitepages → Public
             </div>
@@ -56,7 +47,7 @@ export function SkipTraceModal({ leadId, onClose }: Props) {
             </div>
           )}
 
-          {m.isSuccess && (
+          {m.isSuccess && m.data && (
             <div className="space-y-4">
               <SummaryBar
                 providers={m.data.providersTried}
@@ -134,7 +125,7 @@ function ResultsList({
               badges={[
                 p.dnc ? "DNC" : null,
                 p.source ? `src:${p.source}` : null,
-              ].filter(Boolean)}
+              ].filter((b): b is string => !!b)}
               actions={[
                 { label: "Call", onClick: () => {/* dial */} },
                 { label: "Text", onClick: () => {/* sms */} },
@@ -154,7 +145,7 @@ function ResultsList({
               icon={<MailIcon size={16} />}
               value={e.value}
               meta={`${(e.confidence * 100).toFixed(0)}%`}
-              badges={[e.source ? `src:${e.source}` : null].filter(Boolean)}
+              badges={[e.source ? `src:${e.source}` : null].filter((b): b is string => !!b)}
               actions={[
                 { label: "Email", onClick: () => {/* compose */} },
                 { label: "Bad", onClick: () => {/* mark bad */} },

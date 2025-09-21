@@ -4,6 +4,7 @@
   "ignore": ["src/**/*.test.ts", "src/**/*.spec.ts"],
   "exec": "tsx watch src/server.ts",
   "env": {
-    "NODE_ENV": "development"
+    "NODE_ENV": "development",
+    "PORT": "5001"
   }
 }

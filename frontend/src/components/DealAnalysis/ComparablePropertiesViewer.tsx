@@ -161,7 +161,7 @@ const ComparablePropertiesViewer: React.FC<ComparablePropertiesViewerProps> = ({
         />
         <CardContent>
           <Grid container spacing={2}>
-            <Grid xs={12} md={6}>
+            <Grid item xs={12} md={6}>
               <Typography variant="body2" gutterBottom>
                 After Repair Value (ARV) based on comparables:
               </Typography>
@@ -172,7 +172,7 @@ const ComparablePropertiesViewer: React.FC<ComparablePropertiesViewerProps> = ({
                 {excludedComps.length > 0 && `${excludedComps.length} comparable(s) excluded from calculation`}
               </Typography>
             </Grid>
-            <Grid xs={12} md={6}>
+            <Grid item xs={12} md={6}>
               <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
                 <TextField
                   label="Manual ARV Override"
@@ -314,7 +314,7 @@ const ComparablePropertiesViewer: React.FC<ComparablePropertiesViewerProps> = ({
                           </Typography>
                           <Grid container spacing={1}>
                             {comp.adjustments.map((adj, i) => (
-                              <Grid key={i}>
+                              <Grid item key={i}>
                                 <Chip 
                                   size="small" 
                                   label={`${adj.label}: ${formatCurrency(adj.amount)}`} 

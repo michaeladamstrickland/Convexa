@@ -1,0 +1,610 @@
+LeadID,Address,Owner,Phone1,Phone2,Phone3,Email1,Email2,Email3,PhonesCount,EmailsCount,HasDNC,Provider,Cached
+1,"113 Elgin Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+10,"103 Ardmore Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+100,"5 Cuthbert Cir,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+101,"11 Penn Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+102,"1019 Emerald Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+103,"238 Lawnside Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+104,"1114 Park Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+105,"615 Cedar Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+106,"114 Dill Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+107,"935 Linwood Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+108,"228 Virginia Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+109,"100 Ogden Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+11,"530 Maple Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+110,"419 Melrose Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+111,"1116 Park Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+112,"303 Evergreen Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+113,"39 Cambridge Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+114,"122 Melrose Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+115,"58 Strawbridge Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+116,"122 Penn Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+117,"23 Strawbridge Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+118,"108 Stratford Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+119,"210 W Cuthbert Blvd,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+12,"121 E Madison Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+120,"33 Strawbridge Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+121,"120 Washington Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+122,"106 W Cuthbert Blvd,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+123,"543 Haddon Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+124,"22 W Gorman Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+125,"413 Park Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+126,"519 Cedar Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+127,"902 Oriental Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+128,"262 Haddon Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+129,"1 Center St,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+13,"19 Crestmont Ter,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+130,"74 Haddon Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+131,"404 Haddon Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+132,"213 Carlton Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+133,"7 Maple Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+134,"82 Virginia Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+135,"225 Hazel Ter,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+136,"302 Evergreen Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+137,"17 Walton Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+138,"922 Linwood Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+139,"530 Haddon Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+14,"313 Lakeview Dr,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+140,"233 E Madison Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+141,"22 Lincoln Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+142,"18 E Summerfield Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+143,"118 E Madison Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+144,"204 E Madison Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+145,"10 Maple Ln,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+146,"21 Ardmore Ter,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+147,"200 Dayton Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+148,"35 Woodlawn Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+149,"604 Lees Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+15,"22 Cooper St,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+150,"411 Maple Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+151,"461 Conger Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+152,"247 Harvard Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+153,"213 Lees Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+154,"12 E Palmer Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+155,"125 Ardmore Ter,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+156,"307 Westmont Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+157,"53 Addison Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+158,"617 Park Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+159,"240 Crestmont Ter,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+16,"105 Center St,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+160,"42 W Linden Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+161,"107 E Browning Rd,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+162,"104 Ardmore Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+163,"210 E Madison Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+164,"617 Lees Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+165,"211 E Knight Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+166,"25 E Cuthbert Blvd,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+167,"829 Belmont Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+168,"740 Bettlewood Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+169,"900 Stokes Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+17,"15 Glenwood Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+170,"128 Penn Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+171,"316 Lees Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+172,"717 Stokes Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+173,"735 Stokes Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+174,"800 Belmont Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+175,"704 Belmont Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+176,"736 Merrick Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+177,"917 Stokes Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+178,"77 Maple Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+179,"731 Merrick Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+18,"205 Westmont Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+180,"812 Belmont Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+181,"135 E Wayne Ter,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+182,"18 W Wayne Ter,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+183,"16 E Narberth Ter,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+184,"28 E Wayne Ter,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+185,"39 Bellevue Ter,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+186,"100 E Wayne Ter,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+187,"912 Merrick Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+188,"1197 Lakeshore Dr,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+189,"950 Merrick Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+19,"128 Westmont Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+190,"1173 Lakeshore Dr,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+191,"161 New Jersey Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+192,"1102 Merrick Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+193,"106 Washington Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+194,"1015 Merrick Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+195,"901 Belmont Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+196,"929 Belmont Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+197,"1102 Linwood Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+198,"515 Lincoln Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+199,"10 Frazer Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+2,"123 Vesper Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+20,"21 Glenwood Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+200,"422 Lincoln Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+201,"17 Washington Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+202,"139 Haddon Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+203,"226 Harding Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+204,"1100 Park Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+205,"8 Ogden Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+206,"103 Ogden Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+207,"205 Virginia Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+208,"204 Haddon Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+209,"23 W Gorman Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+21,"18 W Coulter Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+210,"221 Morgan Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+211,"420 Highland Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+212,"234 Emerald Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+213,"101 E Madison Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+214,"301 Locust Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+215,"24 E Crystal Lake Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+216,"1014 Emerald Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+217,"151 Frazer Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+218,"118 Denver Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+219,"431 Addison Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+22,"509 Woodlawn Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+220,"218 E Cuthbert Blvd,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+221,"1030 Emerald Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+222,"1003 Emerald Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+223,"1 Emerald Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+224,"814 Merrick Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+225,"211 Fern Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+226,"1037 Lakeshore Dr,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+227,"948 Mansion Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+228,"373 S Park Dr,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+229,"106 E Madison Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+23,"238 Emerald Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+230,"402 Haddon Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+231,"119 W Park Blvd,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+232,"1108 Stokes Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+233,"112 E Linden Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+234,"18 Wynnewood Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+235,"73 E Collings Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+236,"504 Edgewood Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+237,"21 Wynnewood Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+238,"95 W Park Blvd,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+239,"508 Edgewood Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+24,"117 W Walnut Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+240,"702 Atlantic Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+241,"15 W Park Blvd,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+242,"24 Lincoln Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+243,"124 Westmont Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+244,"44 E Collings Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+245,"17 Lincoln Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+246,"13 E Walnut Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+247,"701 Lees Ln,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+248,"118 Virginia Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+249,"19 W Walnut Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+25,"157 New Jersey Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+250,"78 Virginia Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+251,"208 Ardmore Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+252,"15 Chestnut Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+253,"116 Melrose Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+254,"12 Cooper St,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+255,"209 Cooper St,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+256,"90 Chestnut Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+257,"318 Newton Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+258,"87 Virginia Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+259,"1001 Park Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+26,"427 Albany Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+260,"325 Newton Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+261,"918 Linwood Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+262,"101 Coolidge Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+263,"1040 Stokes Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+264,"910 Linwood Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+265,"628 S Newton Lake Dr,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+266,"101 Dill Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+267,"140 Fern Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+268,"726 Merrick Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+269,"320 Lees Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+27,"297 Locust Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+270,"141 Lawnside Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+271,"237 Strawbridge Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+272,"31 Virginia Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+273,"705 Lees Ln,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+274,"5 Center St,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+275,"219 E Madison Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+276,"131 Fern Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+277,"6 Center St,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+278,"212 W Collings Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+279,"30 Bryant Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+28,"123 W Browning Rd,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+280,"206 Lincoln Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+281,"101 E Palmer Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+282,"1106 Park Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+283,"306 Woodlawn Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+284,"415 W Cuthbert Blvd,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+285,"33 Hillcrest Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+286,"364 Haddon Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+287,"133 E Summerfield Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+288,"14 Ardmore Ter,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+289,"39 Hillcrest Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+29,"932 Maple Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+290,"12 W Palmer Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+291,"3 W Palmer Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+292,"6 E Palmer Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+293,"259 Park Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+294,"2 W Summerfield Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+295,"126 E Wayne Ter,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+296,"270 Haddon Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+297,"2 Garfield Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+298,"250 Atlantic Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+299,"3 Garfield Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+3,"21 Elm Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+30,"17 E Coulter Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+300,"10 Ogden Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+301,"104 E Franklin Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+302,"21 W Gorman Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+303,"911 Park Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+304,"105 E Narberth Ter,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+305,"2 W Wayne Ter,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+306,"508 Haddon Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+307,"5 E Franklin Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+308,"14 W Browning Rd,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+309,"104 E Narberth Ter,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+31,"104 Fern Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+310,"19 E Palmer Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+311,"1103 Park Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+312,"120 W Wayne Ter,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+313,"211 W Wayne Ter,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+314,"117 Cooper Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+315,"207 Virginia Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+316,"234 Virginia Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+317,"52 Lincoln Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+318,"801 Merrick Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+319,"213 Hampton Rd,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+32,"155 New Jersey Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+320,"508 Fern Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+321,"14 W Narberth Ter,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+322,"229 Strawbridge Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+323,"418 Strawbridge Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+324,"422 Stratford Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+325,"4 Akron Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+326,"820 Linwood Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+327,"13 Akron Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+328,"313 Park Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+329,"103 E Coulter Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+33,"604 Cedar Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+330,"5 Akron Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+331,"221 Stratford Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+332,"217 Stratford Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+333,"27 Emerald Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+334,"57 Melrose Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+335,"220 Addison Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+336,"303 Fern Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+337,"14 Emerald Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+338,"207 E Linden Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+339,"303 Locust Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+34,"454 Conger Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+340,"215 W Franklin Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+341,"57 Addison Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+342,"120 Elgin Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+343,"84 Melrose Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+344,"18 Center St,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+345,"132 Utica Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+346,"5 W Summerfield Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+347,"210 Toledo Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+348,"423 Melrose Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+349,"264 Haddon Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+35,"33 Lindis Farne Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+350,"16 W Summerfield Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+351,"102 E Franklin Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+352,"210 Haddon Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+353,"202 E Coulter Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+354,"224 W Franklin Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+355,"180 Lawnside Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+356,"102 Hillcrest Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+357,"447 Park Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+358,"21 E Albertson Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+359,"28 Lindis Farne Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+36,"412 Woodlawn Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+360,"117 Coolidge Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+361,"61 Stratford Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+362,"24 E Albertson Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+363,"117 Park Ter,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+364,"825 Park Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+365,"919 Park Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+366,"117 Edison Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+367,"104 E Stiles Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+368,"1030 Stokes Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+369,"23 E Stiles Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+37,"22 Lindis Farne Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+370,"113 Dill Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+371,"264 E Knight Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+372,"225 Lees Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+373,"13 Conard Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+374,"100 Curtis Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+375,"903 Maple Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+376,"9 Lees Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+377,"156 New Jersey Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+378,"162 Frazer Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+379,"168 Lawnside Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+38,"4 French Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+380,"254 Harvard Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+381,"264 Crestmont Ter,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+382,"256 Woodlawn Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+383,"111 Fern Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+384,"155 Frazer Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+385,"308 Woodlawn Ter,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+386,"742 Maple Ter,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+387,"165 New Jersey Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+388,"409 Woodlawn Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+389,"16 Harvard Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+39,"29 Fern Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+390,"191 Lawnside Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+391,"480 King Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+392,"450 Woodlawn Ter,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+393,"618 Cedar Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+394,"111 Lincoln Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+395,"238 Crestmont Ter,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+396,"10 W Summerfield Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+397,"44 Lincoln Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+398,"110 Garfield Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+399,"514 Bettlewood Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+4,"17 Elm Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+40,"107 Park Ter,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+400,"52 Melrose Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+401,"491 Haddon Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+402,"1 E Collings Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+403,"828 Park Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+404,"15 Harding Ter,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+405,"101 Fern Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+406,"710 Stokes Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+407,"103 Edison Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+408,"30 Lincoln Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+409,"715 Linwood Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+41,"131 Westmont Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+410,"739 Linwood Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+411,"321 Dayton Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+412,"106 Park Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+413,"18 Pacific Ave # 24,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+414,"841 Maple Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+415,"241 Woodlawn Ter,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+416,"105 Dayton Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+417,"633 Stokes Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+418,"50 E Knight Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+419,"629 Bettlewood Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+42,"117 E Madison Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+420,"326 W Collings Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+421,"601 Lees Ln,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+422,"743 Merrick Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+423,"711 Colford Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+424,"307 Newton Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+425,"1104 Merrick Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+426,"119 French Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+427,"933 Merrick Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+428,"283 Harvard Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+429,"206 W Cuthbert Blvd,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+43,"87 Emerald Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+430,"1035 Linwood Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+431,"109 W Walnut Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+432,"1010 Belmont Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+433,"214 Haddon Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+434,"48 Addison Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+435,"1185 Lakeshore Dr,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+436,"1029 Belmont Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+437,"519 Lincoln Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+438,"609 Cedar Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+439,"210 Conard Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+44,"204 Center St,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+440,"600 King Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+441,"213 Fern Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+442,"27 E Coulter Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+443,"108 E Narberth Ter,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+444,"7 E Palmer Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+445,"238 Burrwood Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+446,"411 W Cuthbert Blvd,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+447,"236 Lawnside Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+448,"430 W Collings Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+449,"344 Conger Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+45,"38 E Madison Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+450,"1121 Belmont Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+451,"357 Park Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+452,"1111 Stokes Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+453,"935 Oriental Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+454,"950 Mansion Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+455,"Harding Ave,Haddon Township,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+456,"806 Colford Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+457,"131 Washington Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+458,"64 Lincoln Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+459,"48 Washington Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+46,"831 Belmont Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+460,"10 Lincoln Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+461,"32 E Collings Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+462,"65 E Collings Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+463,"251 Park Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+464,"445 Conger Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+465,"7 E Albertson Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+466,"239 E Knight Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+467,"117 Haddon Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+468,"42 Lincoln Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+469,"6 E Collings Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+47,"169 New Jersey Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+470,"739 Maple Ter,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+471,"402 Windsor Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+472,"704 Atlantic Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+473,"228 Woodlawn Ter,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+474,"54 Melrose Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+475,"23 Eldridge Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+476,"243 Addison Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+477,"100 Fern Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+478,"104 Cambridge Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+479,"126 Virginia Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+48,"915 Stokes Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+480,"96 Akron Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+481,"77 Akron Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+482,"104 Pacific Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+483,"18 E Zane Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+484,"580 Haddon Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+485,"123 Elgin Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+486,"400 Lakeview Dr,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+487,"2 E Zane Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+488,"20 W Summerfield Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+489,"115 Woodlawn Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+49,"232 New Jersey Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+490,"19 W Madison Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+491,"494 King Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+492,"247 E Knight Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+493,"934 Oriental Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+494,"370 Haddon Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+495,"619 Linwood Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+496,"178 Lawnside Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+497,"24 W Madison Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+498,"578 Haddon Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+499,"345 Park Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+5,"400 Cooper St,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+50,"444 Melrose Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+500,"22 E Collings Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+501,"34 Bryant Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+502,"227 New Jersey Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+503,"43 Strawbridge Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+504,"122 Frazer Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+505,"111 Curtis Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+506,"455 Conger Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+507,"686 Haddon Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+508,"461 Park Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+509,"723 Haddon Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+51,"528 Lincoln Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+510,"1010 Emerald Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+511,"738 Haddon Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+512,"601 Autumn Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+513,"62 Strawbridge Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+514,"22 Hampton Rd,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+515,"267 Stratford Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+516,"241 Lawnside Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+517,"112 Hampton Rd,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+518,"645 Park Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+519,"210 Melrose Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+52,"3 E Albertson Ave,Haddon Township,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+520,"525 Tatem Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+521,"109 E Palmer Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+522,"320 Virginia Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+523,"266 Harvard Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+524,"57 Strawbridge Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+525,"346 Woodlawn Ter,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+526,"708 Cooper St,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+527,"26 Lincoln Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+528,"448 Conger Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+529,"948 Maple Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+53,"115 Cooper Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+530,"26 Hampton Rd,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+531,"171 Lawnside Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+532,"13 Chestnut Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+533,"33 E Browning Rd,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+534,"107 Ardmore Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+535,"214 Toledo Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+536,"206 Melrose Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+537,"701 Cooper St,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+538,"302 Utica Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+539,"20 Eldridge Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+54,"18 Glenwood Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+540,"1009 Emerald Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+541,"14 W Coulter Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+542,"36 E Coulter Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+543,"825 Colford Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+544,"214 Burrwood Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+545,"30 W Franklin Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+546,"100 Edison Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+547,"419 Albany Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+548,"80 Utica Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+549,"30 Locust Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+55,"104 Curtis Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+550,"225 Emerald Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+551,"730 Park Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+552,"151 Fern Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+553,"625 Lees Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+554,"261 Crestmont Ter,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+555,"113 Conard Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+556,"127 Park Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+557,"632 Lees Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+558,"725 Stokes Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+559,"1001 Oriental Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+56,"102 Cooper Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+560,"55 E Cuthbert Blvd,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+561,"215 King Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+562,"7 Lakeshore Dr,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+563,"419 Strawbridge Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+564,"10 E Albertson Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+565,"100 E Franklin Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+566,"122 Garfield Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+567,"134 Crestmont Ter,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+568,"1107 Park Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+569,"529 Lincoln Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+57,"439 Melrose Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+570,"621 Lees Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+571,"126 Stratford Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+572,"107 Washington Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+573,"1033 Park Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+574,"130 Stratford Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+575,"210 French Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+576,"128 Stratford Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+577,"120 Stratford Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+578,"104 Stratford Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+579,"118 Stratford Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+58,"401 Lincoln Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+580,"469 Haddon Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+581,"112 Stratford Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+582,"105 Ardmore Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+583,"100 Stratford Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+584,"732 Merrick Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+585,"10 Lees Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+586,"11 Lees Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+587,"356 Haddon Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+588,"7 W Summerfield Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+589,"117 E Palmer Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+59,"737 Maple Ter,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+590,"467 Haddon Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+591,"910 Mansion Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+592,"15 Cooper St,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+593,"18 Cooper St,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+594,"13 Cooper St,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+595,"16 Cooper St,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+596,"20 Cooper St,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+597,"14 Cooper St,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+598,"117 E Wayne Ter,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+599,"9 Cooper St,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+6,"113 Utica Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+60,"55 Addison Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+600,"23 Cooper St,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+601,"34 Hillcrest Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+602,"35 Hillcrest Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+603,"37 Hillcrest Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+604,"25 Hillcrest Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+605,"36 Hillcrest Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+606,"31 Hillcrest Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+607,"19 Hillcrest Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+608,"21 Hillcrest Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+609,"921 Park Pl,Ocean City,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+61,"315 Lees Ln,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+62,"421 Tatem Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+63,"612 Cedar Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+64,"744 Maple Ter,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+65,"401 Albany Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+66,"211 Emerald Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+67,"80 Virginia Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+68,"305 Locust Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+69,"534 Haddon Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+7,"4 W Knight Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+70,"116 Stratford Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+71,"16 Oriental Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+72,"513 Maple Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+73,"116 Woodlawn Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+74,"36 Harvard Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+75,"250 Harvard Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+76,"103 E Narberth Ter,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+77,"34 E Madison Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+78,"107 Park Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+79,"38 Bellevue Ter,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+8,"118 Emerald Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+80,"133 E Franklin Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+81,"135 Haddon Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+82,"39 E Collings Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+83,"17 E Collings Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+84,"20 Bellevue Ter,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+85,"24 Ardmore Ter,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+86,"731 Maple Ter,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+87,"48 Bellevue Ter,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+88,"4 Pacific Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+89,"947 Oriental Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+9,"601 Oneida Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+90,"58 Lincoln Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+91,"220 New Jersey Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+92,"202 Morgan Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+93,"222 New Jersey Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+94,"505 Lincoln Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+95,"506 E Cuthbert Blvd,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+96,"300 Strawbridge Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+97,"120 E Homestead Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+98,"231 Penn Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0
+99,"248 Stratford Ave,Collingswood,+18568547061,,,kathleensilvagni@earthlink.net,,,1,1,1,batchdata,0

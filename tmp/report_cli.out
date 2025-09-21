@@ -1,0 +1,16 @@
+Error generating report: SQLITE_ERROR: no such column: run_id
+node:internal/process/promises:394
+    triggerUncaughtException(err, true /* fromPromise */);
+    ^
+
+Error: SQLITE_ERROR: no such column: run_id
+--> in Database#all('SELECT * FROM skip_trace_logs WHERE run_id = ?', [ 'f8b168ef-c6ec-40ce-b570-02ae15fe6d9e' ], [Function (anonymous)])
+    at skipTraceLogs (C:\Projects\Convexa\scripts\generateRunReport.cjs:55:10)
+    at new Promise (<anonymous>)
+    at generateRunReport (C:\Projects\Convexa\scripts\generateRunReport.cjs:54:33) {
+  errno: 1,
+  code: 'SQLITE_ERROR',
+  __augmented: true
+}
+
+Node.js v22.19.0

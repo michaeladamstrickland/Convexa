@@ -1,7 +1,7 @@
 # Lead Management Integration Plan
 
 ## Overview
-This document outlines the integration steps for the LeadFlow AI Lead Management System. The Lead Management System is a comprehensive solution for tracking, managing, and communicating with property leads, integrated with the ATTOM Property Data API.
+This document outlines the integration steps for the Convexa AI Lead Management System. The Lead Management System is a comprehensive solution for tracking, managing, and communicating with property leads, integrated with the ATTOM Property Data API.
 
 ## Integration Steps
 

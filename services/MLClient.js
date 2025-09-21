@@ -1,6 +1,6 @@
 /**
  * MLClient.js
- * Client for connecting to machine learning models in the LeadFlow AI system
+ * Client for connecting to machine learning models in the Convexa AI system
  */
 
 import axios from 'axios';

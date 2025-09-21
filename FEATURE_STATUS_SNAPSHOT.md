@@ -1,4 +1,4 @@
-# LeadFlow AI — Feature Status Snapshot (2025-08-19)
+# Convexa AI — Feature Status Snapshot (2025-08-19)
 
 Purpose: Single-page inventory of features, current completion % (rubric below), what’s working, and where to focus next. Based on code and docs in this repo.
 

@@ -1,6 +1,6 @@
-# LeadFlow AI - Machine Learning Integration
+# Convexa AI - Machine Learning Integration
 
-This repository contains the machine learning integration components for the LeadFlow AI system. These components enable property valuation, distress signal detection, lead scoring, and contact strategy recommendations.
+This repository contains the machine learning integration components for the Convexa AI system. These components enable property valuation, distress signal detection, lead scoring, and contact strategy recommendations.
 
 ## Quick Start
 

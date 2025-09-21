@@ -292,7 +292,7 @@ class LeadFlowAIRealServer {
 
   public start(port: number = 3001): void {
     this.app.listen(port, () => {
-      logger.info(`🚀 LeadFlow AI Real Data Server running on port ${port}`);
+  logger.info(`🚀 Convexa AI Real Data Server running on port ${port}`);
       logger.info(`📊 Health check: http://localhost:${port}/health`);
       logger.info(`🎯 Leads API: http://localhost:${port}/leads`);
       logger.info(`⚡ Pipeline: http://localhost:${port}/pipeline/run`);

@@ -1,8 +1,8 @@
-# LeadFlow AI Lead Management System Implementation
+# Convexa AI Lead Management System Implementation
 
 ## Completed Implementation
 
-We have successfully implemented a comprehensive Lead Management System for LeadFlow AI. The system is fully integrated with the existing property search functionality and the ATTOM Property Data API.
+We have successfully implemented a comprehensive Lead Management System for Convexa AI. The system is fully integrated with the existing property search functionality and the ATTOM Property Data API.
 
 ### Key Components Implemented:
 
@@ -41,7 +41,7 @@ We have successfully implemented a comprehensive Lead Management System for Lead
    - The server will run on http://localhost:5001
 
 3. **Using the Lead Management System**
-   - Navigate to the Lead Management Workspace in the LeadFlow AI frontend
+   - Navigate to the Lead Management Workspace in the Convexa AI frontend
    - Search for properties and convert them to leads
    - View, filter, and manage leads
    - Track communications and add tags
@@ -71,6 +71,6 @@ We have created comprehensive documentation for the Lead Management System:
 
 ## Conclusion
 
-The Lead Management System is now fully integrated and ready to use, providing a comprehensive solution for tracking, managing, and communicating with property leads in the LeadFlow AI application.
+The Lead Management System is now fully integrated and ready to use, providing a comprehensive solution for tracking, managing, and communicating with property leads in the Convexa AI application.
 
 For any questions or issues, please refer to the documentation or contact the development team.

@@ -1,6 +1,6 @@
 # Skip Trace API Documentation
 
-This document outlines the Skip Trace API endpoints available in the LeadFlow AI application.
+This document outlines the Skip Trace API endpoints available in the Convexa AI application.
 
 ## Base URL
 

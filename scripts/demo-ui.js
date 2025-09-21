@@ -66,7 +66,7 @@ const demoHtml = `<!DOCTYPE html>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LeadFlow AI - ML Demo</title>
+  <title>Convexa AI - ML Demo</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -173,7 +173,7 @@ const demoHtml = `<!DOCTYPE html>
   </style>
 </head>
 <body>
-  <h1>LeadFlow AI - Machine Learning Demo</h1>
+  <h1>Convexa AI - Machine Learning Demo</h1>
   
   <div class="tabs">
     <div class="tab active" data-tab="property-valuation">Property Valuation</div>

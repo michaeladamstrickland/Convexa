@@ -76,7 +76,7 @@ const config = {
  */
 const runMLDemo = async () => {
   console.log('===================================');
-  console.log('LeadFlow AI - ML Pipeline Demonstration');
+  console.log('Convexa AI - ML Pipeline Demonstration');
   console.log('===================================\n');
   
   // Create output directory if it doesn't exist

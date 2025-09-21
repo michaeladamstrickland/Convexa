@@ -1,39 +1,27 @@
-version: '3.9'
-
+﻿version: "3.8"
 services:
-  postgres:
-    image: postgres:15
-    container_name: leadflow_postgres
-    restart: unless-stopped
+  prometheus:
+    image: prom/prometheus:latest
+    ports: ["9090:9090"]
+    volumes:
+      - ./ops/metrics/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./ops/metrics/prom-rules.yml:/etc/prometheus/rules/prom-rules.yml:ro
+  grafana:
+    image: grafana/grafana:latest
+    ports: ["3000:3000"]
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./ops/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
+      - ./ops/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./ops/dashboards:/etc/grafana/dashboards:ro
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: leadflow
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-
-  redis:
-    image: redis:7-alpine
-    container_name: leadflow_redis
-    restart: unless-stopped
-    ports:
-      - "6379:6379"
-    command: ["redis-server", "--appendonly", "yes"]
-    volumes:
-      - redis_data:/data
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 5s
-      timeout: 3s
-      retries: 5
-
+      - GF_RENDERING_SERVER_URL=http://grafana-image-renderer:8081/render
+      - GF_RENDERING_CALLBACK_URL=http://grafana:3000/
+      - GF_LOG_FILTERS=rendering:debug
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Viewer
+  grafana-image-renderer:
+    image: grafana/grafana-image-renderer:latest
+    ports: ["8081"]
 volumes:
-  postgres_data:
-  redis_data:
+  grafana-data:

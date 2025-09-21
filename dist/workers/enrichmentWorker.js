@@ -9,6 +9,7 @@ const enrichment_1 = require("../metrics/enrichment");
 const scoring_1 = require("../enrichment/scoring");
 const index_1 = require("./index");
 const matchmakingQueue_1 = require("../queues/matchmakingQueue");
+const webhookQueue_1 = require("../queues/webhookQueue");
 // shared prisma from db/prisma
 exports.enrichmentWorker = new bullmq_1.Worker(enrichmentQueue_1.ENRICHMENT_QUEUE_NAME, async (job) => {
     const started = Date.now();
@@ -26,6 +27,28 @@ exports.enrichmentWorker = new bullmq_1.Worker(enrichmentQueue_1.ENRICHMENT_QUEU
             where: { id: propertyId },
             data: { enrichmentTags: tags, investmentScore, condition, reasons: reasons || [], tagReasons: tagReasons || [] }
         });
+        // Record CRM activity + emit webhook
+        try {
+            const activity = await prisma_1.prisma.crmActivity.create({ data: { type: 'enrichment.completed', propertyId, metadata: { investmentScore, tags, condition, reasons, tagReasons } } });
+            // Metrics
+            const cm = (global.__CRM_ACTIVITY_METRICS__ = global.__CRM_ACTIVITY_METRICS__ || { total: 0, perType: new Map(), webhook: { success: 0, fail: 0 } });
+            cm.total++;
+            cm.perType.set('enrichment.completed', (cm.perType.get?.('enrichment.completed') || 0) + 1);
+            // Emit crm.activity webhook to interested subscribers
+            try {
+                const subs = await prisma_1.prisma.webhookSubscription.findMany({ where: { isActive: true } }).catch(() => []);
+                const interested = subs.filter(s => Array.isArray(s.eventTypes) && s.eventTypes.includes('crm.activity'));
+                if (interested.length) {
+                    const payload = { id: activity.id, type: activity.type, propertyId: activity.propertyId, leadId: activity.leadId, userId: activity.userId, metadata: activity.metadata, createdAt: activity.createdAt };
+                    await Promise.all(interested.map(s => (0, webhookQueue_1.enqueueWebhookDelivery)({ subscriptionId: s.id, eventType: 'crm.activity', payload })));
+                    cm.webhook.success += interested.length;
+                }
+            }
+            catch {
+                cm.webhook.fail++;
+            }
+        }
+        catch { }
         // Auto-matchmaking trigger: score>=85 or tags include highIntent|urgentSeller
         const trigger = (investmentScore >= 85) || (tags.includes('highIntent') || tags.includes('urgentSeller'));
         if (trigger) {

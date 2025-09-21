@@ -1,10 +1,10 @@
 # Skip Trace UI Implementation
 
-This document serves as the main entry point for understanding the Skip Trace UI implementation in LeadFlow AI.
+This document serves as the main entry point for understanding the Skip Trace UI implementation in Convexa AI.
 
 ## Overview
 
-The Skip Trace UI implementation provides a complete user interface for running skip traces on leads, both individually and in bulk. It allows users to view confidence-ranked results, stay compliant with regulations, and track costs without leaving the LeadFlow platform.
+The Skip Trace UI implementation provides a complete user interface for running skip traces on leads, both individually and in bulk. It allows users to view confidence-ranked results, stay compliant with regulations, and track costs without leaving the Convexa platform.
 
 ## Key Documents
 

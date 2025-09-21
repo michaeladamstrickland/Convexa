@@ -1,4 +1,4 @@
-# Leadflow AI — Daily Checkpoint (2025-08-19)
+# Convexa AI — Daily Checkpoint (2025-08-19)
 
 This note captures exactly where we left off today so we can resume quickly tomorrow.
 

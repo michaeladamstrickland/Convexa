@@ -1,0 +1,11 @@
+LeadID,Address,Owner,PrimaryPhone,PhonesCount,PrimaryEmail,EmailsCount,HasDNC,Cached
+sample-1,"113 Elgin Ave, Collingswood, NJ, 08108","Kathleen W Silvagni",+1-555-6241,1,sample1@example.com,2,0,0
+sample-2,"123 Main St, Collingswood, NJ, 08108","John Doe",+1-555-4663,3,,0,0,0
+sample-3,"456 Oak Ave, Collingswood, NJ, 08108","Jane Smith",,0,sample3@example.com,1,0,0
+sample-4,"789 Pine Ln, Collingswood, NJ, 08108","Robert Johnson",+1-555-1046,3,sample4@example.com,1,0,0
+sample-5,"101 Maple Dr, Collingswood, NJ, 08108","Emily Davis",+1-555-5579,1,,0,0,0
+sample-6,"202 Birch Rd, Collingswood, NJ, 08108","Michael Brown",+1-555-1652,2,,0,0,1
+sample-7,"303 Cedar Ct, Collingswood, NJ, 08108","Sarah Wilson",+1-555-4336,2,sample7@example.com,2,0,0
+sample-8,"404 Elm St, Collingswood, NJ, 08108","David Miller",+1-555-7673,3,sample8@example.com,2,0,1
+sample-9,"505 Spruce Ave, Collingswood, NJ, 08108","Jessica Taylor",+1-555-2331,3,sample9@example.com,2,0,0
+sample-10,"606 Willow Ln, Collingswood, NJ, 08108","Christopher Moore",+1-555-5998,3,sample10@example.com,2,0,0

@@ -3,7 +3,7 @@ REM ATTOM Batch Processor Runner
 REM This batch file helps run the ATTOM batch processing commands
 
 echo =======================================
-echo LeadFlow AI - ATTOM Batch Processor
+echo Convexa AI - ATTOM Batch Processor
 echo =======================================
 echo.
 

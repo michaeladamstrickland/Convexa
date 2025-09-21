@@ -9,7 +9,7 @@ import { Home, LocationOn, AspectRatio, AttachMoney } from '@mui/icons-material'
  * @param value - The value to format
  * @returns Formatted currency string
  */
-const formatCurrency = (value) => {
+const formatCurrency = (value: number | undefined) => {
   if (!value) return 'N/A';
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
@@ -22,7 +22,27 @@ const formatCurrency = (value) => {
  * PropertySearchResultItem component
  * Displays a property search result with a link to the enhanced property detail view
  */
-const PropertySearchResultItem = ({ property }) => {
+interface PropertyResult {
+  attomId: string;
+  address: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  propertyType: string;
+  latitude?: number;
+  longitude?: number;
+  bedrooms?: number;
+  bathrooms?: number;
+  squareFeet?: number;
+  yearBuilt?: number;
+  ownerName?: string;
+  ownerOccupied?: boolean;
+  estimatedValue?: number;
+  lastSaleDate?: string;
+  lastSalePrice?: number;
+}
+
+const PropertySearchResultItem = ({ property }: { property: PropertyResult }) => {
   const navigate = useNavigate();
   
   const handleClick = () => {

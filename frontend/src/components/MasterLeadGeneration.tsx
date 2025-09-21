@@ -172,7 +172,7 @@ export const MasterLeadGeneration: React.FC = () => {
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `leadflow-results-${Date.now()}.csv`;
+  a.download = `convexa-results-${Date.now()}.csv`;
     a.click();
   };
 
@@ -229,7 +229,7 @@ export const MasterLeadGeneration: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">
-                🏆 LeadFlow AI Master Platform
+                🏆 Convexa AI Master Platform
               </h1>
               <p className="text-gray-600 mt-2">
                 Superior to PropStream, BatchLeads & REsimpli • 26 Premium APIs • AI-Powered Analysis

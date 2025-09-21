@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document outlines the implementation details for the newly created ATTOM Batch integration services that have been implemented for LeadFlow AI. These services enhance our property data processing capabilities by allowing efficient batch retrieval of property data from ATTOM's API.
+This document outlines the implementation details for the newly created ATTOM Batch integration services that have been implemented for Convexa AI. These services enhance our property data processing capabilities by allowing efficient batch retrieval of property data from ATTOM's API.
 
 ## Implemented Components
 
@@ -180,7 +180,7 @@ node attom-batch.js list
 
 ## Integration with Existing Code
 
-The new batch processing services integrate with the existing LeadFlow AI system:
+The new batch processing services integrate with the existing Convexa AI system:
 
 1. **Lead Generation** - Properties from ATTOM batches can be converted to leads
 2. **Unified Property Model** - Ensures consistent data structure across the system

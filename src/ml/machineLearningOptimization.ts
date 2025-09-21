@@ -198,8 +198,8 @@ export class MachineLearningOptimization {
   async predictMarketTrends(): Promise<PredictionResult> {
     console.log('📈 Predicting market trends...');
 
-    const prompt = `
-    Based on current real estate market data and LeadFlow AI Empire performance metrics, 
+  const prompt = `
+  Based on current real estate market data and Convexa AI Empire performance metrics, 
     predict market trends for the next 90 days:
 
     CURRENT EMPIRE METRICS:

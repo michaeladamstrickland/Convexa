@@ -258,7 +258,7 @@ async function testServices() {
 
 // Main test function
 async function runTests() {
-  console.log(`${COLORS.magenta}===== LeadFlow AI - ATTOM + BatchData Integration Test =====${COLORS.reset}`);
+  console.log(`${COLORS.magenta}===== Convexa AI - ATTOM + BatchData Integration Test =====${COLORS.reset}`);
   console.log(`Testing API connectivity and integration setup...`);
   console.log();
   
@@ -302,7 +302,7 @@ async function runTests() {
   
   if (attomSuccess && batchSuccess && servicesSuccess) {
     console.log(`${COLORS.green}✓ All tests passed! Your integration is set up correctly.${COLORS.reset}`);
-    console.log(`${COLORS.green}✓ You can now use ATTOM and BatchData in your LeadFlow AI application.${COLORS.reset}`);
+  console.log(`${COLORS.green}✓ You can now use ATTOM and BatchData in your Convexa AI application.${COLORS.reset}`);
   } else {
     console.log(`${COLORS.yellow}⚠ Some tests failed. Please review the errors above.${COLORS.reset}`);
     console.log(`${COLORS.yellow}⚠ Make sure your API keys are correct and the services are available.${COLORS.reset}`);

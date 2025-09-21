@@ -1,0 +1,13 @@
+Schema for skiptrace_run_items: [
+  'id',
+  'run_id',
+  'lead_id',
+  'status',
+  'attempt',
+  'idem_key',
+  'normalized_address',
+  'normalized_person',
+  'last_error',
+  'updated_at'
+]
+Report generated successfully at run_reports\f8b168ef-c6ec-40ce-b570-02ae15fe6d9e\report.json

@@ -22,8 +22,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<any | null>(null);
 
   useEffect(() => {
-    const t = localStorage.getItem('leadflow_token');
-    const u = localStorage.getItem('leadflow_user');
+    // Migrate legacy keys to new Convexa keys
+    const legacyT = localStorage.getItem('leadflow_token');
+    const legacyU = localStorage.getItem('leadflow_user');
+    if (legacyT && !localStorage.getItem('convexa_token')) {
+      try { localStorage.setItem('convexa_token', legacyT); } catch {}
+    }
+    if (legacyU && !localStorage.getItem('convexa_user')) {
+      try { localStorage.setItem('convexa_user', legacyU); } catch {}
+    }
+    const t = localStorage.getItem('convexa_token');
+    const u = localStorage.getItem('convexa_user');
     if (t) {
       setToken(t);
       (api.defaults.headers as any).Authorization = `Bearer ${t}`;
@@ -35,19 +44,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = (newToken: string, newUser?: any) => {
     setToken(newToken);
-    localStorage.setItem('leadflow_token', newToken);
+    localStorage.setItem('convexa_token', newToken);
     (api.defaults.headers as any).Authorization = `Bearer ${newToken}`;
     if (newUser) {
       setUser(newUser);
-      localStorage.setItem('leadflow_user', JSON.stringify(newUser));
+      localStorage.setItem('convexa_user', JSON.stringify(newUser));
     }
   };
 
   const logout = () => {
     setToken(null);
     setUser(null);
-    localStorage.removeItem('leadflow_token');
-    localStorage.removeItem('leadflow_user');
+  localStorage.removeItem('convexa_token');
+  localStorage.removeItem('convexa_user');
+  // Cleanup legacy
+  localStorage.removeItem('leadflow_token');
+  localStorage.removeItem('leadflow_user');
     delete (api.defaults.headers as any).Authorization;
     window.location.href = '/login';
   };

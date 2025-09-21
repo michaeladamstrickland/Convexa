@@ -1,7 +1,7 @@
-# LeadFlow App Features Overview
+# Convexa App Features Overview
 
 ## Introduction
-LeadFlow is a comprehensive application designed to assist real estate flippers in generating and managing leads effectively. This document outlines the key features of the app, their current status, and the potential for generating profitable leads.
+Convexa is a comprehensive application designed to assist real estate flippers in generating and managing leads effectively. This document outlines the key features of the app, their current status, and the potential for generating profitable leads.
 
 ## Feature Matrix Summary
 
@@ -18,7 +18,7 @@ LeadFlow is a comprehensive application designed to assist real estate flippers 
 | **Analytics Dashboards**   | Provides analytics for lead performance and revenue tracking.              | High - Data-driven insights can guide strategic decisions. |
 
 ## Conclusion
-The LeadFlow app leverages advanced technologies such as AI, data scraping, and multi-channel communication to enhance lead generation and management for real estate flippers. With a focus on data quality, user security, and actionable insights, the app is positioned to significantly improve the likelihood of generating profitable leads.
+The Convexa app leverages advanced technologies such as AI, data scraping, and multi-channel communication to enhance lead generation and management for real estate flippers. With a focus on data quality, user security, and actionable insights, the app is positioned to significantly improve the likelihood of generating profitable leads.
 
 ## Additional Notes
 - The app is still in development, with various features at different completion percentages. Continuous improvements and testing will enhance its effectiveness.

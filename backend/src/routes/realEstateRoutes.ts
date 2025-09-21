@@ -70,6 +70,36 @@ try {
   logger.error('❌ Failed to initialize Real Property Data Service:', error);
 }
 
+// Helper: detect if any premium API is configured
+const isRealApisConfigured = () => {
+  return Boolean(
+    process.env.ZILLOW_API_KEY ||
+    process.env.RENTSPREE_API_KEY ||
+    process.env.ATTOM_API_KEY ||
+    process.env.REALTY_MOLE_API_KEY
+  );
+};
+
+// Helper: build a safe dev fallback response
+const buildDevFallback = (extra: any = {}) => ({
+  success: true,
+  leadCount: 0,
+  leads: [],
+  metadata: {
+    totalCost: 0,
+    apiCallsUsed: 0,
+    searchDuration: 0,
+    filters: extra.filters || {},
+  },
+  aggregations: {
+    averageValue: 0,
+    averageEquity: 0,
+    propertyTypes: {},
+    distressLevels: {},
+  },
+  message: 'Real APIs not configured in development. Returning empty results.'
+});
+
 // REAL ZIP CODE SEARCH - Connects to actual property APIs
 router.post('/search-real-zip', async (req, res) => {
   try {
@@ -106,6 +136,14 @@ router.post('/search-real-zip', async (req, res) => {
         offset: filters.offset || 0
       }
     };
+
+    // If premium APIs are not configured in dev, return a safe empty response
+    if (process.env.NODE_ENV !== 'production' && !isRealApisConfigured()) {
+      return res.json({
+        ...buildDevFallback({ filters }),
+        zipCode,
+      });
+    }
 
     // Execute REAL property search
     const results = await propertyService.searchProperties(searchParams);
@@ -201,6 +239,13 @@ router.post('/search-real-multiple-zips', async (req, res) => {
         offset: filters.offset || 0
       }
     };
+
+    if (process.env.NODE_ENV !== 'production' && !isRealApisConfigured()) {
+      return res.json({
+        ...buildDevFallback({ filters }),
+        zipCodes,
+      });
+    }
 
     const results = await propertyService.searchProperties(searchParams);
 
@@ -306,6 +351,13 @@ router.post('/search-real-target-area', async (req, res) => {
         offset: filters.offset || 0
       }
     };
+
+    if (process.env.NODE_ENV !== 'production' && !isRealApisConfigured()) {
+      return res.json({
+        ...buildDevFallback({ filters }),
+        area: 'Phoenix Metro Area'
+      });
+    }
 
     const results = await propertyService.searchProperties(searchParams);
 

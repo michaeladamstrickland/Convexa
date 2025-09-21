@@ -1,10 +1,10 @@
 # Machine Learning Integration Guide
 
-This guide explains how to use the machine learning components integrated into the LeadFlow AI system.
+This guide explains how to use the machine learning components integrated into the Convexa AI system.
 
 ## Overview
 
-The LeadFlow AI machine learning integration provides the following capabilities:
+The Convexa AI machine learning integration provides the following capabilities:
 
 1. **Property Value Estimation**: Predicts the market value of properties
 2. **Distress Signal Detection**: Identifies signs of property distress

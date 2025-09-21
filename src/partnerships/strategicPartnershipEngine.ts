@@ -291,7 +291,7 @@ export class StrategicPartnershipEngine {
             accountability_party: 'mutual'
           }
         ],
-        intellectual_property_rights: ['LeadFlow AI retains all algorithm IP'],
+  intellectual_property_rights: ['Convexa AI retains all algorithm IP'],
         non_compete_restrictions: ['No direct competition in lead generation AI']
       },
       strategic_value: 92

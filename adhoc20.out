@@ -1,0 +1,11 @@
+adHocRun failed: SqliteError: table skiptrace_runs has no column named source_label
+    at Database.prepare (C:\Projects\Convexa\node_modules\better-sqlite3\lib\methods\wrappers.js:5:21)
+    at C:\Projects\Convexa\scripts\adHocRun.cjs:82:8
+    at Object.<anonymous> (C:\Projects\Convexa\scripts\adHocRun.cjs:270:3)
+    at Module._compile (node:internal/modules/cjs/loader:1706:14)
+    at Object..js (node:internal/modules/cjs/loader:1839:10)
+    at Module.load (node:internal/modules/cjs/loader:1441:32)
+    at Function._load (node:internal/modules/cjs/loader:1263:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:171:5)

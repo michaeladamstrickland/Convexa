@@ -6,7 +6,6 @@ import {
   CardContent,
   Chip,
   Divider,
-  Grid,
   IconButton,
   Tab,
   Tabs,
@@ -21,6 +20,7 @@ import {
   TableRow,
   TableCell
 } from '@mui/material';
+import MuiGrid from '@mui/material/Grid';
 import {
   Home,
   Person,
@@ -44,6 +44,8 @@ interface PropertyDetailViewProps {
 }
 
 const PropertyDetailView: React.FC<PropertyDetailViewProps> = ({ property, onClose, onSaveAsLead }) => {
+  // Alias Grid to any to bypass MUI Grid typing noise across versions
+  const Grid: any = (MuiGrid as unknown) as any;
   const [activeTab, setActiveTab] = useState(0);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
@@ -72,7 +74,6 @@ const PropertyDetailView: React.FC<PropertyDetailViewProps> = ({ property, onClo
         setSnackbarSeverity('success');
       } else {
         await LeadService.createLead({
-          propertyId: property.attomId,
           address: property.address,
           city: property.city,
           state: property.state,
@@ -87,7 +88,7 @@ const PropertyDetailView: React.FC<PropertyDetailViewProps> = ({ property, onClo
           yearBuilt: property.yearBuilt || 0,
           status: 'New',
           notes: 'Lead created from property search',
-          lastContact: null,
+          lastContact: undefined,
           leadSource: 'Property Search'
         });
         setSnackbarMessage('Property saved as lead successfully');

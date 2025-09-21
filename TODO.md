@@ -1,8 +1,8 @@
-# LeadFlow Deep Audit — Execution TODO
+# Convexa Deep Audit — Execution TODO
 
 Timezone: America/New_York (ET)
 
-This checklist drives the deep audit and artifact generation for the LeadFlow monorepo. No destructive code changes; documentation artifacts only.
+This checklist drives the deep audit and artifact generation for the Convexa monorepo. No destructive code changes; documentation artifacts only.
 
 ## Scope and Constraints
 - Monorepo structure identified:

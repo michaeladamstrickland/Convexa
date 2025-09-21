@@ -842,8 +842,8 @@ export class AdvancedAnalyticsDashboard {
   }
 
   private async generateExecutiveSummary(): Promise<string> {
-    return `
-LeadFlow AI Empire has successfully completed Phase 2 implementation and is now operating 
+  return `
+Convexa AI Empire has successfully completed Phase 2 implementation and is now operating 
 at enterprise scale with 6 AI-powered systems generating 200+ qualified leads daily. 
 
 The empire is currently producing $1.15M monthly revenue with 87.3% AI prediction accuracy 

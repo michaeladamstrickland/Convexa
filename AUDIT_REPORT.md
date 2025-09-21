@@ -1,4 +1,4 @@
-# LeadFlow Codebase Deep Audit — Executive Readout
+# Convexa Codebase Deep Audit — Executive Readout
 
 Timestamp (ET): 2025-08-16 12:00 ET  
 Scope: Full monorepo (backend, frontend, prisma, src, scripts, docs)

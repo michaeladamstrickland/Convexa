@@ -1,5 +1,5 @@
-// LeadFlow AI Integrated Server - Combines ZIP Search API, ATTOM Property Data API, Search API, and Lead Management API
-// This server provides complete functionality for the LeadFlow AI application
+// Convexa AI Integrated Server - Combines ZIP Search API, ATTOM Property Data API, Search API, and Lead Management API
+// This server provides complete functionality for the Convexa AI application
 
 import express from 'express';
 import cors from 'cors';
@@ -27,7 +27,8 @@ import leadRoutes from './routes/leads.js';
 const startServer = async () => {
   // Setup Express
   const app = express();
-  const PORT = process.env.PORT || 5002;
+  // Use ATTOM_PORT to avoid clashing with main server's PORT env
+  const PORT = process.env.ATTOM_PORT || 5002;
   
   // Configure middleware
   app.use(cors());
@@ -526,7 +527,7 @@ const startServer = async () => {
   
   // Start the server
   app.listen(PORT, () => {
-    console.log(`🚀 LeadFlow AI Integrated API Server running on port ${PORT}`);
+    console.log(`🚀 Convexa AI Integrated API Server running on port ${PORT}`);
     console.log(`✅ API endpoints ready for use:`);
     console.log(`  - Health: http://localhost:${PORT}/health`);
     console.log(`  - Lead Management: http://localhost:${PORT}/api/leads`);

@@ -1,0 +1,49 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+    paths-ignore:
+      - 'docs/**'
+      - 'README.md'
+  pull_request:
+    branches:
+      - main
+      - develop
+    types: [opened, synchronize, reopened]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Clean pre-existing node_modules
+        run: rm -rf node_modules backend/node_modules frontend/node_modules
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies (clean)
+        run: npm ci
+
+      - name: Run tests (Vitest with coverage)
+        run: npm run coverage
+
+      - name: Typecheck (server-only)
+        run: npm run typecheck
+
+      - name: Upload artifacts (e.g., build output, test reports)
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts
+          if-no-files-found: ignore
+          path: |
+            dist/ # Adjust to your build output directory
+            coverage/ # Adjust to your test coverage report directory
+            test-results.xml # Adjust to your test results file

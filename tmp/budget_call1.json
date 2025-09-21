@@ -1,0 +1,29 @@
+{
+  "success": true,
+  "message": "Skip trace completed successfully",
+  "data": {
+    "leadId": "752ee57c-60cd-467e-aded-9f90ca99721f",
+    "phones": [
+      {
+        "number": "8568547061",
+        "type": "Land Line",
+        "tested": false,
+        "reachable": false,
+        "isPrimary": true,
+        "isDoNotCall": true,
+        "confidence": 100
+      }
+    ],
+    "emails": [
+      {
+        "address": "kathleensilvagni@earthlink.net",
+        "type": "unknown",
+        "isPrimary": true,
+        "confidence": 0
+      }
+    ],
+    "cached": false,
+    "cost": 0,
+    "provider": "batchdata"
+  }
+}

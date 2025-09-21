@@ -1,0 +1,13 @@
+groups:
+- name: convexa.rules
+  rules:
+  - record: convexa_error_rate_5m
+    expr: |
+      sum by(queue)(increase(convexa_jobs_total{status="error"}[5m]))
+      /
+      sum by(queue)(increase(convexa_jobs_total{stage="finish"}[5m]))
+  - record: convexa_cache_hit_ratio_5m
+    expr: |
+      sum(increase(convexa_cache_events_total{op="get",result="hit"}[5m]))
+      /
+      sum(increase(convexa_cache_events_total{op="get"}[5m]))

@@ -17,10 +17,15 @@
 
     /* Linting */
     "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true
+    // Temporarily relax unused checks during migration; ESLint will still flag during CI
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "noFallthroughCasesInSwitch": true,
+    "typeRoots": [
+      "./src/types",
+      "./node_modules/@types"
+    ]
   },
-  "include": ["src"],
+  "include": ["src", "src/types"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

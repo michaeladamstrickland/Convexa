@@ -33,6 +33,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.getAttomClient = getAttomClient;
 exports.searchByZip = searchByZip;
 exports.getPropertyByAddress = getPropertyByAddress;
 exports.getPropertyById = getPropertyById;
@@ -49,6 +50,12 @@ const attomApiKey = process.env.ATTOM_API_KEY || '';
 const attom = isAttomEnabled && attomApiKey
     ? (0, vendorClient_1.makeClient)(attomBaseUrl, { apikey: attomApiKey })
     : null;
+// Expose the raw ATTOM client for advanced use-cases (e.g., comps)
+async function getAttomClient() {
+    if (!isAttomEnabled || !attom)
+        return null;
+    return attom;
+}
 /**
  * Search for properties by ZIP code
  *

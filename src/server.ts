@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import winston from 'winston';
+import axios from 'axios';
 // import { ObituaryDeathMiner } from './intelligence/obituaryDeathMiner';
 import { RevenueMetrics, LeadProfile, ProcessedDeal } from './types';
 import searchRoutes from './routes/searchRoutes';
@@ -13,6 +14,9 @@ import leadRoutes from './routes/leadRoutes';
 import adminMetrics from './routes/adminMetrics';
 import webhookAdmin from './routes/webhookAdmin';
 import callRoutes from './routes/callRoutes';
+import dealRoutes from './routes/dealRoutes';
+import os from 'os';
+import skipTraceRoutes from './routes/skipTraceRoutes';
 
 // Load environment variables
 dotenv.config();
@@ -31,7 +35,7 @@ const logger = winston.createLogger({
         winston.format.simple()
       )
     }),
-    new winston.transports.File({ filename: 'leadflow-ai.log' })
+  new winston.transports.File({ filename: 'convexa-ai.log' })
   ]
 });
 
@@ -68,12 +72,52 @@ class LeadFlowAIServer {
     // Register API routes
     this.app.use('/api/search', searchRoutes);
     this.app.use('/api/leads', leadRoutes);
+    this.app.use('/api/skip-trace', skipTraceRoutes);
   this.app.use('/api/_experimental', experimentalRoutes);
-  this.app.use('/api/dev', devQueueRoutes); // queue dev endpoints
+    this.app.use('/api/dev', devQueueRoutes); // queue dev endpoints
+    this.app.use('/api/queue', devQueueRoutes); // queue dev endpoints
   this.app.use('/api/properties', publicProperties);
   this.app.use('/api/admin', adminMetrics);
   this.app.use('/api/admin', webhookAdmin);
   this.app.use('/api/calls', callRoutes);
+  this.app.use('/api/deals', dealRoutes);
+
+    // Lightweight proxy to integrated ATTOM server (port 5002)
+    // Allows frontend to use a single base URL (http://localhost:3001/api)
+    this.app.all('/api/attom/*', async (req, res) => {
+      try {
+        const targetUrl = `http://localhost:5002${req.originalUrl}`;
+        const method = req.method.toLowerCase() as
+          | 'get'
+          | 'post'
+          | 'put'
+          | 'patch'
+          | 'delete'
+          | 'head'
+          | 'options';
+        const response = await axios({
+          url: targetUrl,
+          method,
+          // Forward query for GET/HEAD, body for others
+          params: method === 'get' || method === 'head' ? req.query : undefined,
+          data: method !== 'get' && method !== 'head' ? req.body : undefined,
+          // Keep it JSON-focused; integrated server already sets headers
+          headers: {
+            Accept: 'application/json',
+          },
+          timeout: 8000,
+        });
+        res.status(response.status).send(response.data);
+      } catch (err: any) {
+        const status = err?.response?.status || 502;
+        const payload = err?.response?.data || {
+          status: 'error',
+          message: 'ATTOM proxy error',
+          error: err?.message || 'Unknown error',
+        };
+        res.status(status).send(payload);
+      }
+    });
     
     // Health check
     this.app.get('/health', (req, res) => {
@@ -90,6 +134,45 @@ class LeadFlowAIServer {
       });
     });
 
+    // Minimal Prometheus metrics exposition
+    this.app.get('/metrics', (req, res) => {
+      res.set('Content-Type', 'text/plain; version=0.0.4');
+      const now = Math.floor(Date.now() / 1000);
+      const buildVersion = '1.0.0';
+      const lines: string[] = [];
+      // Build info
+      lines.push('# HELP leadflow_build_info Build information');
+      lines.push('# TYPE leadflow_build_info gauge');
+      lines.push(`leadflow_build_info{version="${buildVersion}",host="${os.hostname()}"} 1 ${now}`);
+      lines.push('# HELP convexa_build_info Build information');
+      lines.push('# TYPE convexa_build_info gauge');
+      lines.push(`convexa_build_info{version="${buildVersion}",host="${os.hostname()}"} 1 ${now}`);
+      // Webhook replay counters
+      lines.push('# TYPE leadflow_webhook_replay_total counter');
+      lines.push('leadflow_webhook_replay_total{mode="single",status="success"} 0');
+      lines.push('leadflow_webhook_replay_total{mode="single",status="failed"} 0');
+      lines.push('leadflow_webhook_replay_total{mode="bulk",status="success"} 0');
+      // Enrichment metrics
+      lines.push('# TYPE leadflow_enrichment_processed_total counter');
+      lines.push('leadflow_enrichment_processed_total 0');
+      lines.push('# TYPE leadflow_enrichment_duration_ms histogram');
+      lines.push('leadflow_enrichment_duration_ms_bucket{le="+Inf"} 0');
+      // Properties enriched gauge
+      lines.push('# TYPE leadflow_properties_enriched_gauge gauge');
+      lines.push('leadflow_properties_enriched_gauge 0');
+      // Export counters
+      lines.push('# TYPE leadflow_export_total counter');
+      lines.push('leadflow_export_total{format="json"} 0');
+      lines.push('leadflow_export_total{format="csv"} 0');
+      // Matchmaking job counters
+      lines.push('# TYPE leadflow_matchmaking_jobs_total counter');
+      lines.push('leadflow_matchmaking_jobs_total{status="queued"} 0');
+      // Mirror to convexa_* for rebrand compatibility
+      lines.push('# TYPE convexa_matchmaking_jobs_total counter');
+      lines.push('convexa_matchmaking_jobs_total{status="queued"} 0');
+      res.send(lines.join('\n') + '\n');
+    });
+
     // Revenue dashboard
     this.app.get('/revenue', (req, res) => {
       res.json({
@@ -104,7 +187,7 @@ class LeadFlowAIServer {
       try {
         const { markets = ['phoenix', 'tampa', 'orlando', 'miami', 'austin'] } = req.body;
         
-        logger.info('🚀 Starting LeadFlow AI Intelligence Engine...', { markets });
+  logger.info('🚀 Starting Convexa AI Intelligence Engine...', { markets });
         
         if (this.isRunning) {
           return res.json({ 
@@ -120,7 +203,7 @@ class LeadFlowAIServer {
         
         res.json({
           success: true,
-          message: '💰 LeadFlow AI Intelligence Engine ACTIVATED!',
+          message: '💰 Convexa AI Intelligence Engine ACTIVATED!',
           markets,
           expectedLeadsPerHour: 50,
           estimatedDailyRevenue: 5000
@@ -329,9 +412,9 @@ class LeadFlowAIServer {
     ];
   }
 
-  public start(port: number = 3001): void {
+  public start(port: number = Number(process.env.PORT) || 3001): void {
     this.app.listen(port, () => {
-      logger.info(`🚀 LeadFlow AI Server started on port ${port}`);
+  logger.info(`🚀 Convexa AI Server started on port ${port}`);
       logger.info('💰 Ready to generate MONEY! Use /intelligence/start to begin mining leads');
       logger.info(`📊 Revenue dashboard: http://localhost:${port}/revenue`);
       logger.info(`🎯 Generate leads: POST http://localhost:${port}/leads/generate`);
@@ -346,5 +429,5 @@ class LeadFlowAIServer {
 export default LeadFlowAIServer;
 // Auto-start when this module is evaluated (ESM-friendly)
 const __leadflowServerInstance = new LeadFlowAIServer();
-__leadflowServerInstance.start(3001);
+__leadflowServerInstance.start();
 export { __leadflowServerInstance };

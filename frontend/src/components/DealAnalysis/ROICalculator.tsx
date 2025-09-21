@@ -4,7 +4,6 @@ import {
   Card,
   CardContent,
   Typography,
-  Grid,
   TextField,
   InputAdornment,
   Button,
@@ -19,6 +18,7 @@ import {
   Paper,
   Tooltip
 } from '@mui/material';
+import Grid from '@mui/material/GridLegacy';
 import { styled } from '@mui/material/styles';
 import InfoIcon from '@mui/icons-material/Info';
 import {
@@ -34,7 +34,7 @@ import {
   Bar,
 } from 'recharts';
 
-import { DealAnalysis, computeRoi } from '../../../shared/types/deal';
+import { DealAnalysis, computeRoi } from '../../../../shared/types/deal';
 
 // Types
 interface ROICalculatorProps {
@@ -433,7 +433,7 @@ const ROICalculator: React.FC<ROICalculatorProps> = ({
   // Render basic inputs tab
   const renderBasicInputs = () => (
     <Grid container spacing={3}>
-      <Grid xs={12} md={6}>
+      <Grid item xs={12} md={6}>
         <TextField
           label="Offer Price"
           fullWidth
@@ -447,7 +447,7 @@ const ROICalculator: React.FC<ROICalculatorProps> = ({
         />
       </Grid>
       
-      <Grid xs={12} md={6}>
+  <Grid item xs={12} md={6}>
         <TextField
           label="Renovation Cost"
           fullWidth
@@ -461,7 +461,7 @@ const ROICalculator: React.FC<ROICalculatorProps> = ({
         />
       </Grid>
       
-      <Grid xs={12} md={6}>
+  <Grid item xs={12} md={6}>
         <TextField
           label="Projected ARV"
           fullWidth
@@ -475,7 +475,7 @@ const ROICalculator: React.FC<ROICalculatorProps> = ({
         />
       </Grid>
       
-      <Grid xs={12} md={6}>
+  <Grid item xs={12} md={6}>
         <TextField
           label="Closing Costs (%)"
           fullWidth
@@ -489,7 +489,7 @@ const ROICalculator: React.FC<ROICalculatorProps> = ({
         />
       </Grid>
       
-      <Grid xs={12} md={6}>
+  <Grid item xs={12} md={6}>
         <TextField
           label="Selling Costs (%)"
           fullWidth
@@ -503,7 +503,7 @@ const ROICalculator: React.FC<ROICalculatorProps> = ({
         />
       </Grid>
       
-      <Grid xs={12} md={6}>
+  <Grid item xs={12} md={6}>
         <TextField
           label="Holding Period"
           fullWidth
@@ -517,7 +517,7 @@ const ROICalculator: React.FC<ROICalculatorProps> = ({
         />
       </Grid>
       
-      <Grid xs={12} md={6}>
+  <Grid xs={12} md={6}>
         <TextField
           label="Monthly Holding Cost"
           fullWidth
@@ -536,7 +536,7 @@ const ROICalculator: React.FC<ROICalculatorProps> = ({
   // Render financing tab
   const renderFinancingInputs = () => (
     <Grid container spacing={3}>
-      <Grid xs={12}>
+      <Grid item xs={12}>
         <FormControlLabel
           control={
             <Switch
@@ -551,7 +551,7 @@ const ROICalculator: React.FC<ROICalculatorProps> = ({
       
       {useFinancing && (
         <>
-          <Grid xs={12} md={6}>
+          <Grid item xs={12} md={6}>
             <Typography gutterBottom>
               Down Payment: {downPaymentPercent}%
             </Typography>
@@ -570,7 +570,7 @@ const ROICalculator: React.FC<ROICalculatorProps> = ({
             />
           </Grid>
           
-          <Grid xs={12} md={6}>
+          <Grid item xs={12} md={6}>
             <TextField
               label="Interest Rate"
               fullWidth
@@ -584,7 +584,7 @@ const ROICalculator: React.FC<ROICalculatorProps> = ({
             />
           </Grid>
           
-          <Grid xs={12} md={6}>
+          <Grid item xs={12} md={6}>
             <TextField
               label="Loan Term"
               fullWidth
@@ -598,7 +598,7 @@ const ROICalculator: React.FC<ROICalculatorProps> = ({
             />
           </Grid>
           
-          <Grid xs={12} md={6}>
+          <Grid item xs={12} md={6}>
             <Paper variant="outlined" sx={{ p: 2 }}>
               <Typography variant="subtitle2" gutterBottom>Financing Summary</Typography>
               <Typography variant="body2">
@@ -618,7 +618,7 @@ const ROICalculator: React.FC<ROICalculatorProps> = ({
               </Typography>
             </Paper>
           </Grid>
-        </>
+  </>
       )}
     </Grid>
   );
@@ -629,7 +629,7 @@ const ROICalculator: React.FC<ROICalculatorProps> = ({
       <Typography variant="h6" gutterBottom>Investment Scenario Comparison</Typography>
       
       <Grid container spacing={3}>
-        <Grid xs={12} lg={6}>
+        <Grid item xs={12} lg={6}>
           <Paper variant="outlined" sx={{ p: 2, height: '100%' }}>
             <Typography variant="subtitle1" gutterBottom>Return on Investment (ROI)</Typography>
             <ResponsiveContainer width="100%" height={250}>
@@ -649,7 +649,7 @@ const ROICalculator: React.FC<ROICalculatorProps> = ({
           </Paper>
         </Grid>
         
-        <Grid xs={12} lg={6}>
+  <Grid item xs={12} lg={6}>
           <Paper variant="outlined" sx={{ p: 2, height: '100%' }}>
             <Typography variant="subtitle1" gutterBottom>Cash Required vs Profit</Typography>
             <ResponsiveContainer width="100%" height={250}>
@@ -670,7 +670,7 @@ const ROICalculator: React.FC<ROICalculatorProps> = ({
           </Paper>
         </Grid>
         
-        <Grid xs={12}>
+  <Grid item xs={12}>
           <Paper variant="outlined" sx={{ p: 0 }}>
             <Box sx={{ width: '100%', overflowX: 'auto' }}>
               <Box sx={{ minWidth: 500 }}>
@@ -745,7 +745,7 @@ const ROICalculator: React.FC<ROICalculatorProps> = ({
         <Typography variant="h6" gutterBottom>Sensitivity Analysis</Typography>
         
         <Grid container spacing={3}>
-          <Grid xs={12} md={6}>
+          <Grid item xs={12} md={6}>
             <Paper variant="outlined" sx={{ p: 2, height: '100%' }}>
               <Typography variant="subtitle1" gutterBottom>
                 ARV Impact on ROI
@@ -774,7 +774,7 @@ const ROICalculator: React.FC<ROICalculatorProps> = ({
             </Paper>
           </Grid>
           
-          <Grid xs={12} md={6}>
+          <Grid item xs={12} md={6}>
             <Paper variant="outlined" sx={{ p: 2, height: '100%' }}>
               <Typography variant="subtitle1" gutterBottom>
                 Purchase Price Impact on ROI
@@ -803,7 +803,7 @@ const ROICalculator: React.FC<ROICalculatorProps> = ({
             </Paper>
           </Grid>
           
-          <Grid xs={12}>
+          <Grid item xs={12}>
             <Paper variant="outlined" sx={{ p: 2 }}>
               <Typography variant="subtitle1" gutterBottom>
                 Best/Worst Case Scenarios
@@ -907,42 +907,42 @@ const ROICalculator: React.FC<ROICalculatorProps> = ({
             </Box>
           ) : (
             <Grid container spacing={3}>
-              <Grid xs={12} md={6}>
+              <Grid item xs={12} md={6}>
                 <Paper variant="outlined" sx={{ p: 2 }}>
                   <Typography variant="subtitle2" gutterBottom>Investment</Typography>
                   <Grid container spacing={1}>
-                    <Grid xs={8}>
+                    <Grid item xs={8}>
                       <Typography variant="body2">Purchase Price:</Typography>
                     </Grid>
-                    <Grid xs={4}>
+                    <Grid item xs={4}>
                       <Typography variant="body2" align="right">{formatCurrency(roiResult.purchasePrice)}</Typography>
                     </Grid>
                     
-                    <Grid xs={8}>
+                    <Grid item xs={8}>
                       <Typography variant="body2">Closing Costs ({closingCostPercent}%):</Typography>
                     </Grid>
-                    <Grid xs={4}>
+                    <Grid item xs={4}>
                       <Typography variant="body2" align="right">{formatCurrency(roiResult.closingCosts)}</Typography>
                     </Grid>
                     
-                    <Grid xs={8}>
+                    <Grid item xs={8}>
                       <Typography variant="body2">Renovation Costs:</Typography>
                     </Grid>
-                    <Grid xs={4}>
+                    <Grid item xs={4}>
                       <Typography variant="body2" align="right">{formatCurrency(roiResult.renovationCosts)}</Typography>
                     </Grid>
                     
-                    <Grid xs={8}>
+                    <Grid item xs={8}>
                       <Typography variant="body2">Holding Costs ({holdingPeriodMonths} months):</Typography>
                     </Grid>
-                    <Grid xs={4}>
+                    <Grid item xs={4}>
                       <Typography variant="body2" align="right">{formatCurrency(roiResult.holdingCosts.total)}</Typography>
                     </Grid>
                     
-                    <Grid xs={8}>
+                    <Grid item xs={8}>
                       <Typography variant="body2" fontWeight="bold">Total Investment:</Typography>
                     </Grid>
-                    <Grid xs={4}>
+                    <Grid item xs={4}>
                       <Typography variant="body2" fontWeight="bold" align="right">
                         {formatCurrency(
                           roiResult.purchasePrice + 
@@ -956,37 +956,37 @@ const ROICalculator: React.FC<ROICalculatorProps> = ({
                 </Paper>
               </Grid>
               
-              <Grid xs={12} md={6}>
+              <Grid item xs={12} md={6}>
                 <Paper variant="outlined" sx={{ p: 2 }}>
                   <Typography variant="subtitle2" gutterBottom>Return</Typography>
                   <Grid container spacing={1}>
-                    <Grid xs={8}>
+                    <Grid item xs={8}>
                       <Typography variant="body2">Projected ARV:</Typography>
                     </Grid>
-                    <Grid xs={4}>
+                    <Grid item xs={4}>
                       <Typography variant="body2" align="right">{formatCurrency(roiResult.projectedARV)}</Typography>
                     </Grid>
                     
-                    <Grid xs={8}>
+                    <Grid item xs={8}>
                       <Typography variant="body2">Selling Costs ({sellingCostPercent}%):</Typography>
                     </Grid>
-                    <Grid xs={4}>
+                    <Grid item xs={4}>
                       <Typography variant="body2" align="right">{formatCurrency(roiResult.sellingCosts)}</Typography>
                     </Grid>
                     
-                    <Grid xs={8}>
+                    <Grid item xs={8}>
                       <Typography variant="body2" fontWeight="bold">Net Proceeds:</Typography>
                     </Grid>
-                    <Grid xs={4}>
+                    <Grid item xs={4}>
                       <Typography variant="body2" fontWeight="bold" align="right">
                         {formatCurrency(roiResult.projectedARV - roiResult.sellingCosts)}
                       </Typography>
                     </Grid>
                     
-                    <Grid xs={8}>
+                    <Grid item xs={8}>
                       <Typography variant="body2" fontWeight="bold">Net Profit:</Typography>
                     </Grid>
-                    <Grid xs={4}>
+                    <Grid item xs={4}>
                       <Typography variant="body2" fontWeight="bold" align="right">
                         {formatCurrency(roiResult.netProfit)}
                       </Typography>
@@ -995,10 +995,10 @@ const ROICalculator: React.FC<ROICalculatorProps> = ({
                 </Paper>
               </Grid>
               
-              <Grid xs={12}>
+              <Grid item xs={12}>
                 <ResultBox>
                   <Grid container alignItems="center" justifyContent="center" spacing={3}>
-                    <Grid xs={12} md={useFinancing ? 6 : 12} textAlign="center">
+                    <Grid item xs={12} md={useFinancing ? 6 : 12} textAlign="center">
                       <Typography variant="subtitle2" color="text.secondary">
                         Return on Investment (ROI)
                       </Typography>
@@ -1008,7 +1008,7 @@ const ROICalculator: React.FC<ROICalculatorProps> = ({
                     </Grid>
                     
                     {useFinancing && (
-                      <Grid xs={12} md={6} textAlign="center">
+                      <Grid item xs={12} md={6} textAlign="center">
                         <Typography variant="subtitle2" color="text.secondary">
                           Cash-on-Cash Return
                         </Typography>

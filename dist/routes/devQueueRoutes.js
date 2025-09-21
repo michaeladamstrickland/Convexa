@@ -308,10 +308,34 @@ router.get('/metrics', async (req, res) => {
         }
         // Feed and delivery-history counters
         try {
-            const fm = global.__FEED_METRICS__ || { servedTotal: 0 };
+            const fm = global.__FEED_METRICS__ || { servedTotal: 0, filterCounts: {} };
             output += `leadflow_properties_feed_served_total ${fm.servedTotal}\n`;
+            // Per-filter counters (focus on tag/reason/tagReasons, others grouped by label)
+            const fc = fm.filterCounts || {};
+            const interesting = ['tag', 'reason', 'tagReasons'];
+            for (const [k, v] of Object.entries(fc)) {
+                if (interesting.includes(k)) {
+                    output += `leadflow_properties_filtered_total{filter="${k}"} ${v}\n`;
+                }
+                else if (k.startsWith('other:')) {
+                    const label = k.slice('other:'.length);
+                    output += `leadflow_properties_filtered_total{filter="${label}"} ${v}\n`;
+                }
+            }
             const dh = global.__DELIVERY_HISTORY_METRICS__ || { servedTotal: 0 };
             output += `leadflow_delivery_history_queries_total ${dh.servedTotal}\n`;
+            // CRM activity metrics
+            const crm = global.__CRM_ACTIVITY_METRICS__ || { total: 0, perType: new Map(), webhook: { success: 0, fail: 0 } };
+            output += `leadflow_crm_activity_total ${crm.total}\n`;
+            try {
+                const perType = crm.perType instanceof Map ? crm.perType : new Map(Object.entries(crm.perType || {}));
+                for (const [t, v] of perType.entries()) {
+                    output += `leadflow_crm_activity_total{type="${String(t).replace(/"/g, '\\"')}"} ${v}\n`;
+                }
+            }
+            catch { }
+            output += `leadflow_crm_activity_webhook_total{status="success"} ${crm.webhook.success}\n`;
+            output += `leadflow_crm_activity_webhook_total{status="fail"} ${crm.webhook.fail}\n`;
         }
         catch { }
         // Matchmaking counters
@@ -336,6 +360,41 @@ router.get('/metrics', async (req, res) => {
     catch {
         output += '# webhook metrics error\n';
     }
+    // Call metrics
+    try {
+        const cm = global.__CALL_METRICS__ || { started: 0, completed: 0, transcriptionLatencyMs: [], scoringLatencyMs: [], summary: { success: 0, fail: 0 } };
+        output += `leadflow_call_started_total ${cm.started}\n`;
+        output += `leadflow_call_completed_total ${cm.completed}\n`;
+        output += `leadflow_call_summary_total{status="success"} ${cm.summary?.success || 0}\n`;
+        output += `leadflow_call_summary_total{status="fail"} ${cm.summary?.fail || 0}\n`;
+        const cbuckets = [100, 250, 500, 1000, 2000, 5000, 10000];
+        const tdur = (cm.transcriptionLatencyMs || []).slice();
+        for (const b of cbuckets) {
+            const c = tdur.filter((d) => d <= b).length;
+            output += `leadflow_call_transcription_ms_bucket{le="${b}"} ${c}\n`;
+        }
+        output += `leadflow_call_transcription_ms_bucket{le="+Inf"} ${tdur.length}\n`;
+        const tsum = tdur.reduce((a, b) => a + b, 0);
+        output += `leadflow_call_transcription_ms_sum ${tsum}\n`;
+        output += `leadflow_call_transcription_ms_count ${tdur.length}\n`;
+        const sdur = (cm.scoringLatencyMs || []).slice();
+        for (const b of cbuckets) {
+            const c = sdur.filter((d) => d <= b).length;
+            output += `leadflow_call_scoring_ms_bucket{le="${b}"} ${c}\n`;
+        }
+        output += `leadflow_call_scoring_ms_bucket{le="+Inf"} ${sdur.length}\n`;
+        const ssum = sdur.reduce((a, b) => a + b, 0);
+        output += `leadflow_call_scoring_ms_sum ${ssum}\n`;
+        output += `leadflow_call_scoring_ms_count ${sdur.length}\n`;
+    }
+    catch { }
+    // Live call metrics
+    try {
+        const lm = global.__CALL_LIVE_METRICS__ || { transcriptTotal: 0, summaryTotal: 0 };
+        output += `leadflow_call_live_transcript_total ${lm.transcriptTotal || 0}\n`;
+        output += `leadflow_call_live_summary_total ${lm.summaryTotal || 0}\n`;
+    }
+    catch { }
     // build_info gauge (best-effort)
     try {
         const pkg = require('../../package.json');
@@ -343,6 +402,12 @@ router.get('/metrics', async (req, res) => {
         const env = process.env.NODE_ENV || 'dev';
         const commit = process.env.GIT_COMMIT || 'unknown';
         output += `leadflow_build_info{version="${version}",env="${env}",commit="${commit}"} 1\n`;
+    }
+    catch { }
+    // Mirror all metrics to new Convexa prefix for backward-compatibility
+    try {
+        const convexaOutput = output.replace(/leadflow_/g, 'convexa_');
+        output += convexaOutput;
     }
     catch { }
     res.send(output);

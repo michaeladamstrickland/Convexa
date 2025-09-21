@@ -16,6 +16,7 @@ const dailyScheduler_1 = require("./scheduler/dailyScheduler");
 const leadRoutes_1 = __importDefault(require("./routes/leadRoutes"));
 const adminMetrics_1 = __importDefault(require("./routes/adminMetrics"));
 const webhookAdmin_1 = __importDefault(require("./routes/webhookAdmin"));
+const callRoutes_1 = __importDefault(require("./routes/callRoutes"));
 // Load environment variables
 dotenv_1.default.config();
 // Configure logging
@@ -26,7 +27,7 @@ const logger = winston_1.default.createLogger({
         new winston_1.default.transports.Console({
             format: winston_1.default.format.combine(winston_1.default.format.colorize(), winston_1.default.format.simple())
         }),
-        new winston_1.default.transports.File({ filename: 'leadflow-ai.log' })
+        new winston_1.default.transports.File({ filename: 'convexa-ai.log' })
     ]
 });
 class LeadFlowAIServer {
@@ -60,6 +61,7 @@ class LeadFlowAIServer {
         this.app.use('/api/properties', publicProperties_1.default);
         this.app.use('/api/admin', adminMetrics_1.default);
         this.app.use('/api/admin', webhookAdmin_1.default);
+        this.app.use('/api/calls', callRoutes_1.default);
         // Health check
         this.app.get('/health', (req, res) => {
             res.json({
@@ -86,7 +88,7 @@ class LeadFlowAIServer {
         this.app.post('/intelligence/start', async (req, res) => {
             try {
                 const { markets = ['phoenix', 'tampa', 'orlando', 'miami', 'austin'] } = req.body;
-                logger.info('🚀 Starting LeadFlow AI Intelligence Engine...', { markets });
+                logger.info('🚀 Starting Convexa AI Intelligence Engine...', { markets });
                 if (this.isRunning) {
                     return res.json({
                         success: false,
@@ -98,7 +100,7 @@ class LeadFlowAIServer {
                 this.startIntelligenceEngine(markets);
                 res.json({
                     success: true,
-                    message: '💰 LeadFlow AI Intelligence Engine ACTIVATED!',
+                    message: '💰 Convexa AI Intelligence Engine ACTIVATED!',
                     markets,
                     expectedLeadsPerHour: 50,
                     estimatedDailyRevenue: 5000
@@ -291,7 +293,7 @@ class LeadFlowAIServer {
     }
     start(port = 3001) {
         this.app.listen(port, () => {
-            logger.info(`🚀 LeadFlow AI Server started on port ${port}`);
+            logger.info(`🚀 Convexa AI Server started on port ${port}`);
             logger.info('💰 Ready to generate MONEY! Use /intelligence/start to begin mining leads');
             logger.info(`📊 Revenue dashboard: http://localhost:${port}/revenue`);
             logger.info(`🎯 Generate leads: POST http://localhost:${port}/leads/generate`);

@@ -1,6 +1,6 @@
-# LeadFlow AI Test Suite
+# Convexa AI Test Suite
 
-This document provides instructions for running the test suite for the LeadFlow AI scraper system.
+This document provides instructions for running the test suite for the Convexa AI scraper system.
 
 ## Available Test Scripts
 

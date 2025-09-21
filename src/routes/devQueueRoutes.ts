@@ -7,6 +7,8 @@ import { webhookMetrics } from '../workers/webhookWorker';
 import { enrichmentMetrics } from '../metrics/enrichment';
 import { matchmakingMetrics } from '../workers/matchmakingWorker';
 import { triggerDailyScheduler } from '../scheduler/dailyScheduler';
+import { Queue } from 'bullmq';
+import { createHash } from 'crypto';
 
 const router = Router();
 
@@ -60,16 +62,28 @@ router.get('/jobs', async (req, res) => {
   }
 });
 
-router.get('/queue-metrics', (req, res) => {
+router.get('/queue-metrics', async (req, res) => {
   const sourceBreakdown = Array.from(metrics.perSource.entries()).reduce((acc, [k, v]) => {
     acc[k] = v; return acc;
   }, {} as Record<string, { success: number; failed: number }>);
+
+  // Get BullMQ queue depths
+  const queueNames = ['scraper-jobs', 'webhook-deliveries', 'matchmaking', 'scraper-jobs-failed']; // Add other queue names as needed
+  const queueDepths: { [key: string]: any } = {};
+
+  for (const name of queueNames) {
+    const queue = new Queue(name, { connection: { host: 'localhost', port: 6379 } });
+    const counts = await queue.getJobCounts('waiting', 'active', 'completed', 'failed', 'delayed');
+    queueDepths[name] = counts;
+  }
+
   res.json({
     success: true,
     totalProcessed: metrics.processed,
     successCount: metrics.success,
     failedCount: metrics.failed,
-    sourceBreakdown
+    sourceBreakdown,
+    queueDepths
   });
 });
 
@@ -134,22 +148,19 @@ router.post('/enqueue-bulk', async (req, res) => {
     for (const zip of zips) {
       try {
         // Attempt duplicate detection by same day + source + zip (zip inside inputPayload JSON)
-        const existing = await prisma.scraperJob.findFirst({
-          where: {
-            source: source as any,
-            createdAt: { gte: todayStart },
-            // Simple JSON search fallback if Prisma JSON path not supported in current version
-          }
+        const jobId = createHash('sha1').update(JSON.stringify({ source, zip, fromDate, toDate, filters })).digest('hex');
+        const existing = await prisma.scraperJob.findUnique({
+          where: { id: jobId }
         });
-        if (existing && (existing.inputPayload as any)?.zip === zip) {
-          skipped.push({ source, zip, reason: 'duplicate_same_day' });
+        if (existing) {
+          skipped.push({ source, zip, reason: 'duplicate_job_id' });
           continue;
         }
         const payload: any = { source, zip };
         if (fromDate) payload.fromDate = fromDate;
         if (toDate) payload.toDate = toDate;
         if (filters) payload.filters = filters;
-        const { id } = await enqueueScraperJob(payload);
+        const { id } = await enqueueScraperJob(payload, { jobId, attempts: 6, backoff: { type: 'exponential', delay: 1000 } });
         created.push({ id, source, zip });
       } catch (e: any) {
         skipped.push({ source, zip, reason: 'enqueue_failed:' + e.message });
@@ -381,6 +392,11 @@ router.get('/metrics', async (req, res) => {
     const env = process.env.NODE_ENV || 'dev';
     const commit = process.env.GIT_COMMIT || 'unknown';
     output += `leadflow_build_info{version="${version}",env="${env}",commit="${commit}"} 1\n`;
+  } catch {}
+  // Mirror all metrics to new Convexa prefix for backward-compatibility
+  try {
+    const convexaOutput = output.replace(/leadflow_/g, 'convexa_');
+    output += convexaOutput;
   } catch {}
   res.send(output);
 });

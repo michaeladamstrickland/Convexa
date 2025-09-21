@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
-// LEADFLOW AI ZIP CODE SYSTEM GUIDE
+// CONVEXA AI ZIP CODE SYSTEM GUIDE
 // How to use the zip code lead generation system
 
-console.log('🎯 LEADFLOW AI ZIP CODE LEAD SYSTEM');
+console.log('🎯 CONVEXA AI ZIP CODE LEAD SYSTEM');
 console.log('=' .repeat(60));
 console.log('');
 

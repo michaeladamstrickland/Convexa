@@ -1,0 +1,24 @@
+{
+  "success": true,
+  "data": {
+    "breaker": {
+      "state": "closed",
+      "ok": 0,
+      "err": 0,
+      "total": 0,
+      "errRatio": 0,
+      "nextProbeAt": 1758293428592
+    },
+    "budget": {
+      "capCents": 20000,
+      "spentCents": 1325,
+      "remainingCents": 18675
+    },
+    "rps": 100,
+    "bucket": {
+      "capacity": 100,
+      "tokens": 99,
+      "refillPerSec": 100
+    }
+  }
+}

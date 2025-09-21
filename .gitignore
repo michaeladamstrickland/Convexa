@@ -1,0 +1,61 @@
+# Dependencies
+node_modules/
+frontend/node_modules/
+backend/node_modules/
+
+# Build outputs
+dist/
+frontend/dist/
+coverage/
+.coverage/
+
+# Editor/OS
+.DS_Store
+Thumbs.db
+.vscode/
+
+# Environment & local data
+.env*
+backend/.env*
+backend/data/*.db
+*.sqlite
+
+# Logs & pids
+*.log
+*.pid
+*.pid?
+
+# CSV dumps (keep repo light)
+/*.csv
+LeadDump_*.csv
+
+# Findings: allow sharing PNG screenshots
+ops/findings/*
+!ops/findings/*.png
+
+# Prisma local DBs
+backend/prisma/*.db
+
+# Windows reserved device names (avoid indexing)
+NUL
+CON
+PRN
+AUX
+COM1
+COM2
+COM3
+COM4
+COM5
+COM6
+COM7
+COM8
+COM9
+LPT1
+LPT2
+LPT3
+LPT4
+LPT5
+LPT6
+LPT7
+LPT8
+LPT9

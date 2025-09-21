@@ -1,8 +1,8 @@
-# LeadFlow AI - Real Estate Lead Generation System
+# Convexa AI - Real Estate Lead Generation System
 
 ## 🚀 REAL API IMPLEMENTATION COMPLETE
 
-**This is no longer a mock system!** LeadFlow AI now connects to actual premium real estate APIs to provide real property data, skip tracing, and comprehensive lead generation.
+**This is no longer a mock system!** Convexa AI now connects to actual premium real estate APIs to provide real property data, skip tracing, and comprehensive lead generation.
 
 ## ✅ What's Implemented
 

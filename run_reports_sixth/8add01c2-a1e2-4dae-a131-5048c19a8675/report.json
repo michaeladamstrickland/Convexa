@@ -1,0 +1,22 @@
+{
+  "run_id": "8add01c2-a1e2-4dae-a131-5048c19a8675",
+  "started_at": "2025-09-19T21:27:22.343Z",
+  "finished_at": "2025-09-19T21:27:24.032Z",
+  "totals": {
+    "total": 100,
+    "done": 100,
+    "failed": 0,
+    "provider_calls": 1,
+    "cache_hits": 99
+  },
+  "hit_rate": {
+    "phone_any_pct": 100,
+    "email_any_pct": 100
+  },
+  "budgets": {
+    "cap_usd": 0.5,
+    "spent_usd": 1.02
+  },
+  "cache_hit_ratio": 99,
+  "errors": {}
+}

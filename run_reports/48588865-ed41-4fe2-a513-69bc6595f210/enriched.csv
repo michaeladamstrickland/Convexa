@@ -1,0 +1,610 @@
+LeadID,Address,Owner,PrimaryPhone,PhonesCount,PrimaryEmail,EmailsCount,HasDNC,Cached
+1,"113 Elgin Ave, Collingswood, NJ, 08108","Kathleen W Silvagni",,0,,0,0,0
+2,"123 Vesper Ave, Collingswood, NJ, 08108","Kristine C Marsh",,0,,0,0,0
+3,"21 Elm Ave, Collingswood, NJ, 08108","James T Welsh",,0,,0,0,0
+4,"17 Elm Ave, Collingswood, NJ, 08108","Michael V Romea",,0,,0,0,0
+5,"400 Cooper St, Collingswood, NJ, 08108","Stephanie L Hirt",,0,,0,0,0
+6,"113 Utica Ave, Collingswood, NJ, 08108","Alexander L Tessing",,0,,0,0,0
+7,"4 W Knight Ave, Collingswood, NJ, 08108","Jaclyn A Marencin",,0,,0,0,0
+8,"118 Emerald Ave, Collingswood, NJ, 08108","Michelle L Eife",,0,,0,0,0
+9,"601 Oneida Ave, Collingswood, NJ, 08108","Kenneth Jerome Paley",,0,,0,0,0
+10,"103 Ardmore Ave, Collingswood, NJ, 08108","Kelli Lamplugh",,0,,0,0,0
+11,"530 Maple Ave, Collingswood, NJ, 08108","Craig M Aaron",,0,,0,0,0
+12,"121 E Madison Ave, Collingswood, NJ, 08108","Evan Michael Linhardt",,0,,0,0,0
+13,"19 Crestmont Ter, Collingswood, NJ, 08108","Tricia Cleff",,0,,0,0,0
+14,"313 Lakeview Dr, Collingswood, NJ, 08108","Jamie C Kerth",,0,,0,0,0
+15,"22 Cooper St, Collingswood, NJ, 08108","John D Wilcox",,0,,0,0,0
+16,"105 Center St, Collingswood, NJ, 08108","Wendy B Baliski",,0,,0,0,0
+17,"15 Glenwood Ave, Collingswood, NJ, 08108","Terri J Lundquist",,0,,0,0,0
+18,"205 Westmont Ave, Collingswood, NJ, 08108","Robin A Young",,0,,0,0,0
+19,"128 Westmont Ave, Collingswood, NJ, 08108","Lauren J Klaus",,0,,0,0,0
+20,"21 Glenwood Ave, Collingswood, NJ, 08108","Carolyne Abbate",,0,,0,0,0
+21,"18 W Coulter Ave, Collingswood, NJ, 08108","Julianna Thurber",,0,,0,0,0
+22,"509 Woodlawn Ave, Collingswood, NJ, 08108","Jillian Ann Murphy",,0,,0,0,0
+23,"238 Emerald Ave, Collingswood, NJ, 08108","Lauren L Blaskiewicz",,0,,0,0,0
+24,"117 W Walnut Ave, Collingswood, NJ, 08108","John Weston Rowell",,0,,0,0,0
+25,"157 New Jersey Ave, Collingswood, NJ, 08108","Dana M Presto",,0,,0,0,0
+26,"427 Albany Ave, Collingswood, NJ, 08108","Donald Joseph Reighn",,0,,0,0,0
+27,"297 Locust Ave, Collingswood, NJ, 08108","Joshua M Bennett",,0,,0,0,0
+28,"123 W Browning Rd, Collingswood, NJ, 08108","Robert Joseph Bartlett",,0,,0,0,0
+29,"932 Maple Ave, Collingswood, NJ, 08108","Tracy L Grauman",,0,,0,0,0
+30,"17 E Coulter Ave, Collingswood, NJ, 08108","Alexander S Weber",,0,,0,0,0
+31,"104 Fern Ave, Collingswood, NJ, 08108","Michele Lichtenfield",,0,,0,0,0
+32,"155 New Jersey Ave, Collingswood, NJ, 08108","Melanie Burke Reiser",,0,,0,0,0
+33,"604 Cedar Ave, Collingswood, NJ, 08108","Marian P Bland",,0,,0,0,0
+34,"454 Conger Ave, Collingswood, NJ, 08108","Anthony R Lord",,0,,0,0,0
+35,"33 Lindis Farne Ave, Collingswood, NJ, 08108","Gianna Peluso",,0,,0,0,0
+36,"412 Woodlawn Ave, Collingswood, NJ, 08108","Damien D Downer",,0,,0,0,0
+37,"22 Lindis Farne Ave, Collingswood, NJ, 08108","Sarah E Greenblatt",,0,,0,0,0
+38,"4 French Ave, Collingswood, NJ, 08108","Miranda L Maclean",,0,,0,0,0
+39,"29 Fern Ave, Collingswood, NJ, 08108","James P Gavan",,0,,0,0,0
+40,"107 Park Ter, Collingswood, NJ, 08108","Christine C Wick",,0,,0,0,0
+41,"131 Westmont Ave, Collingswood, NJ, 08108","John D Medes",,0,,0,0,0
+42,"117 E Madison Ave, Collingswood, NJ, 08108","Nicole A Vaughn",,0,,0,0,0
+43,"87 Emerald Ave, Collingswood, NJ, 08108","Jeffrey Murawski",,0,,0,0,0
+44,"204 Center St, Collingswood, NJ, 08108","David Digiacomo",,0,,0,0,0
+45,"38 E Madison Ave, Collingswood, NJ, 08108","Steven H Saba",,0,,0,0,0
+46,"831 Belmont Ave, Collingswood, NJ, 08108","William C Beverlin",,0,,0,0,0
+47,"169 New Jersey Ave, Collingswood, NJ, 08108","Maureen A Gushue",,0,,0,0,0
+48,"915 Stokes Ave, Collingswood, NJ, 08108","William J Tucker JR",,0,,0,0,0
+49,"232 New Jersey Ave, Collingswood, NJ, 08108","Griffith R Kinsey",,0,,0,0,0
+50,"444 Melrose Ave, Collingswood, NJ, 08108","Michael T Slater",,0,,0,0,0
+51,"528 Lincoln Ave, Collingswood, NJ, 08108","Mark Paci",,0,,0,0,0
+52,"3 E Albertson Ave, Haddon Township, NJ, 08108","Katherine E Gordon",,0,,0,0,0
+53,"115 Cooper Ave, Collingswood, NJ, 08108","Claire L Volpe",,0,,0,0,0
+54,"18 Glenwood Ave, Collingswood, NJ, 08108","Richard J Sherman",,0,,0,0,0
+55,"104 Curtis Ave, Collingswood, NJ, 08108","Kevin J Hein",,0,,0,0,0
+56,"102 Cooper Ave, Collingswood, NJ, 08108","Joshua D Ansley",,0,,0,0,0
+57,"439 Melrose Ave, Collingswood, NJ, 08108","Jeffrey Andrew Seiden",,0,,0,0,0
+58,"401 Lincoln Ave, Collingswood, NJ, 08108","Matthew T Loiseau",,0,,0,0,0
+59,"737 Maple Ter, Collingswood, NJ, 08108","Kenneth Wayne Smith",,0,,0,0,0
+60,"55 Addison Ave, Collingswood, NJ, 08108","Kevin J Kent",,0,,0,0,0
+61,"315 Lees Ln, Collingswood, NJ, 08108","Laurie N Burton",,0,,0,0,0
+62,"421 Tatem Ave, Collingswood, NJ, 08108","Josephine E Master",,0,,0,0,0
+63,"612 Cedar Ave, Collingswood, NJ, 08108","Tim M Viguers",,0,,0,0,0
+64,"744 Maple Ter, Collingswood, NJ, 08108","Renjason C Patulot",,0,,0,0,0
+65,"401 Albany Ave, Collingswood, NJ, 08108","John J Mckeffery",,0,,0,0,0
+66,"211 Emerald Ave, Collingswood, NJ, 08108","Jelina Lewandowski",,0,,0,0,0
+67,"80 Virginia Ave, Collingswood, NJ, 08108","Stephen B Clyde",,0,,0,0,0
+68,"305 Locust Ave, Collingswood, NJ, 08108","Lawrence C Linsenbigler",,0,,0,0,0
+69,"534 Haddon Ave, Collingswood, NJ, 08108","Tracey D Mitchell",,0,,0,0,0
+70,"116 Stratford Ave, Collingswood, NJ, 08108","Geoffrey D Marsh",,0,,0,0,0
+71,"16 Oriental Ave, Collingswood, NJ, 08108","Steven C Seetoo",,0,,0,0,0
+72,"513 Maple Ave, Collingswood, NJ, 08108","Frances Jeanette Fortney",,0,,0,0,0
+73,"116 Woodlawn Ave, Collingswood, NJ, 08108","Salvatore L Nistico",,0,,0,0,0
+74,"36 Harvard Ave, Collingswood, NJ, 08108","Courtney D Owen",,0,,0,0,0
+75,"250 Harvard Ave, Collingswood, NJ, 08108","John D Montague",,0,,0,0,0
+76,"103 E Narberth Ter, Collingswood, NJ, 08108","Michael M Fite",,0,,0,0,0
+77,"34 E Madison Ave, Collingswood, NJ, 08108","Samantha K Tacon",,0,,0,0,0
+78,"107 Park Ave, Collingswood, NJ, 08108","Shawn Campbell",,0,,0,0,0
+79,"38 Bellevue Ter, Collingswood, NJ, 08108","Jose A Malaves",,0,,0,0,0
+80,"133 E Franklin Ave, Collingswood, NJ, 08108","Rachelle Ferrelli",,0,,0,0,0
+81,"135 Haddon Ave, Collingswood, NJ, 08108","Katherine Y Newport",,0,,0,0,0
+82,"39 E Collings Ave, Collingswood, NJ, 08108","Anita Marie Garcia",,0,,0,0,0
+83,"17 E Collings Ave, Collingswood, NJ, 08108","Dina M Direnzo",,0,,0,0,0
+84,"20 Bellevue Ter, Collingswood, NJ, 08108","Adam B Cohen",,0,,0,0,0
+85,"24 Ardmore Ter, Collingswood, NJ, 08108","Nikki L Coleman",,0,,0,0,0
+86,"731 Maple Ter, Collingswood, NJ, 08108","Alfie S Mannino",,0,,0,0,0
+87,"48 Bellevue Ter, Collingswood, NJ, 08108","Berish D Leser",,0,,0,0,0
+88,"4 Pacific Ave, Collingswood, NJ, 08108","Meiloch Wislicki",,0,,0,0,0
+89,"947 Oriental Ave, Collingswood, NJ, 08108","Joan A Kavuru",,0,,0,0,0
+90,"58 Lincoln Ave, Collingswood, NJ, 08108","Daniel M Bree",,0,,0,0,0
+91,"220 New Jersey Ave, Collingswood, NJ, 08108","Timothy C O'keefe",,0,,0,0,0
+92,"202 Morgan Ave, Collingswood, NJ, 08108","Sandra L Logan",,0,,0,0,0
+93,"222 New Jersey Ave, Collingswood, NJ, 08108","Michelle L Sheilds",,0,,0,0,0
+94,"505 Lincoln Ave, Collingswood, NJ, 08108","Abigail L Gardner",,0,,0,0,0
+95,"506 E Cuthbert Blvd, Collingswood, NJ, 08108","James F Mcdonnell",,0,,0,0,0
+96,"300 Strawbridge Ave, Collingswood, NJ, 08108","Jennifer A Kadlowec",,0,,0,0,0
+97,"120 E Homestead Ave, Collingswood, NJ, 08108","Sarah A Clark",,0,,0,0,0
+98,"231 Penn Ave, Collingswood, NJ, 08108","Richard A Sbarra",,0,,0,0,0
+99,"248 Stratford Ave, Collingswood, NJ, 08108","Kayla M Jarosiewicz",,0,,0,0,0
+100,"5 Cuthbert Cir, Collingswood, NJ, 08108","Jenelle D Elm",,0,,0,0,0
+101,"11 Penn Ave, Collingswood, NJ, 08108","Brian Michael Albright",,0,,0,0,0
+102,"1019 Emerald Ave, Collingswood, NJ, 08108","David Martin Joyce",,0,,0,0,0
+103,"238 Lawnside Ave, Collingswood, NJ, 08108","Craig M Soreth",,0,,0,0,0
+104,"1114 Park Ave, Collingswood, NJ, 08108","Mark C Bakey",,0,,0,0,0
+105,"615 Cedar Ave, Collingswood, NJ, 08108","Amy L Cannon",,0,,0,0,0
+106,"114 Dill Ave, Collingswood, NJ, 08108","Lisa Marie Gordy",,0,,0,0,0
+107,"935 Linwood Ave, Collingswood, NJ, 08108","Jennifer Rudio",,0,,0,0,0
+108,"228 Virginia Ave, Collingswood, NJ, 08108","Elizabeth M Mahoney",,0,,0,0,0
+109,"100 Ogden Ave, Collingswood, NJ, 08108","Brandon Michael Riley",,0,,0,0,0
+110,"419 Melrose Ave, Collingswood, NJ, 08108","Emily M Stout",,0,,0,0,0
+111,"1116 Park Ave, Collingswood, NJ, 08108","Troy J Morris",,0,,0,0,0
+112,"303 Evergreen Ave, Collingswood, NJ, 08108","Herbert A Brueckner",,0,,0,0,0
+113,"39 Cambridge Ave, Collingswood, NJ, 08108","Joanne Orio",,0,,0,0,0
+114,"122 Melrose Ave, Collingswood, NJ, 08108","Daniel I Jacoby",,0,,0,0,0
+115,"58 Strawbridge Ave, Collingswood, NJ, 08108","Joyce L Armand",,0,,0,0,0
+116,"122 Penn Ave, Collingswood, NJ, 08108","Peter J Virilli",,0,,0,0,0
+117,"23 Strawbridge Ave, Collingswood, NJ, 08108","Jenna L Gillern",,0,,0,0,0
+118,"108 Stratford Ave, Collingswood, NJ, 08108","David S Archut",,0,,0,0,0
+119,"210 W Cuthbert Blvd, Collingswood, NJ, 08108","Michael Joseph Zambotti",,0,,0,0,0
+120,"33 Strawbridge Ave, Collingswood, NJ, 08108","Colleen M Joyce",,0,,0,0,0
+121,"120 Washington Ave, Collingswood, NJ, 08108","Pasquale Guglietta",,0,,0,0,0
+122,"106 W Cuthbert Blvd, Collingswood, NJ, 08108","Amy Robyn Vachon",,0,,0,0,0
+123,"543 Haddon Ave, Collingswood, NJ, 08108","Louis Cramer",,0,,0,0,0
+124,"22 W Gorman Ave, Collingswood, NJ, 08108","Lynn Ann Cowan",,0,,0,0,0
+125,"413 Park Ave, Collingswood, NJ, 08108","Mark R Kasten",,0,,0,0,0
+126,"519 Cedar Ave, Collingswood, NJ, 08108","Randle C Defalco",,0,,0,0,0
+127,"902 Oriental Ave, Collingswood, NJ, 08108","Amie H Ryno",,0,,0,0,0
+128,"262 Haddon Ave, Collingswood, NJ, 08108","Louis Cramer",,0,,0,0,0
+129,"1 Center St, Collingswood, NJ, 08108","Mary A Ruzzo",,0,,0,0,0
+130,"74 Haddon Ave, Collingswood, NJ, 08108","Todd S Latta",,0,,0,0,0
+131,"404 Haddon Ave, Collingswood, NJ, 08108","Laurie N Burton",,0,,0,0,0
+132,"213 Carlton Ave, Collingswood, NJ, 08108","Colleen P France",,0,,0,0,0
+133,"7 Maple Ave, Collingswood, NJ, 08108","Bonnie M Hall",,0,,0,0,0
+134,"82 Virginia Ave, Collingswood, NJ, 08108","Kelly S Smith",,0,,0,0,0
+135,"225 Hazel Ter, Collingswood, NJ, 08108","Esther D Alpizar",,0,,0,0,0
+136,"302 Evergreen Ave, Collingswood, NJ, 08108","Tyler Austin",,0,,0,0,0
+137,"17 Walton Ave, Collingswood, NJ, 08108","Albert Matteo",,0,,0,0,0
+138,"922 Linwood Ave, Collingswood, NJ, 08108","Caitlin M Keller",,0,,0,0,0
+139,"530 Haddon Ave, Collingswood, NJ, 08108","Thomas J Meldon",,0,,0,0,0
+140,"233 E Madison Ave, Collingswood, NJ, 08108","Dirk Douglas Durossette",,0,,0,0,0
+141,"22 Lincoln Ave, Collingswood, NJ, 08108","Rachel Ann Barbati",,0,,0,0,0
+142,"18 E Summerfield Ave, Collingswood, NJ, 08108","Joy A Hoover",,0,,0,0,0
+143,"118 E Madison Ave, Collingswood, NJ, 08108","Preston S Whitaker",,0,,0,0,0
+144,"204 E Madison Ave, Collingswood, NJ, 08108","Matthew T Diehl",,0,,0,0,0
+145,"10 Maple Ln, Collingswood, NJ, 08108","Anita E Buggins",,0,,0,0,0
+146,"21 Ardmore Ter, Collingswood, NJ, 08108","John M Heinzel",,0,,0,0,0
+147,"200 Dayton Ave, Collingswood, NJ, 08108","Jennifer L Schwehm",,0,,0,0,0
+148,"35 Woodlawn Ave, Collingswood, NJ, 08108","Robert S Morello",,0,,0,0,0
+149,"604 Lees Ave, Collingswood, NJ, 08108","Andrew J Seidenberg",,0,,0,0,0
+150,"411 Maple Ave, Collingswood, NJ, 08108","Tiffeny D Atkins",,0,,0,0,0
+151,"461 Conger Ave, Collingswood, NJ, 08108","Brett Woodmansee",,0,,0,0,0
+152,"247 Harvard Ave, Collingswood, NJ, 08108","William H Cook",,0,,0,0,0
+153,"213 Lees Ave, Collingswood, NJ, 08108","Alice G Chang",,0,,0,0,0
+154,"12 E Palmer Ave, Collingswood, NJ, 08108","David J Shaw",,0,,0,0,0
+155,"125 Ardmore Ter, Collingswood, NJ, 08108","Tony Caine",,0,,0,0,0
+156,"307 Westmont Ave, Collingswood, NJ, 08108","Gregory R Belza",,0,,0,0,0
+157,"53 Addison Ave, Collingswood, NJ, 08108","Michael J Furey",,0,,0,0,0
+158,"617 Park Ave, Collingswood, NJ, 08108","Peter J Pomilio",,0,,0,0,0
+159,"240 Crestmont Ter, Collingswood, NJ, 08108","Sarah J Wolf",,0,,0,0,0
+160,"42 W Linden Ave, Collingswood, NJ, 08108","Heather L Happ",,0,,0,0,0
+161,"107 E Browning Rd, Collingswood, NJ, 08108","Michael P Martin",,0,,0,0,0
+162,"104 Ardmore Ave, Collingswood, NJ, 08108","Gregory A Lichtenberger",,0,,0,0,0
+163,"210 E Madison Ave, Collingswood, NJ, 08108","Matthew L Price",,0,,0,0,0
+164,"617 Lees Ave, Collingswood, NJ, 08108","Edward F Beitz",,0,,0,0,0
+165,"211 E Knight Ave, Collingswood, NJ, 08108","Alan N Mansfield",,0,,0,0,0
+166,"25 E Cuthbert Blvd, Collingswood, NJ, 08108","John Sheerin",,0,,0,0,0
+167,"829 Belmont Ave, Collingswood, NJ, 08108","Robin Laino",,0,,0,0,0
+168,"740 Bettlewood Ave, Collingswood, NJ, 08108","Edward Rock",,0,,0,0,0
+169,"900 Stokes Ave, Collingswood, NJ, 08108","Donna M Forster",,0,,0,0,0
+170,"128 Penn Ave, Collingswood, NJ, 08108","Benjamin Laspada",,0,,0,0,0
+171,"316 Lees Ave, Collingswood, NJ, 08108","Alec Hewitt",,0,,0,0,0
+172,"717 Stokes Ave, Collingswood, NJ, 08108","Barbara Ann Warren",,0,,0,0,0
+173,"735 Stokes Ave, Collingswood, NJ, 08108","Robert M Panzer",,0,,0,0,0
+174,"800 Belmont Ave, Collingswood, NJ, 08108","Daniel Fraley",,0,,0,0,0
+175,"704 Belmont Ave, Collingswood, NJ, 08108","Christina L Stout",,0,,0,0,0
+176,"736 Merrick Ave, Collingswood, NJ, 08108","John P Hammette",,0,,0,0,0
+177,"917 Stokes Ave, Collingswood, NJ, 08108","Marc Flores",,0,,0,0,0
+178,"77 Maple Ave, Collingswood, NJ, 08108","Richard Rockhill",,0,,0,0,0
+179,"731 Merrick Ave, Collingswood, NJ, 08108","Andrew G Sherwood",,0,,0,0,0
+180,"812 Belmont Ave, Collingswood, NJ, 08108","Jin Zhi Chen",,0,,0,0,0
+181,"135 E Wayne Ter, Collingswood, NJ, 08108","Andrew T Torno",,0,,0,0,0
+182,"18 W Wayne Ter, Collingswood, NJ, 08108","Joshua H Taylor",,0,,0,0,0
+183,"16 E Narberth Ter, Collingswood, NJ, 08108","Craig A Whitehead",,0,,0,0,0
+184,"28 E Wayne Ter, Collingswood, NJ, 08108","Elisabetta S Roberts",,0,,0,0,0
+185,"39 Bellevue Ter, Collingswood, NJ, 08108","Vilma M Perez",,0,,0,0,0
+186,"100 E Wayne Ter, Collingswood, NJ, 08108","Alexandra Giomar Gutierrez",,0,,0,0,0
+187,"912 Merrick Ave, Collingswood, NJ, 08108","Matthew Robert Hammill",,0,,0,0,0
+188,"1197 Lakeshore Dr, Collingswood, NJ, 08108","Edward C D'souza",,0,,0,0,0
+189,"950 Merrick Ave, Collingswood, NJ, 08108","Patricia A Devine",,0,,0,0,0
+190,"1173 Lakeshore Dr, Collingswood, NJ, 08108","John W Donaway",,0,,0,0,0
+191,"161 New Jersey Ave, Collingswood, NJ, 08108","Thomas M Finer",,0,,0,0,0
+192,"1102 Merrick Ave, Collingswood, NJ, 08108","Natalie A Wilson",,0,,0,0,0
+193,"106 Washington Ave, Collingswood, NJ, 08108","Rosemary O Drumheller",,0,,0,0,0
+194,"1015 Merrick Ave, Collingswood, NJ, 08108","Andrew J Buckley",,0,,0,0,0
+195,"901 Belmont Ave, Collingswood, NJ, 08108","Robert Gauld",,0,,0,0,0
+196,"929 Belmont Ave, Collingswood, NJ, 08108","Yashodhan J Chivate",,0,,0,0,0
+197,"1102 Linwood Ave, Collingswood, NJ, 08108","Kurt P D Andrea",,0,,0,0,0
+198,"515 Lincoln Ave, Collingswood, NJ, 08108","Jeffrey M Heintzelman",,0,,0,0,0
+199,"10 Frazer Ave, Collingswood, NJ, 08108","Christopher F Dipinto",,0,,0,0,0
+200,"422 Lincoln Ave, Collingswood, NJ, 08108","Jennifer L Hawley",,0,,0,0,0
+201,"17 Washington Ave, Collingswood, NJ, 08108","Marnee A Macwilliams",,0,,0,0,0
+202,"139 Haddon Ave, Collingswood, NJ, 08108","Robert J Cocozza",,0,,0,0,0
+203,"226 Harding Ave, Collingswood, NJ, 08108","Michael Irvin",,0,,0,0,0
+204,"1100 Park Ave, Collingswood, NJ, 08108","Angela Marie Gambone",,0,,0,0,0
+205,"8 Ogden Ave, Collingswood, NJ, 08108","Francis C Maines",,0,,0,0,0
+206,"103 Ogden Ave, Collingswood, NJ, 08108","Matthew Morgan Hamblen",,0,,0,0,0
+207,"205 Virginia Ave, Collingswood, NJ, 08108","Jennifer Orens",,0,,0,0,0
+208,"204 Haddon Ave, Collingswood, NJ, 08108","Phillip Chehet",,0,,0,0,0
+209,"23 W Gorman Ave, Collingswood, NJ, 08108","Stephanie L Coyle",,0,,0,0,0
+210,"221 Morgan Ave, Collingswood, NJ, 08108","Pamela D Wakeley",,0,,0,0,0
+211,"420 Highland Ave, Collingswood, NJ, 08108","Stephen L West",,0,,0,0,0
+212,"234 Emerald Ave, Collingswood, NJ, 08108","Andrea Ciliberti",,0,,0,0,0
+213,"101 E Madison Ave, Collingswood, NJ, 08108","Christina Kenney Fisher",,0,,0,0,0
+214,"301 Locust Ave, Collingswood, NJ, 08108","Julia A Ackley",,0,,0,0,0
+215,"24 E Crystal Lake Ave, Collingswood, NJ, 08108","Janine A Macdonald",,0,,0,0,0
+216,"1014 Emerald Ave, Collingswood, NJ, 08108","Josh Finger",,0,,0,0,0
+217,"151 Frazer Ave, Collingswood, NJ, 08108","Joseph E Fisher",,0,,0,0,0
+218,"118 Denver Ave, Collingswood, NJ, 08108","Kathryn L Croge",,0,,0,0,0
+219,"431 Addison Ave, Collingswood, NJ, 08108","Christine C Walker",,0,,0,0,0
+220,"218 E Cuthbert Blvd, Collingswood, NJ, 08108","Adriana N O'connor",,0,,0,0,0
+221,"1030 Emerald Ave, Collingswood, NJ, 08108","Ronald E Baptiste",,0,,0,0,0
+222,"1003 Emerald Ave, Collingswood, NJ, 08108","Thomas M Gibison",,0,,0,0,0
+223,"1 Emerald Ave, Collingswood, NJ, 08108","Samuel M Franklin",,0,,0,0,0
+224,"814 Merrick Ave, Collingswood, NJ, 08108","Daniel P Cordua",,0,,0,0,0
+225,"211 Fern Ave, Collingswood, NJ, 08108","Keith Patrick Williams",,0,,0,0,0
+226,"1037 Lakeshore Dr, Collingswood, NJ, 08108","Gregory M Rodier",,0,,0,0,0
+227,"948 Mansion Ave, Collingswood, NJ, 08108","Marc A Dicamillo",,0,,0,0,0
+228,"373 S Park Dr, Collingswood, NJ, 08108","Arthur Francis Ng",,0,,0,0,0
+229,"106 E Madison Ave, Collingswood, NJ, 08108","Jedediah M Morfit",,0,,0,0,0
+230,"402 Haddon Ave, Collingswood, NJ, 08108","David J O'boyle",,0,,0,0,0
+231,"119 W Park Blvd, Collingswood, NJ, 08108","Marc Rubino",,0,,0,0,0
+232,"1108 Stokes Ave, Collingswood, NJ, 08108","Elizabeth A Robb",,0,,0,0,0
+233,"112 E Linden Ave, Collingswood, NJ, 08108","Elizabeth A Vogelmann",,0,,0,0,0
+234,"18 Wynnewood Ave, Collingswood, NJ, 08108","Earl A Eckman",,0,,0,0,0
+235,"73 E Collings Ave, Collingswood, NJ, 08108","Kelsey L Post",,0,,0,0,0
+236,"504 Edgewood Ave, Collingswood, NJ, 08108","Brian D Walsh",,0,,0,0,0
+237,"21 Wynnewood Ave, Collingswood, NJ, 08108","Craig L Wille",,0,,0,0,0
+238,"95 W Park Blvd, Collingswood, NJ, 08108","Daniel Joanathan Scheets",,0,,0,0,0
+239,"508 Edgewood Ave, Collingswood, NJ, 08108","Kevin M Desmedt",,0,,0,0,0
+240,"702 Atlantic Ave, Collingswood, NJ, 08108","Kumar Goonwardene",,0,,0,0,0
+241,"15 W Park Blvd, Collingswood, NJ, 08108","Linda M Walsh",,0,,0,0,0
+242,"24 Lincoln Ave, Collingswood, NJ, 08108","Carolyn L Marley",,0,,0,0,0
+243,"124 Westmont Ave, Collingswood, NJ, 08108","Greg J Thummel",,0,,0,0,0
+244,"44 E Collings Ave, Collingswood, NJ, 08108","Suzanne L Dodd",,0,,0,0,0
+245,"17 Lincoln Ave, Collingswood, NJ, 08108","James Puplampu",,0,,0,0,0
+246,"13 E Walnut Ave, Collingswood, NJ, 08108","Cindy A Herbert",,0,,0,0,0
+247,"701 Lees Ln, Collingswood, NJ, 08108","Christopher G Brown",,0,,0,0,0
+248,"118 Virginia Ave, Collingswood, NJ, 08108","Jason M Menkevich",,0,,0,0,0
+249,"19 W Walnut Ave, Collingswood, NJ, 08108","Anthony F Domanico",,0,,0,0,0
+250,"78 Virginia Ave, Collingswood, NJ, 08108","Steven C Bergmann",,0,,0,0,0
+251,"208 Ardmore Ave, Collingswood, NJ, 08108","Andrew H Eisenhart",,0,,0,0,0
+252,"15 Chestnut Ave, Collingswood, NJ, 08108","Jill M Py",,0,,0,0,0
+253,"116 Melrose Ave, Collingswood, NJ, 08108","Mildred Dimarco",,0,,0,0,0
+254,"12 Cooper St, Collingswood, NJ, 08108","Michael T O'meara",,0,,0,0,0
+255,"209 Cooper St, Collingswood, NJ, 08108","Michael D Izzo",,0,,0,0,0
+256,"90 Chestnut Ave, Collingswood, NJ, 08108","Jacob N Millstein",,0,,0,0,0
+257,"318 Newton Ave, Collingswood, NJ, 08108","Mark Stephen Ciechon",,0,,0,0,0
+258,"87 Virginia Ave, Collingswood, NJ, 08108","Carolyn F Patterson",,0,,0,0,0
+259,"1001 Park Ave, Collingswood, NJ, 08108","Geoffrey C Dimasi",,0,,0,0,0
+260,"325 Newton Ave, Collingswood, NJ, 08108","Crystal D Ward",,0,,0,0,0
+261,"918 Linwood Ave, Collingswood, NJ, 08108","Brett A Edmonds",,0,,0,0,0
+262,"101 Coolidge Ave, Collingswood, NJ, 08108","Milton J Fernandes",,0,,0,0,0
+263,"1040 Stokes Ave, Collingswood, NJ, 08108","Susan C Mcallister",,0,,0,0,0
+264,"910 Linwood Ave, Collingswood, NJ, 08108","Sara R Hinton",,0,,0,0,0
+265,"628 S Newton Lake Dr, Collingswood, NJ, 08108","Scott S Shannon",,0,,0,0,0
+266,"101 Dill Ave, Collingswood, NJ, 08108","Nicholas G Liermann",,0,,0,0,0
+267,"140 Fern Ave, Collingswood, NJ, 08108","Andrew Faupel",,0,,0,0,0
+268,"726 Merrick Ave, Collingswood, NJ, 08108","Paul J Ciervo",,0,,0,0,0
+269,"320 Lees Ave, Collingswood, NJ, 08108","Rebeccah H Horn",,0,,0,0,0
+270,"141 Lawnside Ave, Collingswood, NJ, 08108","Glen M Wronowski",,0,,0,0,0
+271,"237 Strawbridge Ave, Collingswood, NJ, 08108","Stacey Marie Cerasi",,0,,0,0,0
+272,"31 Virginia Ave, Collingswood, NJ, 08108","Jill A Costa",,0,,0,0,0
+273,"705 Lees Ln, Collingswood, NJ, 08108","Megan M Nugent",,0,,0,0,0
+274,"5 Center St, Collingswood, NJ, 08108","Teresa Lynn Tighe",,0,,0,0,0
+275,"219 E Madison Ave, Collingswood, NJ, 08108","Carl S Fisher",,0,,0,0,0
+276,"131 Fern Ave, Collingswood, NJ, 08108","Karen L Draper",,0,,0,0,0
+277,"6 Center St, Collingswood, NJ, 08108","Joseph C Mcnally",,0,,0,0,0
+278,"212 W Collings Ave, Collingswood, NJ, 08108","Daniel S Turner",,0,,0,0,0
+279,"30 Bryant Ave, Collingswood, NJ, 08108","Katie R Powell",,0,,0,0,0
+280,"206 Lincoln Ave, Collingswood, NJ, 08108","Faye N Newsome",,0,,0,0,0
+281,"101 E Palmer Ave, Collingswood, NJ, 08108","Russell Lee Mccarty",,0,,0,0,0
+282,"1106 Park Ave, Collingswood, NJ, 08108","Rachel L Casey",,0,,0,0,0
+283,"306 Woodlawn Ave, Collingswood, NJ, 08108","Nicole Yvette Lash",,0,,0,0,0
+284,"415 W Cuthbert Blvd, Collingswood, NJ, 08108","Brian D Nelson",,0,,0,0,0
+285,"33 Hillcrest Ave, Collingswood, NJ, 08108","Lisa Ann Stuart",,0,,0,0,0
+286,"364 Haddon Ave, Collingswood, NJ, 08108","Kevin W Cockerham",,0,,0,0,0
+287,"133 E Summerfield Ave, Collingswood, NJ, 08108","Jacquline M Breshock",,0,,0,0,0
+288,"14 Ardmore Ter, Collingswood, NJ, 08108","Rachael L Smith",,0,,0,0,0
+289,"39 Hillcrest Ave, Collingswood, NJ, 08108","Bernard C Shine",,0,,0,0,0
+290,"12 W Palmer Ave, Collingswood, NJ, 08108","Ryan J Lorenzo",,0,,0,0,0
+291,"3 W Palmer Ave, Collingswood, NJ, 08108","Molly A Cervini",,0,,0,0,0
+292,"6 E Palmer Ave, Collingswood, NJ, 08108","Jamie S Harper",,0,,0,0,0
+293,"259 Park Ave, Collingswood, NJ, 08108","Monica M Abraham",,0,,0,0,0
+294,"2 W Summerfield Ave, Collingswood, NJ, 08108","Kai Lun Li",,0,,0,0,0
+295,"126 E Wayne Ter, Collingswood, NJ, 08108","Steven Jack",,0,,0,0,0
+296,"270 Haddon Ave, Collingswood, NJ, 08108","Deborah A Rubenstein",,0,,0,0,0
+297,"2 Garfield Ave, Collingswood, NJ, 08108","Jennifer P Marcucci",,0,,0,0,0
+298,"250 Atlantic Ave, Collingswood, NJ, 08108","Satwant Singh",,0,,0,0,0
+299,"3 Garfield Ave, Collingswood, NJ, 08108","William Joseph Bray",,0,,0,0,0
+300,"10 Ogden Ave, Collingswood, NJ, 08108","Matthew S Little",,0,,0,0,0
+301,"104 E Franklin Ave, Collingswood, NJ, 08108","John W Pszwaro",,0,,0,0,0
+302,"21 W Gorman Ave, Collingswood, NJ, 08108","Claudia Bitran",,0,,0,0,0
+303,"911 Park Ave, Collingswood, NJ, 08108","Timothy S Farrow",,0,,0,0,0
+304,"105 E Narberth Ter, Collingswood, NJ, 08108","Ramo Sok",,0,,0,0,0
+305,"2 W Wayne Ter, Collingswood, NJ, 08108","Wanda D Jackson White",,0,,0,0,0
+306,"508 Haddon Ave, Collingswood, NJ, 08108","Brian M Rumble",,0,,0,0,0
+307,"5 E Franklin Ave, Collingswood, NJ, 08108","William J Bouton",,0,,0,0,0
+308,"14 W Browning Rd, Collingswood, NJ, 08108","Costantino P Spinosa",,0,,0,0,0
+309,"104 E Narberth Ter, Collingswood, NJ, 08108","Jennifer P Luongo",,0,,0,0,0
+310,"19 E Palmer Ave, Collingswood, NJ, 08108","Paul J Puma",,0,,0,0,0
+311,"1103 Park Ave, Collingswood, NJ, 08108","Charles W Aaron",,0,,0,0,0
+312,"120 W Wayne Ter, Collingswood, NJ, 08108","Robert T Prescott",,0,,0,0,0
+313,"211 W Wayne Ter, Collingswood, NJ, 08108","Jennifer L Hart",,0,,0,0,0
+314,"117 Cooper Ave, Collingswood, NJ, 08108","Michelle K Flynn",,0,,0,0,0
+315,"207 Virginia Ave, Collingswood, NJ, 08108","Curtis Stephen Heckman",,0,,0,0,0
+316,"234 Virginia Ave, Collingswood, NJ, 08108","Thomas M Gibison",,0,,0,0,0
+317,"52 Lincoln Ave, Collingswood, NJ, 08108","Darrin S Altman",,0,,0,0,0
+318,"801 Merrick Ave, Collingswood, NJ, 08108","Michael D Wilcox",,0,,0,0,0
+319,"213 Hampton Rd, Collingswood, NJ, 08108","Jacques Tony Baranes",,0,,0,0,0
+320,"508 Fern Ave, Collingswood, NJ, 08108","Christopher R Hoffman",,0,,0,0,0
+321,"14 W Narberth Ter, Collingswood, NJ, 08108","Stephen H Walker",,0,,0,0,0
+322,"229 Strawbridge Ave, Collingswood, NJ, 08108","Duncan L Shestack",,0,,0,0,0
+323,"418 Strawbridge Ave, Collingswood, NJ, 08108","Lauren A Picerno",,0,,0,0,0
+324,"422 Stratford Ave, Collingswood, NJ, 08108","Patrick E Lafferty",,0,,0,0,0
+325,"4 Akron Ave, Collingswood, NJ, 08108","Anne M Gmaz",,0,,0,0,0
+326,"820 Linwood Ave, Collingswood, NJ, 08108","Geert Jan Colijn",,0,,0,0,0
+327,"13 Akron Ave, Collingswood, NJ, 08108","Rosemary T Payne",,0,,0,0,0
+328,"313 Park Ave, Collingswood, NJ, 08108","Rebecca E Murray",,0,,0,0,0
+329,"103 E Coulter Ave, Collingswood, NJ, 08108","Paula H Cedar",,0,,0,0,0
+330,"5 Akron Ave, Collingswood, NJ, 08108","Bonnie J Stout",,0,,0,0,0
+331,"221 Stratford Ave, Collingswood, NJ, 08108","Shannon N Spiotto",,0,,0,0,0
+332,"217 Stratford Ave, Collingswood, NJ, 08108","Alexander J Folcher",,0,,0,0,0
+333,"27 Emerald Ave, Collingswood, NJ, 08108","Adrian M Morse",,0,,0,0,0
+334,"57 Melrose Ave, Collingswood, NJ, 08108","Michael Brendan Sheehan",,0,,0,0,0
+335,"220 Addison Ave, Collingswood, NJ, 08108","Christopher H Geurds",,0,,0,0,0
+336,"303 Fern Ave, Collingswood, NJ, 08108","Timothy K Sutton",,0,,0,0,0
+337,"14 Emerald Ave, Collingswood, NJ, 08108","Megan E Klim",,0,,0,0,0
+338,"207 E Linden Ave, Collingswood, NJ, 08108","Scott M Boyd",,0,,0,0,0
+339,"303 Locust Ave, Collingswood, NJ, 08108","Thomas Ottoson",,0,,0,0,0
+340,"215 W Franklin Ave, Collingswood, NJ, 08108","Brittany M Thompson",,0,,0,0,0
+341,"57 Addison Ave, Collingswood, NJ, 08108","Colleen Valenti Dunn",,0,,0,0,0
+342,"120 Elgin Ave, Collingswood, NJ, 08108","Allyson M Peluso",,0,,0,0,0
+343,"84 Melrose Ave, Collingswood, NJ, 08108","Michael R Shea",,0,,0,0,0
+344,"18 Center St, Collingswood, NJ, 08108","Lauren B Holt",,0,,0,0,0
+345,"132 Utica Ave, Collingswood, NJ, 08108","Michael F Berner",,0,,0,0,0
+346,"5 W Summerfield Ave, Collingswood, NJ, 08108","Anthony R Lord",,0,,0,0,0
+347,"210 Toledo Ave, Collingswood, NJ, 08108","Toni M Allison",,0,,0,0,0
+348,"423 Melrose Ave, Collingswood, NJ, 08108","Daniel M Heneghan",,0,,0,0,0
+349,"264 Haddon Ave, Collingswood, NJ, 08108","Anthony Joseph Marotta",,0,,0,0,0
+350,"16 W Summerfield Ave, Collingswood, NJ, 08108","Meghan M Peters",,0,,0,0,0
+351,"102 E Franklin Ave, Collingswood, NJ, 08108","Erin M Duffy",,0,,0,0,0
+352,"210 Haddon Ave, Collingswood, NJ, 08108","Francis J Ottinger JR",,0,,0,0,0
+353,"202 E Coulter Ave, Collingswood, NJ, 08108","Edward J Connell",,0,,0,0,0
+354,"224 W Franklin Ave, Collingswood, NJ, 08108","Robert L Gray",,0,,0,0,0
+355,"180 Lawnside Ave, Collingswood, NJ, 08108","Nyieri Vosbikian",,0,,0,0,0
+356,"102 Hillcrest Ave, Collingswood, NJ, 08108","Charles Birnbaum",,0,,0,0,0
+357,"447 Park Ave, Collingswood, NJ, 08108","Kevin J Farrow",,0,,0,0,0
+358,"21 E Albertson Ave, Collingswood, NJ, 08108","Nicholas Genovese",,0,,0,0,0
+359,"28 Lindis Farne Ave, Collingswood, NJ, 08108","Michael T Arizzi",,0,,0,0,0
+360,"117 Coolidge Ave, Collingswood, NJ, 08108","Natalie R Ciervo",,0,,0,0,0
+361,"61 Stratford Ave, Collingswood, NJ, 08108","Photoula E Dezutti",,0,,0,0,0
+362,"24 E Albertson Ave, Collingswood, NJ, 08108","Dustin Francis Smith",,0,,0,0,0
+363,"117 Park Ter, Collingswood, NJ, 08108","Judith A Warner",,0,,0,0,0
+364,"825 Park Ave, Collingswood, NJ, 08108","Jonathan M Greenberg",,0,,0,0,0
+365,"919 Park Ave, Collingswood, NJ, 08108","Robert A Cody",,0,,0,0,0
+366,"117 Edison Ave, Collingswood, NJ, 08108","Kevin T King",,0,,0,0,0
+367,"104 E Stiles Ave, Collingswood, NJ, 08108","Sara B Breyer",,0,,0,0,0
+368,"1030 Stokes Ave, Collingswood, NJ, 08108","Erica C Johnson",,0,,0,0,0
+369,"23 E Stiles Ave, Collingswood, NJ, 08108","Robert L Atkins",,0,,0,0,0
+370,"113 Dill Ave, Collingswood, NJ, 08108","Joel M Ludovich",,0,,0,0,0
+371,"264 E Knight Ave, Collingswood, NJ, 08108","Brandon Michael Balcom",,0,,0,0,0
+372,"225 Lees Ave, Collingswood, NJ, 08108","Judson Matthey",,0,,0,0,0
+373,"13 Conard Ave, Collingswood, NJ, 08108","Keith F Berlin",,0,,0,0,0
+374,"100 Curtis Ave, Collingswood, NJ, 08108","Austin P Waller",,0,,0,0,0
+375,"903 Maple Ave, Collingswood, NJ, 08108","Robert C Binder",,0,,0,0,0
+376,"9 Lees Ave, Collingswood, NJ, 08108","Louis Cramer",,0,,0,0,0
+377,"156 New Jersey Ave, Collingswood, NJ, 08108","Christiana Alex Angstadt",,0,,0,0,0
+378,"162 Frazer Ave, Collingswood, NJ, 08108","Danielle N Puleo",,0,,0,0,0
+379,"168 Lawnside Ave, Collingswood, NJ, 08108","Graham Phillips",,0,,0,0,0
+380,"254 Harvard Ave, Collingswood, NJ, 08108","Susan E Gamble",,0,,0,0,0
+381,"264 Crestmont Ter, Collingswood, NJ, 08108","Martin J Ott",,0,,0,0,0
+382,"256 Woodlawn Ave, Collingswood, NJ, 08108","Darrell J Mcconduit",,0,,0,0,0
+383,"111 Fern Ave, Collingswood, NJ, 08108","Jason W Rose",,0,,0,0,0
+384,"155 Frazer Ave, Collingswood, NJ, 08108","Zachary E Bromwell",,0,,0,0,0
+385,"308 Woodlawn Ter, Collingswood, NJ, 08108","Marsha Anne Altemus",,0,,0,0,0
+386,"742 Maple Ter, Collingswood, NJ, 08108","Patrick J Healy",,0,,0,0,0
+387,"165 New Jersey Ave, Collingswood, NJ, 08108","Tina Babusci",,0,,0,0,0
+388,"409 Woodlawn Ave, Collingswood, NJ, 08108","Svetlana Shalumova",,0,,0,0,0
+389,"16 Harvard Ave, Collingswood, NJ, 08108","Paul D Alexander",,0,,0,0,0
+390,"191 Lawnside Ave, Collingswood, NJ, 08108","Ryan Lawrence",,0,,0,0,0
+391,"480 King Ave, Collingswood, NJ, 08108","Joseph V Foley",,0,,0,0,0
+392,"450 Woodlawn Ter, Collingswood, NJ, 08108","William G Schweim",,0,,0,0,0
+393,"618 Cedar Ave, Collingswood, NJ, 08108","Angela P Patterson",,0,,0,0,0
+394,"111 Lincoln Ave, Collingswood, NJ, 08108","Jessica M Blanchard",,0,,0,0,0
+395,"238 Crestmont Ter, Collingswood, NJ, 08108","John Robert Cart",,0,,0,0,0
+396,"10 W Summerfield Ave, Collingswood, NJ, 08108","Brandon Z Flacco",,0,,0,0,0
+397,"44 Lincoln Ave, Collingswood, NJ, 08108","Cole W Keyes",,0,,0,0,0
+398,"110 Garfield Ave, Collingswood, NJ, 08108","Edmund B Bulmash",,0,,0,0,0
+399,"514 Bettlewood Ave, Collingswood, NJ, 08108","Russell D Armstrong JR",,0,,0,0,0
+400,"52 Melrose Ave, Collingswood, NJ, 08108","Justin G Tinker",,0,,0,0,0
+401,"491 Haddon Ave, Collingswood, NJ, 08108","Greg T Silvis",,0,,0,0,0
+402,"1 E Collings Ave, Collingswood, NJ, 08108","Marc Namm",,0,,0,0,0
+403,"828 Park Ave, Collingswood, NJ, 08108","Angela P Patterson",,0,,0,0,0
+404,"15 Harding Ter, Collingswood, NJ, 08108","Eric Delgrande",,0,,0,0,0
+405,"101 Fern Ave, Collingswood, NJ, 08108","David G Wright",,0,,0,0,0
+406,"710 Stokes Ave, Collingswood, NJ, 08108","Andrew Phillip Allen",,0,,0,0,0
+407,"103 Edison Ave, Collingswood, NJ, 08108","John J Heindel",,0,,0,0,0
+408,"30 Lincoln Ave, Collingswood, NJ, 08108","Ana Fisher",,0,,0,0,0
+409,"715 Linwood Ave, Collingswood, NJ, 08108","Eleanor H Springer",,0,,0,0,0
+410,"739 Linwood Ave, Collingswood, NJ, 08108","George R Henry",,0,,0,0,0
+411,"321 Dayton Ave, Collingswood, NJ, 08108","Kevin Anthony Mckinney",,0,,0,0,0
+412,"106 Park Ave, Collingswood, NJ, 08108","Michael D Gonzalez",,0,,0,0,0
+413,"18 Pacific Ave # 24, Collingswood, NJ, 08108","Lawrence J Gregorio",,0,,0,0,0
+414,"841 Maple Ave, Collingswood, NJ, 08108","Nathaniel M Arnold",,0,,0,0,0
+415,"241 Woodlawn Ter, Collingswood, NJ, 08108","Kevin Michael Savage",,0,,0,0,0
+416,"105 Dayton Ave, Collingswood, NJ, 08108","Katie R Beran",,0,,0,0,0
+417,"633 Stokes Ave, Collingswood, NJ, 08108","Timothy A Ifill",,0,,0,0,0
+418,"50 E Knight Ave, Collingswood, NJ, 08108","Mary D Dipalma",,0,,0,0,0
+419,"629 Bettlewood Ave, Collingswood, NJ, 08108","Kenneth R Allendoerfer",,0,,0,0,0
+420,"326 W Collings Ave, Collingswood, NJ, 08108","Leonard Joseph Oliveri",,0,,0,0,0
+421,"601 Lees Ln, Collingswood, NJ, 08108","Farhad Modarai",,0,,0,0,0
+422,"743 Merrick Ave, Collingswood, NJ, 08108","Amanda E Cohen",,0,,0,0,0
+423,"711 Colford Ave, Collingswood, NJ, 08108","Betty H Chernack",,0,,0,0,0
+424,"307 Newton Ave, Collingswood, NJ, 08108","Timothy P Reeser",,0,,0,0,0
+425,"1104 Merrick Ave, Collingswood, NJ, 08108","Tom Mcallister",,0,,0,0,0
+426,"119 French Ave, Collingswood, NJ, 08108","Victoria R Dearden",,0,,0,0,0
+427,"933 Merrick Ave, Collingswood, NJ, 08108","Kevin E Breese",,0,,0,0,0
+428,"283 Harvard Ave, Collingswood, NJ, 08108","John Edward Dukenski",,0,,0,0,0
+429,"206 W Cuthbert Blvd, Collingswood, NJ, 08108","Rebecca E Blake",,0,,0,0,0
+430,"1035 Linwood Ave, Collingswood, NJ, 08108","Adelaide M Emery",,0,,0,0,0
+431,"109 W Walnut Ave, Collingswood, NJ, 08108","Aubree K Evansgonzalez",,0,,0,0,0
+432,"1010 Belmont Ave, Collingswood, NJ, 08108","Steven C Stillwell",,0,,0,0,0
+433,"214 Haddon Ave, Collingswood, NJ, 08108","Claudia E Vaughn",,0,,0,0,0
+434,"48 Addison Ave, Collingswood, NJ, 08108","Peter Tamburro",,0,,0,0,0
+435,"1185 Lakeshore Dr, Collingswood, NJ, 08108","Thomas Martin",,0,,0,0,0
+436,"1029 Belmont Ave, Collingswood, NJ, 08108","Jamie M Smith",,0,,0,0,0
+437,"519 Lincoln Ave, Collingswood, NJ, 08108","Joseph John Maurer",,0,,0,0,0
+438,"609 Cedar Ave, Collingswood, NJ, 08108","Brittni J Veyna",,0,,0,0,0
+439,"210 Conard Ave, Collingswood, NJ, 08108","Gina M Baysal",,0,,0,0,0
+440,"600 King Ave, Collingswood, NJ, 08108","Lisa Y Tsang",,0,,0,0,0
+441,"213 Fern Ave, Collingswood, NJ, 08108","Kevin J Sayles",,0,,0,0,0
+442,"27 E Coulter Ave, Collingswood, NJ, 08108","Kelly Ann Courtney",,0,,0,0,0
+443,"108 E Narberth Ter, Collingswood, NJ, 08108","Greg James Richmond",,0,,0,0,0
+444,"7 E Palmer Ave, Collingswood, NJ, 08108","Benjamin J Buzzard",,0,,0,0,0
+445,"238 Burrwood Ave, Collingswood, NJ, 08108","Dale Runge",,0,,0,0,0
+446,"411 W Cuthbert Blvd, Collingswood, NJ, 08108","Eric William Swanson",,0,,0,0,0
+447,"236 Lawnside Ave, Collingswood, NJ, 08108","Thomas W Murray",,0,,0,0,0
+448,"430 W Collings Ave, Collingswood, NJ, 08108","Bruce E Fad",,0,,0,0,0
+449,"344 Conger Ave, Collingswood, NJ, 08108","Jonathan H Maccornack",,0,,0,0,0
+450,"1121 Belmont Ave, Collingswood, NJ, 08108","Skip Swan",,0,,0,0,0
+451,"357 Park Ave, Collingswood, NJ, 08108","Michael F Paolucci",,0,,0,0,0
+452,"1111 Stokes Ave, Collingswood, NJ, 08108","Gorica Majstorovic",,0,,0,0,0
+453,"935 Oriental Ave, Collingswood, NJ, 08108","Michael T Mullen",,0,,0,0,0
+454,"950 Mansion Ave, Collingswood, NJ, 08108","Elaine N Ditonno",,0,,0,0,0
+455,"Harding Ave, Haddon Township, NJ, 08108","Katherine E Gordon",,0,,0,0,0
+456,"806 Colford Ave, Collingswood, NJ, 08108","Danielle P Ferrara",,0,,0,0,0
+457,"131 Washington Ave, Collingswood, NJ, 08108","John R Dipompeo",,0,,0,0,0
+458,"64 Lincoln Ave, Collingswood, NJ, 08108","Rachel E Danziger",,0,,0,0,0
+459,"48 Washington Ave, Collingswood, NJ, 08108","Louis Cramer",,0,,0,0,0
+460,"10 Lincoln Ave, Collingswood, NJ, 08108","Ashley M Taylor",,0,,0,0,0
+461,"32 E Collings Ave, Collingswood, NJ, 08108","Matthew J Carrozza",,0,,0,0,0
+462,"65 E Collings Ave, Collingswood, NJ, 08108","Barry K Douglass",,0,,0,0,0
+463,"251 Park Ave, Collingswood, NJ, 08108","Steven L Bryan",,0,,0,0,0
+464,"445 Conger Ave, Collingswood, NJ, 08108","Maren C Becknell",,0,,0,0,0
+465,"7 E Albertson Ave, Collingswood, NJ, 08108","Elizabeth M Robins",,0,,0,0,0
+466,"239 E Knight Ave, Collingswood, NJ, 08108","Chynna L Bardalez",,0,,0,0,0
+467,"117 Haddon Ave, Collingswood, NJ, 08108","Bianca V Brooks",,0,,0,0,0
+468,"42 Lincoln Ave, Collingswood, NJ, 08108","Tong Gui Lu",,0,,0,0,0
+469,"6 E Collings Ave, Collingswood, NJ, 08108","Michael P Pliskin",,0,,0,0,0
+470,"739 Maple Ter, Collingswood, NJ, 08108","Julie A Quinn",,0,,0,0,0
+471,"402 Windsor Ave, Collingswood, NJ, 08108","Deann Shreve",,0,,0,0,0
+472,"704 Atlantic Ave, Collingswood, NJ, 08108","Amanda Catherine Adams",,0,,0,0,0
+473,"228 Woodlawn Ter, Collingswood, NJ, 08108","Michael T Woods",,0,,0,0,0
+474,"54 Melrose Ave, Collingswood, NJ, 08108","Katherine Zepernick",,0,,0,0,0
+475,"23 Eldridge Ave, Collingswood, NJ, 08108","Raina M Harrell",,0,,0,0,0
+476,"243 Addison Ave, Collingswood, NJ, 08108","Jason Tagmire",,0,,0,0,0
+477,"100 Fern Ave, Collingswood, NJ, 08108","Ronnie C Davis",,0,,0,0,0
+478,"104 Cambridge Ave, Collingswood, NJ, 08108","Matt T Talbot",,0,,0,0,0
+479,"126 Virginia Ave, Collingswood, NJ, 08108","Vilaysak J Rocks",,0,,0,0,0
+480,"96 Akron Ave, Collingswood, NJ, 08108","Richard Basso",,0,,0,0,0
+481,"77 Akron Ave, Collingswood, NJ, 08108","John E Nystedt",,0,,0,0,0
+482,"104 Pacific Ave, Collingswood, NJ, 08108","Maria Rosa Palillero",,0,,0,0,0
+483,"18 E Zane Ave, Collingswood, NJ, 08108","Matthew J Osorio",,0,,0,0,0
+484,"580 Haddon Ave, Collingswood, NJ, 08108","Lisa R Zambito",,0,,0,0,0
+485,"123 Elgin Ave, Collingswood, NJ, 08108","Paula C Carlson",,0,,0,0,0
+486,"400 Lakeview Dr, Collingswood, NJ, 08108","William A Robinson",,0,,0,0,0
+487,"2 E Zane Ave, Collingswood, NJ, 08108","James F Mcfarland",,0,,0,0,0
+488,"20 W Summerfield Ave, Collingswood, NJ, 08108","Alec D Sye",,0,,0,0,0
+489,"115 Woodlawn Ave, Collingswood, NJ, 08108","Antonio D Perez",,0,,0,0,0
+490,"19 W Madison Ave, Collingswood, NJ, 08108","Son Thanh Phan",,0,,0,0,0
+491,"494 King Ave, Collingswood, NJ, 08108","Michael L Arigot",,0,,0,0,0
+492,"247 E Knight Ave, Collingswood, NJ, 08108","Zach F Maupin",,0,,0,0,0
+493,"934 Oriental Ave, Collingswood, NJ, 08108","Courtney Kojak",,0,,0,0,0
+494,"370 Haddon Ave, Collingswood, NJ, 08108","Raymond C Lauriano",,0,,0,0,0
+495,"619 Linwood Ave, Collingswood, NJ, 08108","Alison Stanton",,0,,0,0,0
+496,"178 Lawnside Ave, Collingswood, NJ, 08108","Marcus D Garner",,0,,0,0,0
+497,"24 W Madison Ave, Collingswood, NJ, 08108","Felicia M Walton",,0,,0,0,0
+498,"578 Haddon Ave, Collingswood, NJ, 08108","Dana Ubele",,0,,0,0,0
+499,"345 Park Ave, Collingswood, NJ, 08108","Stephen T Rydzewski",,0,,0,0,0
+500,"22 E Collings Ave, Collingswood, NJ, 08108","Corry Gunson",,0,,0,0,0
+501,"34 Bryant Ave, Collingswood, NJ, 08108","Edward C Macmillan",,0,,0,0,0
+502,"227 New Jersey Ave, Collingswood, NJ, 08108","Trevor J Blasco",,0,,0,0,0
+503,"43 Strawbridge Ave, Collingswood, NJ, 08108","Nicole Miccoli",,0,,0,0,0
+504,"122 Frazer Ave, Collingswood, NJ, 08108","Kevin S Blanton",,0,,0,0,0
+505,"111 Curtis Ave, Collingswood, NJ, 08108","Margaret M Thompson",,0,,0,0,0
+506,"455 Conger Ave, Collingswood, NJ, 08108","Joseph Leahy",,0,,0,0,0
+507,"686 Haddon Ave, Collingswood, NJ, 08108","Patric P Ciervo",,0,,0,0,0
+508,"461 Park Ave, Collingswood, NJ, 08108","Christopher J Murray",,0,,0,0,0
+509,"723 Haddon Ave, Collingswood, NJ, 08108","Robert Bela Fodor",,0,,0,0,0
+510,"1010 Emerald Ave, Collingswood, NJ, 08108","Thomas Joseph Thompson",,0,,0,0,0
+511,"738 Haddon Ave, Collingswood, NJ, 08108","John Anthony Mazzochette",,0,,0,0,0
+512,"601 Autumn Ave, Collingswood, NJ, 08108","Tabitha Woods Butler",,0,,0,0,0
+513,"62 Strawbridge Ave, Collingswood, NJ, 08108","Elizabeth D Shemeley",,0,,0,0,0
+514,"22 Hampton Rd, Collingswood, NJ, 08108","Ellen Patricia Martinak",,0,,0,0,0
+515,"267 Stratford Ave, Collingswood, NJ, 08108","Lauren M Heimall",,0,,0,0,0
+516,"241 Lawnside Ave, Collingswood, NJ, 08108","Kirstin S Martin",,0,,0,0,0
+517,"112 Hampton Rd, Collingswood, NJ, 08108","Daniel M Merryfield",,0,,0,0,0
+518,"645 Park Ave, Collingswood, NJ, 08108","Robert F Bell",,0,,0,0,0
+519,"210 Melrose Ave, Collingswood, NJ, 08108","Christopher W Drabouski",,0,,0,0,0
+520,"525 Tatem Ave, Collingswood, NJ, 08108","Michele P Palmer",,0,,0,0,0
+521,"109 E Palmer Ave, Collingswood, NJ, 08108","Laura Rose Santare",,0,,0,0,0
+522,"320 Virginia Ave, Collingswood, NJ, 08108","Kevin V Mcdowell",,0,,0,0,0
+523,"266 Harvard Ave, Collingswood, NJ, 08108","Stevan T Kaufman",,0,,0,0,0
+524,"57 Strawbridge Ave, Collingswood, NJ, 08108","Robert J Brodwater",,0,,0,0,0
+525,"346 Woodlawn Ter, Collingswood, NJ, 08108","David J Sutton",,0,,0,0,0
+526,"708 Cooper St, Collingswood, NJ, 08108","Pablo Mancheno",,0,,0,0,0
+527,"26 Lincoln Ave, Collingswood, NJ, 08108","Steven A Emanuel",,0,,0,0,0
+528,"448 Conger Ave, Collingswood, NJ, 08108","Elise Ellen Mendelsohn",,0,,0,0,0
+529,"948 Maple Ave, Collingswood, NJ, 08108","Laura S Toth",,0,,0,0,0
+530,"26 Hampton Rd, Collingswood, NJ, 08108","Rhiannon N Nolt",,0,,0,0,0
+531,"171 Lawnside Ave, Collingswood, NJ, 08108","Timothy V Payne",,0,,0,0,0
+532,"13 Chestnut Ave, Collingswood, NJ, 08108","Todd A Johnson",,0,,0,0,0
+533,"33 E Browning Rd, Collingswood, NJ, 08108","Anthony M Lopez",,0,,0,0,0
+534,"107 Ardmore Ave, Collingswood, NJ, 08108","Joseph G Muravsky",,0,,0,0,0
+535,"214 Toledo Ave, Collingswood, NJ, 08108","Deirdre E Mcinerney",,0,,0,0,0
+536,"206 Melrose Ave, Collingswood, NJ, 08108","Ronnie W Haas",,0,,0,0,0
+537,"701 Cooper St, Collingswood, NJ, 08108","Dominic Herron",,0,,0,0,0
+538,"302 Utica Ave, Collingswood, NJ, 08108","Steven P Horner",,0,,0,0,0
+539,"20 Eldridge Ave, Collingswood, NJ, 08108","Brian W Hunkins",,0,,0,0,0
+540,"1009 Emerald Ave, Collingswood, NJ, 08108","Shawn T Kennedy",,0,,0,0,0
+541,"14 W Coulter Ave, Collingswood, NJ, 08108","Megan Carey",,0,,0,0,0
+542,"36 E Coulter Ave, Collingswood, NJ, 08108","Jason P Bink",,0,,0,0,0
+543,"825 Colford Ave, Collingswood, NJ, 08108","Meghan L Klauder",,0,,0,0,0
+544,"214 Burrwood Ave, Collingswood, NJ, 08108","Robert J Tracy",,0,,0,0,0
+545,"30 W Franklin Ave, Collingswood, NJ, 08108","Cynthia C Flynn",,0,,0,0,0
+546,"100 Edison Ave, Collingswood, NJ, 08108","Jillian M Eves",,0,,0,0,0
+547,"419 Albany Ave, Collingswood, NJ, 08108","Kenneth Sheeky",,0,,0,0,0
+548,"80 Utica Ave, Collingswood, NJ, 08108","Ronald G Daltwas",,0,,0,0,0
+549,"30 Locust Ave, Collingswood, NJ, 08108","Stephanie M Zeck",,0,,0,0,0
+550,"225 Emerald Ave, Collingswood, NJ, 08108","Niall E Byrne",,0,,0,0,0
+551,"730 Park Ave, Collingswood, NJ, 08108","Bridget M Blash-wahl",,0,,0,0,0
+552,"151 Fern Ave, Collingswood, NJ, 08108","Justin S Schweitzer",,0,,0,0,0
+553,"625 Lees Ave, Collingswood, NJ, 08108","Daniel A Poulos",,0,,0,0,0
+554,"261 Crestmont Ter, Collingswood, NJ, 08108","Harmony R Preston",,0,,0,0,0
+555,"113 Conard Ave, Collingswood, NJ, 08108","James Matthew Johnson",,0,,0,0,0
+556,"127 Park Ave, Collingswood, NJ, 08108","Akylbek A Bekzhanov",,0,,0,0,0
+557,"632 Lees Ave, Collingswood, NJ, 08108","Mark H Weaver",,0,,0,0,0
+558,"725 Stokes Ave, Collingswood, NJ, 08108","Mahmoud Abdalla Omar",,0,,0,0,0
+559,"1001 Oriental Ave, Collingswood, NJ, 08108","James D Moore",,0,,0,0,0
+560,"55 E Cuthbert Blvd, Collingswood, NJ, 08108","Sean Tomar Hubbard",,0,,0,0,0
+561,"215 King Ave, Collingswood, NJ, 08108","Michael G Schwender",,0,,0,0,0
+562,"7 Lakeshore Dr, Collingswood, NJ, 08108","Zach Law",,0,,0,0,0
+563,"419 Strawbridge Ave, Collingswood, NJ, 08108","Daniel T Zeccola",,0,,0,0,0
+564,"10 E Albertson Ave, Collingswood, NJ, 08108","James Stretch",,0,,0,0,0
+565,"100 E Franklin Ave, Collingswood, NJ, 08108","Amanda Leigh Powell",,0,,0,0,0
+566,"122 Garfield Ave, Collingswood, NJ, 08108","Dean G Rhodes",,0,,0,0,0
+567,"134 Crestmont Ter, Collingswood, NJ, 08108","Stavros Hadjitheocharous",,0,,0,0,0
+568,"1107 Park Ave, Collingswood, NJ, 08108","Robert J Bennett",,0,,0,0,0
+569,"529 Lincoln Ave, Collingswood, NJ, 08108","Warren L Bensken",,0,,0,0,0
+570,"621 Lees Ave, Collingswood, NJ, 08108","Dorothy D Contravo",,0,,0,0,0
+571,"126 Stratford Ave, Collingswood, NJ, 08108","Zachary L Lasalvia",,0,,0,0,0
+572,"107 Washington Ave, Collingswood, NJ, 08108","Theodore J Bunch",,0,,0,0,0
+573,"1033 Park Ave, Collingswood, NJ, 08108","Lisa A Steinhauer",,0,,0,0,0
+574,"130 Stratford Ave, Collingswood, NJ, 08108","Amy J Marchetty",,0,,0,0,0
+575,"210 French Ave, Collingswood, NJ, 08108","Joseph A Snodgrass",,0,,0,0,0
+576,"128 Stratford Ave, Collingswood, NJ, 08108","Matthew Sanders",,0,,0,0,0
+577,"120 Stratford Ave, Collingswood, NJ, 08108","Kathleen A Maguire",,0,,0,0,0
+578,"104 Stratford Ave, Collingswood, NJ, 08108","Francine L Weiss",,0,,0,0,0
+579,"118 Stratford Ave, Collingswood, NJ, 08108","James F Duffy",,0,,0,0,0
+580,"469 Haddon Ave, Collingswood, NJ, 08108","Andrea L Quinn",,0,,0,0,0
+581,"112 Stratford Ave, Collingswood, NJ, 08108","Barton M Dudlick",,0,,0,0,0
+582,"105 Ardmore Ave, Collingswood, NJ, 08108","Alexandra N Poporad",,0,,0,0,0
+583,"100 Stratford Ave, Collingswood, NJ, 08108","Donald Lee Smith",,0,,0,0,0
+584,"732 Merrick Ave, Collingswood, NJ, 08108","Kathleen T O Brien",,0,,0,0,0
+585,"10 Lees Ave, Collingswood, NJ, 08108","Louis Cramer",,0,,0,0,0
+586,"11 Lees Ave, Collingswood, NJ, 08108","Louis Cramer",,0,,0,0,0
+587,"356 Haddon Ave, Collingswood, NJ, 08108","Christine Acquaah",,0,,0,0,0
+588,"7 W Summerfield Ave, Collingswood, NJ, 08108","Anthony L Calderone",,0,,0,0,0
+589,"117 E Palmer Ave, Collingswood, NJ, 08108","Adam A Diekewicz",,0,,0,0,0
+590,"467 Haddon Ave, Collingswood, NJ, 08108","Jared A Ward",,0,,0,0,0
+591,"910 Mansion Ave, Collingswood, NJ, 08108","Elysa M Lindsey",,0,,0,0,0
+592,"15 Cooper St, Collingswood, NJ, 08108","Thomas J Paret",,0,,0,0,0
+593,"18 Cooper St, Collingswood, NJ, 08108","Gregorio P Molina",,0,,0,0,0
+594,"13 Cooper St, Collingswood, NJ, 08108","William J Collins",,0,,0,0,0
+595,"16 Cooper St, Collingswood, NJ, 08108","Christopher J Butler",,0,,0,0,0
+596,"20 Cooper St, Collingswood, NJ, 08108","Kimberly D Harley",,0,,0,0,0
+597,"14 Cooper St, Collingswood, NJ, 08108","John G Lavell",,0,,0,0,0
+598,"117 E Wayne Ter, Collingswood, NJ, 08108","Morgan M Robinson",,0,,0,0,0
+599,"9 Cooper St, Collingswood, NJ, 08108","William L Kern",,0,,0,0,0
+600,"23 Cooper St, Collingswood, NJ, 08108","Stephen J Krouch",,0,,0,0,0
+601,"34 Hillcrest Ave, Collingswood, NJ, 08108","Alison S Griffin",,0,,0,0,0
+602,"35 Hillcrest Ave, Collingswood, NJ, 08108","Dennis A Galanakis",,0,,0,0,0
+603,"37 Hillcrest Ave, Collingswood, NJ, 08108","Michelle M Lambert",,0,,0,0,0
+604,"25 Hillcrest Ave, Collingswood, NJ, 08108","Alyssa J Boyle",,0,,0,0,0
+605,"36 Hillcrest Ave, Collingswood, NJ, 08108","Michael T Gattone",,0,,0,0,0
+606,"31 Hillcrest Ave, Collingswood, NJ, 08108","Richard S Humphries",,0,,0,0,0
+607,"19 Hillcrest Ave, Collingswood, NJ, 08108","Laura B Garber",,0,,0,0,0
+608,"21 Hillcrest Ave, Collingswood, NJ, 08108","Gertrude R Shaw",,0,,0,0,0
+609,"921 Park Pl, Ocean City, NJ, 08226","Lewis J Mawson",,0,,0,0,0

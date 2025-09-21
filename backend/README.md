@@ -1,8 +1,8 @@
-# Leadflow AI - Real Estate Lead Generation SaaS Platform
+# Convexa AI - Real Estate Lead Generation SaaS Platform
 
 ## 🚀 Overview
 
-Leadflow AI is a comprehensive SaaS platform designed for real estate investors, flippers, and wholesalers to automatically find, analyze, and contact property owners for off-market deals. The platform combines web scraping, AI-powered deal analysis, skip tracing, and automated outreach capabilities.
+Convexa AI is a comprehensive SaaS platform designed for real estate investors, flippers, and wholesalers to automatically find, analyze, and contact property owners for off-market deals. The platform combines web scraping, AI-powered deal analysis, skip tracing, and automated outreach capabilities.
 
 ## 🧱 Core Features
 
@@ -326,4 +326,4 @@ For questions or support:
 
 ---
 
-**Leadflow AI** - Revolutionizing real estate lead generation with AI-powered automation.
+**Convexa AI** - Revolutionizing real estate lead generation with AI-powered automation.

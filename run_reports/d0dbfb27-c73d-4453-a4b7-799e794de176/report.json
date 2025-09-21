@@ -1,0 +1,40 @@
+{
+  "run_id": "d0dbfb27-c73d-4453-a4b7-799e794de176",
+  "source_label": "real-leads-609.csv",
+  "started_at": "2025-09-19 12:12:48",
+  "finished_at": "2025-09-19 12:12:49",
+  "duration_s": 1,
+  "totals": {
+    "total": 609,
+    "done": 609,
+    "failed": 0,
+    "cached_hits": 609,
+    "provider_calls": 0,
+    "cost_usd": 0
+  },
+  "hit_rate": {
+    "phone_any_pct": 0,
+    "email_any_pct": 0
+  },
+  "cache_hit_ratio": 1,
+  "budgets": {
+    "daily_cap_usd": 200,
+    "spent_usd": 0,
+    "soft_paused": false
+  },
+  "errors": [],
+  "samples": {
+    "enriched": [
+      {
+        "lead_id": "1"
+      },
+      {
+        "lead_id": "2"
+      },
+      {
+        "lead_id": "3"
+      }
+    ],
+    "failed": []
+  }
+}

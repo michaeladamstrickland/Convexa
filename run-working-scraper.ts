@@ -8,7 +8,7 @@ import { DatabaseService } from './src/services/databaseService';
 import { logger } from './src/utils/logger';
 
 async function main() {
-  console.log('🚀 LEADFLOW AI - REAL LEAD GENERATION ACTIVATED');
+  console.log('🚀 CONVEXA AI - REAL LEAD GENERATION ACTIVATED');
   console.log('📍 Target Market: Phoenix/Scottsdale Metro Area');
   console.log('🎯 Lead Sources: FSBO, Expired Listings, High Equity, Absentee Owners');
   console.log('=' .repeat(85));
@@ -76,7 +76,7 @@ async function main() {
     console.log('   5. 🤖 Configure SMS drip campaigns');
     console.log('');
     
-    console.log('✅ Your LeadFlow AI system is now generating REAL, ACTIONABLE leads!');
+  console.log('✅ Your Convexa AI system is now generating REAL, ACTIONABLE leads!');
     console.log('🚀 Ready to start making money from real estate leads TODAY!');
     
   } catch (error) {

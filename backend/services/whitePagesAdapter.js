@@ -11,8 +11,8 @@ import dotenv from 'dotenv';
 // Load environment variables
 dotenv.config();
 
-// API configuration
-const WHITEPAGES_API_URL = process.env.WHITEPAGES_API_URL || 'https://api.whitepages.com/3.3/person';
+// API configuration (explicit Pro host, no guessing)
+const WHITEPAGES_API_URL = process.env.WHITEPAGES_API_URL || 'https://proapi.whitepages.com/3.3';
 const WHITEPAGES_API_KEY = process.env.WHITEPAGES_API_KEY;
 
 // Cost per skip trace request
@@ -51,74 +51,75 @@ const whitePagesAdapter = {
       };
     }
 
+    // Hoist for debugging in catch
+    let lastUrl = `${WHITEPAGES_API_URL.replace(/\/$/, '')}/find_person.json`;
+    let lastParams = null;
+
     try {
-      // Format the request payload
+      // Build exact Pro find_person request
+      const url = `${WHITEPAGES_API_URL.replace(/\/$/, '')}/find_person.json`;
+      const cleaned = String(ownerName || '').trim();
+      // Prefer splitting into firstname/lastname; if we cannot, fallback to name param
+      let firstname = '', lastname = '';
+      if (cleaned) {
+        const tokens = cleaned.split(/\s+/).filter(Boolean);
+        if (tokens.length >= 2) {
+          lastname = tokens[tokens.length - 1];
+          firstname = tokens.slice(0, -1).join(' ');
+        }
+      }
       const params = {
         api_key: WHITEPAGES_API_KEY,
-        name: ownerName,
-        address: address,
+        firstname: firstname || 'Unknown',
+        lastname: lastname || cleaned,
+        house: address, // per Golden spec: house=full street
         city: city,
         state_code: state,
-        postal_code: zipCode,
-        country_code: 'US'
+        postal_code: zipCode
       };
+      lastUrl = url;
+      lastParams = { ...params, api_key: '***' };
 
-      // Call the WhitePages API
-      const startTime = Date.now();
-      const response = await axios.get(WHITEPAGES_API_URL, { params });
-      const endTime = Date.now();
-      
-      // Calculate API call duration
-      const duration = endTime - startTime;
-      
-      // Check for successful response
-      if (response.status === 200 && response.data && response.data.results?.length > 0) {
+      const timeoutMs = parseInt(process.env.REQUEST_TIMEOUT_MS || '15000', 10);
+      const response = await axios.get(url, { params, timeout: timeoutMs, validateStatus: () => true });
+
+      if (response.status === 200 && response.data) {
         const data = response.data;
-        const personResult = data.results[0];
-        
-        // Format phone numbers
-        const phones = personResult.phones?.map((phone) => ({
-          number: phone.phone_number,
-          type: phone.line_type || 'unknown',
-          isPrimary: false, // WhitePages doesn't specify primary
-          isDoNotCall: false, // Would require additional lookup
+        const personResult = Array.isArray(data.results) && data.results.length ? data.results[0] : (data.person || null);
+        const srcPhones = personResult?.phones || data.phones || [];
+        const srcEmails = personResult?.emails || data.emails || [];
+        const phones = (srcPhones || []).map((phone) => ({
+          number: phone.phone_number || phone.number || phone.national_format || phone.e164 || phone.phone,
+          type: phone.line_type || phone.type || 'unknown',
+          isPrimary: Boolean(phone.is_primary),
+          isDoNotCall: Boolean(phone.is_dnc),
           confidence: Math.min(99, Math.floor((phone.is_valid ? 70 : 50) + (phone.is_connected ? 20 : 0)))
-        })) || [];
-        
-        // Format email addresses
-        const emails = personResult.emails?.map((email) => ({
-          address: email.email_address,
-          type: 'unknown', // WhitePages doesn't specify type
-          isPrimary: false,
-          confidence: 70 // Default confidence level
-        })) || [];
-        
-        // Return the formatted skip trace result
+        })).filter(p => p.number);
+        const emails = (srcEmails || []).map((email) => ({
+          address: email.email_address || email.address || email.email,
+          type: email.type || 'unknown',
+          isPrimary: Boolean(email.is_primary),
+          confidence: email.confidence || 70
+        })).filter(e => e.address);
+
         return {
           success: true,
           leadId,
           phones,
           emails,
-          cost: SKIP_TRACE_COST, // Fixed cost per lookup
+          cost: SKIP_TRACE_COST,
           provider: 'whitepages',
-          requestId: data.request_id || `wp-${Date.now()}`,
-          cached: false
-        };
-      } else {
-        // No results found or error
-        return {
-          success: false,
-          leadId,
-          phones: [],
-          emails: [],
-          cost: 0,
-          provider: 'whitepages',
-          error: response.data?.error_message || 'No results found',
-          requestId: response.data?.request_id || `wp-${Date.now()}`
+          requestId: response?.data?.request_id || `wp-${Date.now()}`,
+          cached: false,
+          _debug: {
+            request: { url, params: lastParams },
+            response: { status: response.status, sample: Array.isArray(data?.results) ? data.results.slice(0,1) : data }
+          }
         };
       }
-    } catch (error) {
-      // Handle exceptions
+
+      const providerCode = response?.data?.error?.code || response?.data?.code || null;
+      const providerMsg = response?.data?.error?.message || response?.data?.error_message || response?.statusText || 'No results';
       return {
         success: false,
         leadId,
@@ -126,7 +127,31 @@ const whitePagesAdapter = {
         emails: [],
         cost: 0,
         provider: 'whitepages',
-        error: `Exception: ${error.message}`,
+        error: `API ${(response && response.status) || 'N/A'}${providerCode ? ` [${providerCode}]` : ''}: ${providerMsg}`,
+        requestId: response?.data?.request_id || `wp-${Date.now()}`,
+        _debug: {
+          request: { url: lastUrl, params: lastParams },
+          response: { status: response && response.status, data: response && response.data }
+        }
+      };
+    } catch (error) {
+      // Handle exceptions
+      const status = error.response?.status;
+      const code = error.code || error.response?.data?.code;
+      const msg = error.response?.data?.message || error.message || 'Network error';
+      return {
+        success: false,
+        leadId,
+        phones: [],
+        emails: [],
+        cost: 0,
+        provider: 'whitepages',
+        error: `Exception${status ? ` ${status}` : ''}${code ? ` [${code}]` : ''}: ${msg}`,
+        requestId: error.response?.data?.request_id || `wp-${Date.now()}`,
+        _debug: {
+          request: { url: lastUrl, params: lastParams },
+          response: { status, data: error.response?.data }
+        }
       };
     }
   }

@@ -160,7 +160,7 @@ const PropertyMapView: React.FC<PropertyMapViewProps> = ({
     setDrawingManager(drawingManagerInstance);
     
     // Add polygon complete listener
-    window.google.maps.event.addListener(drawingManagerInstance, 'polygoncomplete', (polygon) => {
+  window.google.maps.event.addListener(drawingManagerInstance, 'polygoncomplete', (polygon: any) => {
       // Exit drawing mode
       drawingManagerInstance.setDrawingMode(null);
       setIsDrawingMode(false);

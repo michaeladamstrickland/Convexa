@@ -1,8 +1,8 @@
-# LeadFlow AI - Database Structure
+# Convexa AI - Database Structure
 
 ## Overview
 
-LeadFlow AI uses a SQLite database with Prisma ORM for persistence. The database is structured to support:
+Convexa AI uses a SQLite database with Prisma ORM for persistence. The database is structured to support:
 
 1. **Lead Management** - Track leads with their property and owner information
 2. **Skip Tracing** - Store skip trace results and contact data
@@ -196,7 +196,7 @@ The system uses several methods to access data:
 
 ## Migration Strategy
 
-LeadFlow AI is currently transitioning from direct SQLite access to full Prisma ORM usage. The migration strategy involves:
+Convexa AI is currently transitioning from direct SQLite access to full Prisma ORM usage. The migration strategy involves:
 
 1. Maintaining backward compatibility for existing features
 2. Using Prisma for all new features

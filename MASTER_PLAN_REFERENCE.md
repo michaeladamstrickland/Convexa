@@ -1,4 +1,4 @@
-# Master Implementation Brief — LeadFlow Data Platform (Enterprise, ML-Ready)
+# Master Implementation Brief — Convexa Data Platform (Enterprise, ML-Ready)
 
 (This file was generated from the provided specification. It is a stable reference used for architectural alignment and audit-driven execution planning.)
 
