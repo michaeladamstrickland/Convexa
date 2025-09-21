@@ -1412,24 +1412,21 @@ const startServer = async () => {
 
   // === Artifacts listing & signed download ===
   const ARTIFACT_ROOT = path.resolve(__dirname, '..', 'run_reports');
-  // Robustly load artifact signer with safe JS fallback (no TS at runtime)
+  // Robustly load artifact signer with safe JS fallback (never import TS at runtime)
   let signUtil, verifyUtil;
   try {
     ({ signPath: signUtil, verifyPath: verifyUtil } = await import('../src/lib/signedUrl.js'));
-  } catch (_) {
-    try {
-      ({ signPath: signUtil, verifyPath: verifyUtil } = await import('../src/lib/signedUrl.ts'));
-    } catch (_) {
-      const cryptoMod = await import('crypto');
-      signUtil = (pathRel, expEpochSec, secret) =>
-        cryptoMod.createHmac('sha256', String(secret)).update(`${String(pathRel)}|${Number(expEpochSec)}`).digest('hex');
-      verifyUtil = (pathRel, expEpochSec, sig, secret) => {
-        const now = Math.floor(Date.now() / 1000);
-        if (!expEpochSec || Number(expEpochSec) < now) return false;
-        const expected = signUtil(pathRel, expEpochSec, secret);
-        try { return cryptoMod.timingSafeEqual(Buffer.from(expected), Buffer.from(String(sig))); } catch { return false; }
-      };
-    }
+  } catch (e) {
+    const cryptoMod = await import('crypto');
+    signUtil = (pathRel, expEpochSec, secret) =>
+      cryptoMod.createHmac('sha256', String(secret)).update(`${String(pathRel)}|${Number(expEpochSec)}`).digest('hex');
+    verifyUtil = (pathRel, expEpochSec, sig, secret) => {
+      const now = Math.floor(Date.now() / 1000);
+      if (!expEpochSec || Number(expEpochSec) < now) return false;
+      const expected = signUtil(pathRel, expEpochSec, secret);
+      try { return cryptoMod.timingSafeEqual(Buffer.from(expected), Buffer.from(String(sig))); } catch { return false; }
+    };
+    console.warn('signedUrl.js import failed, using crypto fallback:', e?.message || e);
   }
   const defaultTtl = parseInt(process.env.ARTIFACT_URL_TTL_SECONDS || '86400', 10);
   app.get('/admin/artifacts', (req, res) => {

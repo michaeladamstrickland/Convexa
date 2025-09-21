@@ -78,17 +78,34 @@ class SkipTraceService {
         const schemaPath = path.join(__dirname, '../db/skip_trace_schema_update.sql');
         
         if (fs.existsSync(schemaPath)) {
-          let schemaSQL = fs.readFileSync(schemaPath, 'utf8');
-          // Strip ALTER statements to avoid duplicate-column errors; runtime ensures columns.
-          schemaSQL = schemaSQL
-            .split('\n')
-            .filter(line => !/^\s*ALTER\s+TABLE\s+/i.test(line))
-            .join('\n');
-          try {
-            this.db.exec(schemaSQL);
-            console.log('Applied skip trace schema (CREATE statements only)');
-          } catch (e) {
-            console.warn('Schema exec warning (continuing with basic tables):', e?.message || e);
+          let raw = fs.readFileSync(schemaPath, 'utf8');
+          // Remove all ALTER TABLE statements robustly (across lines) and execute remaining statements individually
+          // Split on semicolons to get discrete statements
+          const statements = raw
+            .split(';')
+            .map(s => s.trim())
+            .filter(Boolean)
+            .filter(s => !/^ALTER\s+TABLE\s+/i.test(s));
+          let applied = 0;
+          for (const stmt of statements) {
+            try {
+              // Skip any stray ALTERs that slipped past
+              if (/^ALTER\s+TABLE\s+/i.test(stmt)) continue;
+              this.db.exec(stmt + ';');
+              applied++;
+            } catch (e) {
+              const msg = String(e?.message || e);
+              // Ignore benign idempotency errors
+              if (/already\s+exists/i.test(msg) || /duplicate\s+column/i.test(msg)) {
+                continue;
+              }
+              console.warn('Schema statement failed, continuing:', msg);
+            }
+          }
+          if (applied > 0) {
+            console.log(`Applied skip trace schema (${applied} statements)`);
+          } else {
+            console.warn('No applicable schema statements found; creating basic tables');
             this.createBasicTables();
           }
         } else {
