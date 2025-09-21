@@ -21,6 +21,8 @@
     "frontend",
     "app.js",
     "**/*.test.ts",
+    // Exclude storage adapters (use runtime JS; TS file has .ts fallback imports)
+    "src/lib/storage/**",
     // Exclude legacy/experimental or FE/SQLite paths not part of server backend
     "src/components/**",
     "src/pages/**",

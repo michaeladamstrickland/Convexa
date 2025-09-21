@@ -1,59 +1,51 @@
-# Convexa AI Deployment Notes
+# Staging Deployment Notes
 
-This document contains additional notes and considerations for deploying the Convexa AI application. It complements the main `ops/deploy/deploy.md` guide and the `ops/deploy/env-guard-checklist.md`.
+## Provider Choice
+Railway.app
 
-## 1. Infrastructure Provisioning
+Rationale: Railway offers a quick path for Node/Express applications, providing persistent volumes, Redis add-ons, easy environment variable management, and automatic HTTPS.
 
-*   **Terraform/CloudFormation**: For production environments, it is highly recommended to use Infrastructure as Code (IaC) tools like Terraform or AWS CloudFormation to provision and manage all cloud resources (VPC, subnets, databases, Redis, load balancers, Kubernetes clusters, etc.). This ensures consistency, repeatability, and reduces manual errors.
-*   **Resource Sizing**:
-    *   **Application Servers**: Start with small to medium instances (e.g., 2 vCPU, 4-8GB RAM) and monitor CPU/memory usage. Scale horizontally (add more instances/pods) as traffic increases.
-    *   **PostgreSQL**: Choose a managed database service with automatic backups, replication, and scaling capabilities. Monitor IOPS, CPU, and memory.
-    *   **Redis**: Select a managed Redis service. Monitor memory usage and connection count.
-*   **Auto-scaling**: Implement auto-scaling groups for application servers (e.g., based on CPU utilization or request queue length) to handle varying loads efficiently.
+## Environment Variables (set in Railway project)
 
-## 2. CI/CD Integration
+```
+PORT=8080
+NODE_ENV=staging
+SQLITE_DB_PATH=/data/convexa.db
+LOCAL_STORAGE_PATH=/data/run_storage
+STORAGE_BACKEND=local
+ARTIFACT_SIGNING_SECRET=<use the same value as in GitHub secret>
+ARTIFACT_URL_TTL_SECONDS=86400
+REDIS_URL=<railway redis url>
+TWILIO_AUTH_TOKEN=<dev token – signature verify only>
+SKIP_TRACE_DEMO_MODE=true
+X_ADMIN_TOKEN=<random-32+ chars>
+BASIC_AUTH_USER=${{ secrets.STAGING_BASIC_AUTH_USER }}
+BASIC_AUTH_PASS=${{ secrets.STAGING_BASIC_AUTH_PASS }}
+```
 
-*   **Automated Deployment**: Integrate the deployment steps into your CI/CD pipeline (e.g., GitHub Actions, GitLab CI, Jenkins).
-    *   **Build Stage**: Automatically run `npm install` and `npm run build` on every push to `main` or `develop`.
-    *   **Test Stage**: Execute `npm test` and collect coverage reports.
-    *   **Deployment Stage**: After successful build and tests, automatically deploy to staging. Manual approval may be required for production deployments.
-*   **Rollback Strategy**: Ensure your deployment process supports quick and reliable rollbacks to previous stable versions in case of issues.
+## Infrastructure
+- Persistent volume mounted at `/data` for SQLite database and artifacts.
+- Managed Redis instance attached, with `REDIS_URL` automatically configured by Railway.
 
-## 3. Monitoring and Alerting
+## Staging Base URL
+`<RAILWAY_HOST_URL>` (This will be provided by Railway after deployment)
 
-*   **Dashboarding**: Create comprehensive Grafana dashboards (using `ops/dashboards/convexa.json` as a base) to visualize key metrics:
-    *   Application health (CPU, memory, network I/O)
-    *   Request latency and error rates
-    *   Queue depths and job processing rates (BullMQ)
-    *   Database performance (connections, query times, disk usage)
-    *   Redis performance (memory, hits/misses)
-    *   Business metrics (leads generated, revenue, conversion rates)
-*   **Alerting**: Configure alerts in Prometheus/Grafana for:
-    *   High error rates (e.g., 5xx errors)
-    *   High latency
-    *   Queue backlogs
-    *   Resource exhaustion (CPU, memory, disk)
-    *   Failed deployments
-    *   Security incidents (e.g., failed authentication attempts)
+## How to Restart/Redeploy
+- **Manual Redeploy:** In the Railway dashboard, navigate to your project, then to the service, and click "Deploy" -> "Redeploy".
+- **Automatic Redeploy:** Railway is configured to automatically redeploy on new commits to the `main` branch (or the branch configured for deployment).
 
-## 4. Security Best Practices
+## Gating Endpoints
+- **Method:** Basic Authentication for `/admin/*` and `/metrics`.
+- **Allowed CIDRs:** None (Basic Auth only for now).
+- **Test Account:** `admin:<STAGING_BASIC_AUTH_PASS>` (as configured in Railway environment variables).
 
-*   **Secrets Management**: Never hardcode secrets. Use dedicated secrets management services (e.g., AWS Secrets Manager, GCP Secret Manager, HashiCorp Vault) or environment variables injected securely.
-*   **Image Scanning**: Integrate Docker image scanning into your CI/CD pipeline to detect vulnerabilities in container images.
-*   **Runtime Protection**: Consider using runtime application self-protection (RASP) or Web Application Firewalls (WAF) for enhanced security.
-*   **Regular Audits**: Conduct regular security audits and penetration testing.
-
-## 5. Data Management
-
-*   **Backups**: Ensure automated, regular backups of your PostgreSQL database. Test restoration procedures periodically.
-*   **Data Retention**: Define and implement data retention policies for logs, metrics, and application data to comply with regulations and manage storage costs.
-*   **GDPR/CCPA Compliance**: Ensure all data handling, storage, and redaction practices comply with relevant data privacy regulations. Refer to `ops/PII/patterns.txt` for redaction guidance and DSR scripts (`scripts/exportLead.cjs`, `scripts/deleteLead.cjs`).
-
-## 6. Staging Environment
-
-*   **Mirror Production**: The staging environment should closely mirror production in terms of infrastructure, data, and configuration to catch issues before they reach production.
-*   **Automated QA**: Run automated QA orchestrator tests (as described in the main task) against the staging environment to validate new deployments.
-
----
-
-**Last Updated**: 2025-09-21
+## Secrets Management
+- **Runtime (staging app):** Railway project -> Environment Variables
+- **CI (GitHub Actions):** Repo Settings -> Secrets and variables -> Actions
+  - `RAILWAY_TOKEN` (if using Railway CLI from CI)
+  - `STAGING_BASIC_AUTH_USER`
+  - `STAGING_BASIC_AUTH_PASS`
+  - `ARTIFACT_SIGNING_SECRET`
+  - `REDIS_URL` (if not provisioned automatically)
+  - `TWILIO_AUTH_TOKEN` (dev token for signature verification only)
+  - `PROM_BASIC_AUTH_USER` / `PROM_BASIC_AUTH_PASS` (if Prometheus needs auth to scrape)
