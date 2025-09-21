@@ -23,24 +23,35 @@ const logger = winston.createLogger({
   ]
 });
 
-// Initialize Prisma client with proper SQLite configuration
-const prisma = new PrismaClient({
-  datasources: {
-    db: {
-      url: "file:../prisma/dev.db"
+// Initialize Prisma client (best-effort). In dev without a valid DB, disable Prisma cleanly.
+let prisma = null;
+let prismaEnabled = true;
+try {
+  // Prefer DATABASE_URL if provided; otherwise fall back to a local sqlite file
+  const dbUrl = process.env.DATABASE_URL || 'file:../prisma/dev.db';
+  prisma = new PrismaClient({
+    datasources: {
+      db: { url: dbUrl }
     }
-  }
-});
+  });
+} catch (e) {
+  prismaEnabled = false;
+}
 
 // Verify database connection on startup
-(async () => {
-  try {
-    const leadCount = await prisma.lead.count();
-    logger.info(`Database connection successful. Found ${leadCount} leads.`);
-  } catch (error) {
-    logger.error(`Database connection error:`, error);
-  }
-})();
+if (prisma) {
+  (async () => {
+    try {
+      const leadCount = await prisma.lead.count();
+      logger.info(`Database connection successful. Found ${leadCount} leads.`);
+    } catch (error) {
+      prismaEnabled = false;
+      logger.error(`Database connection error:`, error);
+    }
+  })();
+} else {
+  logger.warn('Prisma is disabled (no valid DATABASE_URL). Zip search will return empty results in dev.');
+}
 
 // Helper function to normalize addresses for comparison
 const normalizeAddress = (address) => {
@@ -63,6 +74,14 @@ const getTemperatureTag = (motivationScore) => {
 // Unified search endpoint
 router.get('/search', async (req, res) => {
   try {
+    // If Prisma is not available (dev without DB), return a safe empty payload
+    if (!prismaEnabled || !prisma) {
+      return res.json({
+        leads: [],
+        pagination: { total: 0, page: 1, limit: Number(req.query.limit || 50), pages: 0 }
+      });
+    }
+
     const {
       query,
       minValue,

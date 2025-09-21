@@ -1,4 +1,4 @@
-# 🔄 Leadflow AI Checkpoint - August 9, 2025
+# 🔄 Convexa AI Checkpoint - August 9, 2025
 
 ## 📍 Current Implementation Status
 
@@ -135,4 +135,4 @@ Remember: The system is fully coded and ready for API integration. Only missing 
 - Look into RealtyTrac API integration
 - Plan for CRM integrations
 
-This checkpoint represents the exact state of Leadflow AI development as of August 9, 2025. When returning to this project, all code is ready for immediate API integration and testing.
+This checkpoint represents the exact state of Convexa AI development as of August 9, 2025. When returning to this project, all code is ready for immediate API integration and testing.

@@ -1,0 +1,33 @@
+[SQLite] Using DB at: C:/Projects/Convexa/prisma/micro.db
+[SkipTrace] DEMO_MODE = false
+[SkipTrace] PRIMARY_PROVIDER = batchdata
+[SkipTrace] FALLBACK_ENABLED = false
+[Server] Port = 6007
+Looking for SQLite database file at: C:\Projects\Convexa\prisma\micro.db
+✓ Database found at: C:\Projects\Convexa\prisma\micro.db
+🚀 FlipTracker Integrated API Server running on port 6007
+💾 Connected to database with 51 leads
+🏠 ATTOM Property Data API enabled
+✅ API endpoints ready for use:
+  - Health: http://localhost:6007/health
+  - Search: http://localhost:6007/api/zip-search-new/search?limit=5
+  - Analytics: http://localhost:6007/api/zip-search-new/revenue-analytics
+  - ATTOM Property Lookup: http://localhost:6007/api/attom/property/address?address=123+Main+St&city=Beverly+Hills&state=CA&zip=90210
+2025-09-17T15:57:05.748Z - GET /api/debug/provider-calls-today
+2025-09-17T16:09:56.794Z - GET /health
+2025-09-17T16:09:56.835Z - POST /api/zip-search-new/add-lead
+2025-09-17T16:09:56.859Z - POST /api/leads/d5f94548-2076-487f-836e-eb26a89ffcee/skiptrace
+2025-09-17T16:10:02.153Z - GET /api/leads/d5f94548-2076-487f-836e-eb26a89ffcee/skiptrace
+2025-09-17T16:54:28.762Z - GET /api/debug/config
+2025-09-17T16:56:43.037Z - POST /api/zip-search-new/add-lead
+2025-09-17T16:58:12.369Z - POST /api/leads/861079a6-4bbd-4198-b1bf-44f4ad3d9859/skiptrace
+2025-09-17T16:58:23.678Z - GET /api/leads/861079a6-4bbd-4198-b1bf-44f4ad3d9859/skiptrace
+2025-09-17T17:01:57.834Z - GET /api/leads/861079a6-4bbd-4198-b1bf-44f4ad3d9859/skiptrace
+2025-09-17T17:01:57.909Z - GET /api/leads/861079a6-4bbd-4198-b1bf-44f4ad3d9859/skiptrace
+2025-09-17T17:06:28.926Z - GET /api/leads/861079a6-4bbd-4198-b1bf-44f4ad3d9859/skiptrace
+2025-09-17T17:26:27.990Z - GET /api/debug/errors-today
+2025-09-17T17:26:38.802Z - GET /api/debug/provider-calls-today
+2025-09-17T17:27:52.154Z - POST /api/zip-search-new/add-lead
+2025-09-17T17:27:55.292Z - GET /api/debug/provider-calls-today
+2025-09-17T17:28:04.405Z - POST /api/leads/ac96df7d-6127-49a3-962d-cecfb45ef16b/skiptrace
+2025-09-17T17:28:23.806Z - GET /api/leads/ac96df7d-6127-49a3-962d-cecfb45ef16b/skiptrace

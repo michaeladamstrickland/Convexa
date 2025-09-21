@@ -1,4 +1,4 @@
-## LeadFlow AI — Project Breakdown
+## Convexa AI — Project Breakdown
 
 ### Task receipt & plan
 I will summarize what exists in this repository, list key implemented features, point to important files and systems, and lay out planned next work and priorities. The goal is a single source-of-truth `PROJECT_BREAKDOWN.md` at the repo root for developers and stakeholders.
@@ -10,7 +10,7 @@ I will summarize what exists in this repository, list key implemented features, 
 
 ## High-level status
 
-- Project: LeadFlow AI (real-estate lead generation + AI analysis)
+- Project: Convexa AI (real-estate lead generation + AI analysis)
 - Branch: DataBaseFix (current workspace branch)
 - Primary stacks: Node.js + TypeScript backend, Prisma ORM, React frontend (Vite) planned, SQLite/Postgres in different places, OpenAI integration, Puppeteer scrapers.
 

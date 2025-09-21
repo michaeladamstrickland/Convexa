@@ -1,4 +1,4 @@
-# LeadFlow — 2-Week Priority Playbook (D0, D3, D7, D10)
+# Convexa — 2-Week Priority Playbook (D0, D3, D7, D10)
 
 Timestamp (ET): 2025-08-16 12:00 ET
 Goal: Reach “real leads flowing + campaigns live” with production-grade guardrails.

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { createCrmActivity } from '../../api/crm';
 
 interface Props {
@@ -11,6 +11,7 @@ interface Props {
 export default function CrmComposerModal({ leadId, onClose, onCreated }: Props) {
   const [type, setType] = useState<'note' | 'call.manual'>('note');
   const [text, setText] = useState('');
+  const qc = useQueryClient();
 
   const { mutate, isPending } = useMutation({
     mutationFn: () =>
@@ -20,6 +21,7 @@ export default function CrmComposerModal({ leadId, onClose, onCreated }: Props) 
         data: type === 'note' ? { text } : { summary: text },
       }),
     onSuccess: () => {
+  qc.invalidateQueries({ queryKey: ['crmActivity', leadId] });
       onCreated?.();
     },
   });

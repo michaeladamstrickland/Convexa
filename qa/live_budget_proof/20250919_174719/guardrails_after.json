@@ -1,0 +1,1 @@
+{"success":true,"data":{"breaker":{"state":"closed","ok":91,"err":0,"total":91,"errRatio":0,"nextProbeAt":0},"budget":{"capCents":20000,"spentCents":2275,"remainingCents":17725},"rps":1,"bucket":{"capacity":1,"tokens":1,"refillPerSec":1}}}

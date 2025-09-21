@@ -1,0 +1,84 @@
+{
+  "run_id": "5d54bb45-7d00-4bc1-80dd-2fa2a4b66567",
+  "source_label": "real-leads-609.csv",
+  "started_at": "2025-09-19 15:33:51",
+  "finished_at": "2025-09-19 15:33:52",
+  "duration_s": 1,
+  "totals": {
+    "total": 609,
+    "done": 0,
+    "failed": 609,
+    "cached_hits": 0,
+    "provider_calls": 0,
+    "cost_usd": 0
+  },
+  "hit_rate": {
+    "phone_any_pct": 0,
+    "email_any_pct": 0
+  },
+  "cache_hit_ratio": 0,
+  "budgets": {
+    "daily_cap_usd": 0,
+    "spent_usd": 0,
+    "soft_paused": false
+  },
+  "errors": [
+    {
+      "reason": "FetchError: request to http://localhost:6021/api/leads/99/skiptrace?force=true&runId=5d54bb45-7d00-4bc1-80dd-2fa2a4b66567 failed, reason: ",
+      "count": 1
+    },
+    {
+      "reason": "FetchError: request to http://localhost:6021/api/leads/98/skiptrace?force=true&runId=5d54bb45-7d00-4bc1-80dd-2fa2a4b66567 failed, reason: ",
+      "count": 1
+    },
+    {
+      "reason": "FetchError: request to http://localhost:6021/api/leads/97/skiptrace?force=true&runId=5d54bb45-7d00-4bc1-80dd-2fa2a4b66567 failed, reason: ",
+      "count": 1
+    },
+    {
+      "reason": "FetchError: request to http://localhost:6021/api/leads/96/skiptrace?force=true&runId=5d54bb45-7d00-4bc1-80dd-2fa2a4b66567 failed, reason: ",
+      "count": 1
+    },
+    {
+      "reason": "FetchError: request to http://localhost:6021/api/leads/95/skiptrace?force=true&runId=5d54bb45-7d00-4bc1-80dd-2fa2a4b66567 failed, reason: ",
+      "count": 1
+    },
+    {
+      "reason": "FetchError: request to http://localhost:6021/api/leads/94/skiptrace?force=true&runId=5d54bb45-7d00-4bc1-80dd-2fa2a4b66567 failed, reason: ",
+      "count": 1
+    },
+    {
+      "reason": "FetchError: request to http://localhost:6021/api/leads/93/skiptrace?force=true&runId=5d54bb45-7d00-4bc1-80dd-2fa2a4b66567 failed, reason: ",
+      "count": 1
+    },
+    {
+      "reason": "FetchError: request to http://localhost:6021/api/leads/92/skiptrace?force=true&runId=5d54bb45-7d00-4bc1-80dd-2fa2a4b66567 failed, reason: ",
+      "count": 1
+    },
+    {
+      "reason": "FetchError: request to http://localhost:6021/api/leads/91/skiptrace?force=true&runId=5d54bb45-7d00-4bc1-80dd-2fa2a4b66567 failed, reason: ",
+      "count": 1
+    },
+    {
+      "reason": "FetchError: request to http://localhost:6021/api/leads/90/skiptrace?force=true&runId=5d54bb45-7d00-4bc1-80dd-2fa2a4b66567 failed, reason: ",
+      "count": 1
+    }
+  ],
+  "samples": {
+    "enriched": [],
+    "failed": [
+      {
+        "lead_id": "1",
+        "last_error": "FetchError: request to http://localhost:6021/api/leads/1/skiptrace?force=true&runId=5d54bb45-7d00-4bc1-80dd-2fa2a4b66567 failed, reason: "
+      },
+      {
+        "lead_id": "2",
+        "last_error": "FetchError: request to http://localhost:6021/api/leads/2/skiptrace?force=true&runId=5d54bb45-7d00-4bc1-80dd-2fa2a4b66567 failed, reason: "
+      },
+      {
+        "lead_id": "3",
+        "last_error": "FetchError: request to http://localhost:6021/api/leads/3/skiptrace?force=true&runId=5d54bb45-7d00-4bc1-80dd-2fa2a4b66567 failed, reason: "
+      }
+    ]
+  }
+}

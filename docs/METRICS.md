@@ -1,4 +1,4 @@
-# LeadFlow Metrics Reference
+# Convexa Metrics Reference
 
 Canonical source: `/api/dev/metrics` (Prometheus exposition format)
 

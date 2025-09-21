@@ -38,7 +38,7 @@ const VIEWPORT_SIZES = [
 ];
 
 // Directory for saving debug data
-const DEBUG_DIR = path.join(__dirname, 'debug-data');
+const DEBUG_DIR = path.join(process.cwd(), 'debug-data');
 
 // Ensure debug directory exists
 if (!fs.existsSync(DEBUG_DIR)) {

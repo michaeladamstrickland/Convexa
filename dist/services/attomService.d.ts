@@ -1,3 +1,5 @@
+import type { AxiosInstance } from "axios";
+export declare function getAttomClient(): Promise<AxiosInstance | null>;
 /**
  * Search for properties by ZIP code
  *

@@ -16,7 +16,7 @@ Metrics Exposed (via /api/dev/metrics)
  - leadflow_crm_activity_webhook_total{status="success|fail"}
 
 ---
-# LeadFlow REST API Surface
+# Convexa REST API Surface
 
 Timestamp (ET): 2025-08-16 12:00 ET
 Base URL (local): http://localhost:3001
@@ -419,7 +419,7 @@ Change Log
 
 ---
 
-## New in Sprint 7 (LeadFlow AI): Call Ingestion & Analysis (src/routes/callRoutes.ts)
+## New in Sprint 7 (Convexa AI): Call Ingestion & Analysis (src/routes/callRoutes.ts)
 
 Public server mounts under /api/calls:
 - POST /api/calls/start { callSid, leadId?, userId?, audioUrl? }

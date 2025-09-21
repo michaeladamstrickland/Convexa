@@ -1,0 +1,11 @@
+Run ID: f8b168ef-c6ec-40ce-b570-02ae15fe6d9e
+Report written to: run_reports\f8b168ef-c6ec-40ce-b570-02ae15fe6d9e\report.json
+Totals: {
+  total: 609,
+  done: 609,
+  failed: 0,
+  cached_hits: 69,
+  provider_calls: 540,
+  cost_usd: 0
+}
+Hit rate: { phone_any_pct: 100, email_any_pct: 100 }

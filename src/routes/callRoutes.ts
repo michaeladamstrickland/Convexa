@@ -87,8 +87,22 @@ router.post('/transcript', async (req, res) => {
 // POST /api/calls/analyze - run LLM analysis on existing transcript and create CRM activity call.summary
 router.post('/analyze', async (req, res) => {
   const started = Date.now();
+  let analysisDetail: any = null;
   try {
-  const { callSid, force } = req.body || {};
+  const { callSid, force, transcript } = req.body || {};
+    // Allow direct analysis when transcript is provided without callSid (no DB dependency)
+    if (!callSid && transcript) {
+      try {
+        const analysis = await analyzeCallTranscript(String(transcript));
+        analysisDetail = analysis;
+        callMetrics.scoringLatencyMs.push(Date.now() - started);
+        return res.status(201).json({ success: true, analysis_detail: analysis });
+      } catch (e: any) {
+        callMetrics.summary.fail++;
+        callMetrics.scoringLatencyMs.push(Date.now() - started);
+        return res.status(500).json({ error: 'call_analyze_failed', message: e?.message });
+      }
+    }
     if (!callSid) return res.status(400).json({ error: 'missing_callSid' });
     const ct: any = await (prisma as any).callTranscript.findUnique({ where: { callSid } });
     if (!ct || !ct.transcript) return res.status(400).json({ error: 'transcript_not_found' });
@@ -99,6 +113,7 @@ router.post('/analyze', async (req, res) => {
     let tags: string[] = [];
     try {
       const analysis = await analyzeCallTranscript(ct.transcript);
+      analysisDetail = analysis;
       summary = analysis.summary;
       score = typeof analysis.motivationScore === 'number' ? analysis.motivationScore : 0;
       const t: string[] = [];
@@ -189,7 +204,7 @@ router.post('/analyze', async (req, res) => {
       (cm as any).perType.set('call.summary', current + 1);
     }
 
-    return res.status(201).json({ success: true, analysis: ca });
+    return res.status(201).json({ success: true, analysis: ca, analysis_detail: analysisDetail });
   } catch (e: any) {
   try { console.error('[calls.analyze] error', e?.message || e); } catch {}
   return res.status(500).json({ error: 'call_analyze_failed', message: e?.message });

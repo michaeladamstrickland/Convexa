@@ -1,0 +1,7 @@
+{
+  "dialId": "b125a609-1827-4434-8f07-9986810ab7c7",
+  "transcriptUrl": "https://example.com/t.txt",
+  "words": 5,
+  "latencyMs": 123,
+  "at": "2025-09-21T14:14:10.668Z"
+}

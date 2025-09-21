@@ -1,0 +1,13 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`report.json shape (skeleton) > matches minimal shape snapshot 1`] = `
+{
+  "costs": {
+    "total": 0,
+  },
+  "totals": {
+    "done": 0,
+    "total": 0,
+  },
+}
+`;

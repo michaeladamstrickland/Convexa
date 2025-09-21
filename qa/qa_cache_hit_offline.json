@@ -1,0 +1,40 @@
+{
+  "address": "113 Elgin Ave, Collingswood, NJ, 08108",
+  "owner": "Kathleen W Silvagni",
+  "first_invocation": {
+    "result": {
+      "primaryPhone": "+1-555-8827",
+      "phonesCount": 3,
+      "primaryEmail": "prooflead1@example.com",
+      "emailsCount": 2,
+      "hasDNC": 1,
+      "isCached": 1,
+      "costCents": 0
+    },
+    "counters_after": {
+      "providerCalls": 0,
+      "skipTraceLogs": 1
+    }
+  },
+  "second_invocation": {
+    "result": {
+      "primaryPhone": "+1-555-8827",
+      "phonesCount": 3,
+      "primaryEmail": "prooflead1@example.com",
+      "emailsCount": 2,
+      "hasDNC": 1,
+      "isCached": 1,
+      "costCents": 0
+    },
+    "counters_after": {
+      "providerCalls": 0,
+      "skipTraceLogs": 2
+    }
+  },
+  "deltas": {
+    "provider_calls": 0,
+    "skip_trace_logs": 1
+  },
+  "verdict": "PASS",
+  "notes": "Expected: second invocation is cached (isCached=1), provider_calls delta is 0, skip_trace_logs delta is 1 (for the cache hit log). Actual: second_invocation.result.isCached=1, provider_calls_delta=0, skip_trace_logs_delta=1"
+}

@@ -1,7 +1,7 @@
 @echo off
 REM Test script for ATTOM API and BatchData integration
 
-echo ===== LeadFlow AI - ATTOM + BatchData Integration Test =====
+echo ===== Convexa AI - ATTOM + BatchData Integration Test =====
 echo Testing API connectivity and integration setup...
 echo.
 

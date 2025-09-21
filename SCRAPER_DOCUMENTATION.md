@@ -1,6 +1,6 @@
-# LeadFlow AI Scraper Documentation
+# Convexa AI Scraper Documentation
 
-This document provides a comprehensive overview of the scraping components in the LeadFlow AI system, detailing each file's purpose, functionality, and production readiness.
+This document provides a comprehensive overview of the scraping components in the Convexa AI system, detailing each file's purpose, functionality, and production readiness.
 
 ## Table of Contents
 
@@ -15,7 +15,7 @@ This document provides a comprehensive overview of the scraping components in th
 
 ## Overview
 
-The LeadFlow AI scraper system consists of a collection of components that work together to extract real estate listing data from various sources. The primary scrapers are for Zillow (focusing on For Sale By Owner listings) and Auction.com. Each scraper has both a standard and enhanced version, with the enhanced versions implementing more sophisticated anti-detection measures.
+The Convexa AI scraper system consists of a collection of components that work together to extract real estate listing data from various sources. The primary scrapers are for Zillow (focusing on For Sale By Owner listings) and Auction.com. Each scraper has both a standard and enhanced version, with the enhanced versions implementing more sophisticated anti-detection measures.
 
 The system is designed with a modular architecture that includes:
 - Core scraper implementations
@@ -338,4 +338,4 @@ The scrapers are currently connecting to real websites (Zillow and Auction.com) 
 
 ### Conclusion
 
-The LeadFlow AI scraper system shows promising capabilities but needs several improvements before being fully production-ready. The enhanced scraper implementations provide a solid foundation, and the recent error handling improvements have increased reliability. With the addition of proxy rotation and persistent job tracking, the system could be ready for limited production use.
+The Convexa AI scraper system shows promising capabilities but needs several improvements before being fully production-ready. The enhanced scraper implementations provide a solid foundation, and the recent error handling improvements have increased reliability. With the addition of proxy rotation and persistent job tracking, the system could be ready for limited production use.

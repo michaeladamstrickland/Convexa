@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { 
   Container, Box, TextField, Button, Typography, 
-  Grid, Card, CardContent, Divider, InputAdornment,
+  Card, CardContent, Divider, InputAdornment,
   CircularProgress, Alert
 } from '@mui/material';
+import MuiGrid from '@mui/material/Grid';
 import { Search, LocationOn } from '@mui/icons-material';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
@@ -12,16 +13,35 @@ import { useNavigate } from 'react-router-dom';
  * Enhanced Property Search Component
  * Search for properties and link to the enhanced property detail view
  */
+// Relax Grid typing across MUI versions
+const Grid: any = (MuiGrid as unknown) as any;
+
+interface PropertyResult {
+  attomId: string;
+  address: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  propertyType: string;
+  bedrooms?: number;
+  bathrooms?: number;
+  squareFeet?: number;
+  yearBuilt?: number;
+  estimatedValue?: number;
+  lastSalePrice?: number;
+  lastSaleDate?: string;
+}
+
 const EnhancedPropertySearch = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [zipCode, setZipCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [searchResults, setSearchResults] = useState([]);
+  const [searchResults, setSearchResults] = useState<PropertyResult[]>([]);
   
   // Handle form submission for address search
-  const handleAddressSearch = async (e) => {
+  const handleAddressSearch = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!searchQuery) return;
     
@@ -101,12 +121,12 @@ const EnhancedPropertySearch = () => {
   };
   
   // Handle property selection
-  const handlePropertySelect = (attomId) => {
+  const handlePropertySelect = (attomId: string) => {
     navigate(`/property/${attomId}`);
   };
   
   // Format currency values
-  const formatCurrency = (value) => {
+  const formatCurrency = (value: number | undefined) => {
     if (!value) return 'N/A';
     return new Intl.NumberFormat('en-US', {
       style: 'currency',

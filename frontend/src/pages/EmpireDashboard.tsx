@@ -65,7 +65,7 @@ export default function EmpireDashboard() {
     <div className="space-y-6">
       {/* Empire Header */}
       <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg p-6 text-white">
-        <h1 className="text-3xl font-bold mb-2">🏆 LeadFlow AI Empire Control Center</h1>
+  <h1 className="text-3xl font-bold mb-2">🏆 Convexa AI Empire Control Center</h1>
         <p className="text-blue-100">Phase 3 Empire Scaling - Real Estate Intelligence Automation</p>
       </div>
 

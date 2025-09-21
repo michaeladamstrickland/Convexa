@@ -1,0 +1,48 @@
+{
+  "run_id": "042d5905-f0cf-480e-95b9-3e0bfe93f56f",
+  "source_label": "ten.csv",
+  "started_at": "2025-09-19 12:29:56",
+  "finished_at": "2025-09-19 12:29:56",
+  "duration_s": 0,
+  "totals": {
+    "total": 10,
+    "done": 0,
+    "failed": 10,
+    "cached_hits": 0,
+    "provider_calls": 0,
+    "cost_usd": 0
+  },
+  "hit_rate": {
+    "phone_any_pct": 0,
+    "email_any_pct": 0
+  },
+  "cache_hit_ratio": 0,
+  "budgets": {
+    "daily_cap_usd": 200,
+    "spent_usd": 0,
+    "soft_paused": false
+  },
+  "errors": [
+    {
+      "reason": "unknown",
+      "count": 10
+    }
+  ],
+  "samples": {
+    "enriched": [],
+    "failed": [
+      {
+        "lead_id": "1",
+        "last_error": "unknown"
+      },
+      {
+        "lead_id": "2",
+        "last_error": "unknown"
+      },
+      {
+        "lead_id": "3",
+        "last_error": "unknown"
+      }
+    ]
+  }
+}

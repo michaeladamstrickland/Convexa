@@ -33,14 +33,14 @@ class LeadFlowAILauncher {
             automation_enabled: true,
             ai_analysis_depth: 'ultra'
         });
-        console.log(`🏰 LeadFlow AI Empire Launcher initialized!`);
+        console.log(`🏰 Convexa AI Empire Launcher initialized!`);
         console.log(`🎯 Mode: ${this.config.mode.toUpperCase()}`);
         console.log(`📊 Daily Target: ${this.config.daily_lead_target} leads`);
         console.log(`💰 Revenue Goal: $${this.config.monthly_revenue_goal.toLocaleString()}/month`);
         console.log(`🤖 Automation: ${this.config.automation_level.toUpperCase()}`);
     }
     async launchEmpire() {
-        console.log(`\n🚀 LAUNCHING LEADFLOW AI EMPIRE...`);
+        console.log(`\n🚀 LAUNCHING CONVEXA AI EMPIRE...`);
         console.log(`================================`);
         console.log(`🎯 ULTIMATE INTELLIGENCE-DRIVEN EMPIRE BUILDER`);
         console.log(`📈 TARGET: 50,000+ Qualified Leads/Month`);
@@ -195,7 +195,7 @@ class LeadFlowAILauncher {
 exports.LeadFlowAILauncher = LeadFlowAILauncher;
 // CLI Interface for direct execution
 async function main() {
-    console.log(`🏰 LEADFLOW AI EMPIRE - PHASE 2 LAUNCHER`);
+    console.log(`🏰 CONVEXA AI EMPIRE - PHASE 2 LAUNCHER`);
     console.log(`========================================`);
     const args = process.argv.slice(2);
     const command = args[0] || 'launch';

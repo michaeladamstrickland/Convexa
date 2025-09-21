@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-This implementation provides a complete UI/UX layer for skip tracing functionality in the LeadFlow AI application. The implementation allows users to run single and bulk traces, see confidence-ranked results, stay compliant with DNC regulations, and track costs without leaving the application.
+This implementation provides a complete UI/UX layer for skip tracing functionality in the Convexa AI application. The implementation allows users to run single and bulk traces, see confidence-ranked results, stay compliant with DNC regulations, and track costs without leaving the application.
 
 ## Architecture
 

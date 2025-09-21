@@ -1,0 +1,398 @@
+{
+  "timestamp": "2025-09-19T21:55:57.904Z",
+  "totalCalls": 10,
+  "totalElapsedMs": 10114.8728,
+  "averageElapsedMs": 1011.4872799999999,
+  "results": [
+    {
+      "call": 1,
+      "leadId": "603aecd5-8922-453e-83f0-f5aecdbb3f95",
+      "addLeadResponse": {
+        "success": true,
+        "message": "Lead created successfully",
+        "leadId": "603aecd5-8922-453e-83f0-f5aecdbb3f95"
+      },
+      "skipTraceResponse": {
+        "success": true,
+        "message": "Skip trace completed successfully",
+        "data": {
+          "leadId": "603aecd5-8922-453e-83f0-f5aecdbb3f95",
+          "phones": [
+            {
+              "number": "8568547061",
+              "type": "Land Line",
+              "tested": false,
+              "reachable": false,
+              "isPrimary": true,
+              "isDoNotCall": true,
+              "confidence": 100
+            }
+          ],
+          "emails": [
+            {
+              "address": "kathleensilvagni@earthlink.net",
+              "type": "unknown",
+              "isPrimary": true,
+              "confidence": 0
+            }
+          ],
+          "cached": false,
+          "cost": 0,
+          "provider": "batchdata"
+        }
+      },
+      "elapsedMs": 289.5798
+    },
+    {
+      "call": 2,
+      "leadId": "0cd47baa-6470-4f08-88f5-a1233d670d51",
+      "addLeadResponse": {
+        "success": true,
+        "message": "Lead created successfully",
+        "leadId": "0cd47baa-6470-4f08-88f5-a1233d670d51"
+      },
+      "skipTraceResponse": {
+        "success": true,
+        "message": "Skip trace completed successfully",
+        "data": {
+          "leadId": "0cd47baa-6470-4f08-88f5-a1233d670d51",
+          "phones": [
+            {
+              "number": "8568547061",
+              "type": "Land Line",
+              "tested": false,
+              "reachable": false,
+              "isPrimary": true,
+              "isDoNotCall": true,
+              "confidence": 100
+            }
+          ],
+          "emails": [
+            {
+              "address": "kathleensilvagni@earthlink.net",
+              "type": "unknown",
+              "isPrimary": true,
+              "confidence": 0
+            }
+          ],
+          "cached": false,
+          "cost": 0,
+          "provider": "batchdata"
+        }
+      },
+      "elapsedMs": 272.0572
+    },
+    {
+      "call": 3,
+      "leadId": "1cb1fac4-15a6-46f9-bff1-3c79065bd26a",
+      "addLeadResponse": {
+        "success": true,
+        "message": "Lead created successfully",
+        "leadId": "1cb1fac4-15a6-46f9-bff1-3c79065bd26a"
+      },
+      "skipTraceResponse": {
+        "success": true,
+        "message": "Skip trace completed successfully",
+        "data": {
+          "leadId": "1cb1fac4-15a6-46f9-bff1-3c79065bd26a",
+          "phones": [
+            {
+              "number": "8568547061",
+              "type": "Land Line",
+              "tested": false,
+              "reachable": false,
+              "isPrimary": true,
+              "isDoNotCall": true,
+              "confidence": 100
+            }
+          ],
+          "emails": [
+            {
+              "address": "kathleensilvagni@earthlink.net",
+              "type": "unknown",
+              "isPrimary": true,
+              "confidence": 0
+            }
+          ],
+          "cached": false,
+          "cost": 0,
+          "provider": "batchdata"
+        }
+      },
+      "elapsedMs": 275.98
+    },
+    {
+      "call": 4,
+      "leadId": "79064ed8-6231-413c-ad0f-cc4dd12190e9",
+      "addLeadResponse": {
+        "success": true,
+        "message": "Lead created successfully",
+        "leadId": "79064ed8-6231-413c-ad0f-cc4dd12190e9"
+      },
+      "skipTraceResponse": {
+        "success": true,
+        "message": "Skip trace completed successfully",
+        "data": {
+          "leadId": "79064ed8-6231-413c-ad0f-cc4dd12190e9",
+          "phones": [
+            {
+              "number": "8568547061",
+              "type": "Land Line",
+              "tested": false,
+              "reachable": false,
+              "isPrimary": true,
+              "isDoNotCall": true,
+              "confidence": 100
+            }
+          ],
+          "emails": [
+            {
+              "address": "kathleensilvagni@earthlink.net",
+              "type": "unknown",
+              "isPrimary": true,
+              "confidence": 0
+            }
+          ],
+          "cached": false,
+          "cost": 0,
+          "provider": "batchdata"
+        }
+      },
+      "elapsedMs": 296.83
+    },
+    {
+      "call": 5,
+      "leadId": "555eca9e-611f-49b9-a8db-914df13e5679",
+      "addLeadResponse": {
+        "success": true,
+        "message": "Lead created successfully",
+        "leadId": "555eca9e-611f-49b9-a8db-914df13e5679"
+      },
+      "skipTraceResponse": {
+        "success": true,
+        "message": "Skip trace completed successfully",
+        "data": {
+          "leadId": "555eca9e-611f-49b9-a8db-914df13e5679",
+          "phones": [
+            {
+              "number": "8568547061",
+              "type": "Land Line",
+              "tested": false,
+              "reachable": false,
+              "isPrimary": true,
+              "isDoNotCall": true,
+              "confidence": 100
+            }
+          ],
+          "emails": [
+            {
+              "address": "kathleensilvagni@earthlink.net",
+              "type": "unknown",
+              "isPrimary": true,
+              "confidence": 0
+            }
+          ],
+          "cached": false,
+          "cost": 0,
+          "provider": "batchdata"
+        }
+      },
+      "elapsedMs": 293.2913
+    },
+    {
+      "call": 6,
+      "leadId": "414588bd-668b-4a41-9dc5-d821e078f657",
+      "addLeadResponse": {
+        "success": true,
+        "message": "Lead created successfully",
+        "leadId": "414588bd-668b-4a41-9dc5-d821e078f657"
+      },
+      "skipTraceResponse": {
+        "success": true,
+        "message": "Skip trace completed successfully",
+        "data": {
+          "leadId": "414588bd-668b-4a41-9dc5-d821e078f657",
+          "phones": [
+            {
+              "number": "8568547061",
+              "type": "Land Line",
+              "tested": false,
+              "reachable": false,
+              "isPrimary": true,
+              "isDoNotCall": true,
+              "confidence": 100
+            }
+          ],
+          "emails": [
+            {
+              "address": "kathleensilvagni@earthlink.net",
+              "type": "unknown",
+              "isPrimary": true,
+              "confidence": 0
+            }
+          ],
+          "cached": false,
+          "cost": 0,
+          "provider": "batchdata"
+        }
+      },
+      "elapsedMs": 292.2206
+    },
+    {
+      "call": 7,
+      "leadId": "0ea3ad31-b71a-477a-b3ce-74ec8ffd0db7",
+      "addLeadResponse": {
+        "success": true,
+        "message": "Lead created successfully",
+        "leadId": "0ea3ad31-b71a-477a-b3ce-74ec8ffd0db7"
+      },
+      "skipTraceResponse": {
+        "success": true,
+        "message": "Skip trace completed successfully",
+        "data": {
+          "leadId": "0ea3ad31-b71a-477a-b3ce-74ec8ffd0db7",
+          "phones": [
+            {
+              "number": "8568547061",
+              "type": "Land Line",
+              "tested": false,
+              "reachable": false,
+              "isPrimary": true,
+              "isDoNotCall": true,
+              "confidence": 100
+            }
+          ],
+          "emails": [
+            {
+              "address": "kathleensilvagni@earthlink.net",
+              "type": "unknown",
+              "isPrimary": true,
+              "confidence": 0
+            }
+          ],
+          "cached": false,
+          "cost": 0,
+          "provider": "batchdata"
+        }
+      },
+      "elapsedMs": 269.5605
+    },
+    {
+      "call": 8,
+      "leadId": "1d244913-4ebf-4496-b0ad-ca0d6eebb47f",
+      "addLeadResponse": {
+        "success": true,
+        "message": "Lead created successfully",
+        "leadId": "1d244913-4ebf-4496-b0ad-ca0d6eebb47f"
+      },
+      "skipTraceResponse": {
+        "success": true,
+        "message": "Skip trace completed successfully",
+        "data": {
+          "leadId": "1d244913-4ebf-4496-b0ad-ca0d6eebb47f",
+          "phones": [
+            {
+              "number": "8568547061",
+              "type": "Land Line",
+              "tested": false,
+              "reachable": false,
+              "isPrimary": true,
+              "isDoNotCall": true,
+              "confidence": 100
+            }
+          ],
+          "emails": [
+            {
+              "address": "kathleensilvagni@earthlink.net",
+              "type": "unknown",
+              "isPrimary": true,
+              "confidence": 0
+            }
+          ],
+          "cached": false,
+          "cost": 0,
+          "provider": "batchdata"
+        }
+      },
+      "elapsedMs": 290.2127
+    },
+    {
+      "call": 9,
+      "leadId": "b76dc8db-9c4e-477e-99ae-8873b3dd2781",
+      "addLeadResponse": {
+        "success": true,
+        "message": "Lead created successfully",
+        "leadId": "b76dc8db-9c4e-477e-99ae-8873b3dd2781"
+      },
+      "skipTraceResponse": {
+        "success": true,
+        "message": "Skip trace completed successfully",
+        "data": {
+          "leadId": "b76dc8db-9c4e-477e-99ae-8873b3dd2781",
+          "phones": [
+            {
+              "number": "8568547061",
+              "type": "Land Line",
+              "tested": false,
+              "reachable": false,
+              "isPrimary": true,
+              "isDoNotCall": true,
+              "confidence": 100
+            }
+          ],
+          "emails": [
+            {
+              "address": "kathleensilvagni@earthlink.net",
+              "type": "unknown",
+              "isPrimary": true,
+              "confidence": 0
+            }
+          ],
+          "cached": false,
+          "cost": 0,
+          "provider": "batchdata"
+        }
+      },
+      "elapsedMs": 269.2143
+    },
+    {
+      "call": 10,
+      "leadId": "1934efba-a0e3-4e82-8a30-80adb9b195db",
+      "addLeadResponse": {
+        "success": true,
+        "message": "Lead created successfully",
+        "leadId": "1934efba-a0e3-4e82-8a30-80adb9b195db"
+      },
+      "skipTraceResponse": {
+        "success": true,
+        "message": "Skip trace completed successfully",
+        "data": {
+          "leadId": "1934efba-a0e3-4e82-8a30-80adb9b195db",
+          "phones": [
+            {
+              "number": "8568547061",
+              "type": "Land Line",
+              "tested": false,
+              "reachable": false,
+              "isPrimary": true,
+              "isDoNotCall": true,
+              "confidence": 100
+            }
+          ],
+          "emails": [
+            {
+              "address": "kathleensilvagni@earthlink.net",
+              "type": "unknown",
+              "isPrimary": true,
+              "confidence": 0
+            }
+          ],
+          "cached": false,
+          "cost": 0,
+          "provider": "batchdata"
+        }
+      },
+      "elapsedMs": 269.382
+    }
+  ]
+}

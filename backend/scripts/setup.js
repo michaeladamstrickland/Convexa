@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 
-// LeadFlow AI Master Setup Script
+// Convexa AI Master Setup Script
 // Step 1 of getting your comprehensive real estate platform operational
 
 const fs = require('fs');
 const path = require('path');
 
-console.log('🏗️  LeadFlow AI Master Setup');
+console.log('🏗️  Convexa AI Master Setup');
 console.log('============================\n');
 
 // Step 1: Copy environment template

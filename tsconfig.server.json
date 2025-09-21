@@ -10,7 +10,8 @@
   },
   "include": [
   "src/**/*.ts",
-  "backend/src/packages/schemas/**/*.ts"
+  "backend/src/packages/schemas/**/*.ts",
+  "shared/**/*.ts"
   ],
   "exclude": [
     "node_modules",

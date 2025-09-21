@@ -1,4 +1,4 @@
-# 🚀 LEADFLOW AI - FROM DEMO TO REAL MONEY MAKER
+# 🚀 CONVEXA AI - FROM DEMO TO REAL MONEY MAKER
 
 ## 📋 CURRENT STATUS SUMMARY
 
@@ -13,7 +13,7 @@
 ### Step 1: Set Up Database and Real Data Server (5 minutes)
 
 ```powershell
-# Navigate to LeadFlow AI directory
+# Navigate to Convexa AI directory
 cd "c:\Users\stric\Downloads\Flip Tracker\flip_tracker_full\leadflow_ai"
 
 # Install new dependencies

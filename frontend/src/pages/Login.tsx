@@ -23,10 +23,10 @@ export default function Login() {
       setIsLoading(true)
       setError('')
       // Demo fallback
-      if (data.email === 'admin@leadflow.ai' && data.password === 'password123') {
+    if (data.email === 'admin@convexa.ai' && data.password === 'password123') {
         const demoUser = {
           id: '1',
-          email: 'admin@leadflow.ai',
+      email: 'admin@convexa.ai',
           firstName: 'Admin',
           lastName: 'User',
           role: 'admin'
@@ -41,7 +41,7 @@ export default function Login() {
       const redirectTo = location.state?.from?.pathname || '/dashboard'
       navigate(redirectTo, { replace: true })
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Login failed. Try demo credentials: admin@leadflow.ai / password123')
+  setError(err.response?.data?.message || 'Login failed. Try demo credentials: admin@convexa.ai / password123')
     } finally {
       setIsLoading(false)
     }
@@ -52,7 +52,7 @@ export default function Login() {
       <div className="max-w-md w-full space-y-8">
         <div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Welcome to Leadflow AI
+            Welcome to Convexa AI
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600">
             Sign in to access your real estate lead generation platform
@@ -118,7 +118,7 @@ export default function Login() {
           
           <div className="text-center">
             <p className="text-sm text-gray-600">
-              Demo credentials: admin@leadflow.ai / password123
+              Demo credentials: admin@convexa.ai / password123
             </p>
           </div>
         </form>

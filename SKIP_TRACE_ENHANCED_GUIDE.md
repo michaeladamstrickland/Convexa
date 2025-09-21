@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document outlines the enhanced skip tracing system implemented in FlipTracker's LeadFlow AI component. The system provides robust contact information discovery for property leads with multiple provider support, data persistence, compliance features, and analytics.
+This document outlines the enhanced skip tracing system implemented in FlipTracker's Convexa AI component. The system provides robust contact information discovery for property leads with multiple provider support, data persistence, compliance features, and analytics.
 
 ## Features
 

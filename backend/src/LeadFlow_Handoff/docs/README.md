@@ -1,3 +1,3 @@
-# LeadFlow System
+# Convexa System
 
-Welcome to LeadFlow. This repo handles real estate lead sourcing from Zillow, Auction.com, and county data sources with ML scoring integration.
+Welcome to Convexa. This repo handles real estate lead sourcing from Zillow, Auction.com, and county data sources with ML scoring integration.

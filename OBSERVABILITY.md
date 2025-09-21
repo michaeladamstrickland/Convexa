@@ -1,9 +1,9 @@
-# LeadFlow — Observability Plan (Logging, Metrics, Tracing)
+# Convexa — Observability Plan (Logging, Metrics, Tracing)
 
 Timestamp (ET): 2025-08-16 12:00 ET
 
 Objective
-- Provide production-grade visibility into LeadFlow’s behavior and costs (API spend), with fast incident triage and actionable telemetry. This plan outlines logging, error reporting, metrics, tracing, and correlation IDs for backend services, with a light footprint suitable for DigitalOcean + AWS S3 deployments. Frontend logging is limited to client-side error capture and UX performance.
+- Provide production-grade visibility into Convexa’s behavior and costs (API spend), with fast incident triage and actionable telemetry. This plan outlines logging, error reporting, metrics, tracing, and correlation IDs for backend services, with a light footprint suitable for DigitalOcean + AWS S3 deployments. Frontend logging is limited to client-side error capture and UX performance.
 
 Scope
 - Backend (Express + TypeScript) in backend/src/*

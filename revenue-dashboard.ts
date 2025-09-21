@@ -10,7 +10,7 @@ async function showRevenueDashboard() {
   try {
     const leads = await db.getLeads();
     
-    console.log('💰 LEADFLOW AI REVENUE DASHBOARD');
+  console.log('💰 CONVEXA AI REVENUE DASHBOARD');
     console.log('=' .repeat(50));
     
     // Lead counts by source
@@ -63,7 +63,7 @@ async function showRevenueDashboard() {
     console.log('   • Offer 75-85% of property value for quick cash deals');
     console.log('   • Follow up within 24-48 hours of initial contact');
     
-    console.log('\n✅ YOUR LEADFLOW AI SYSTEM IS MAKING MONEY!');
+  console.log('\n✅ YOUR CONVEXA AI SYSTEM IS MAKING MONEY!');
     
   } catch (error) {
     console.error('Error:', error);

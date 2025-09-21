@@ -170,7 +170,7 @@ function setupRoutes() {
     res.send(`
       <html>
         <head>
-          <title>LeadFlow AI - ML Integration</title>
+          <title>Convexa AI - ML Integration</title>
           <style>
             body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
             h1 { color: #333; }
@@ -181,7 +181,7 @@ function setupRoutes() {
           </style>
         </head>
         <body>
-          <h1>LeadFlow AI - ML Integration</h1>
+          <h1>Convexa AI - ML Integration</h1>
           <p>This server integrates machine learning capabilities for property analysis and lead scoring.</p>
           
           <h2>Available Endpoints:</h2>

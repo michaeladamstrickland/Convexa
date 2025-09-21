@@ -1,0 +1,20 @@
+[SQLite] Using DB at: undefined
+[SkipTrace] DEMO_MODE = false
+[SkipTrace] PRIMARY_PROVIDER = batchdata
+[SkipTrace] FALLBACK_ENABLED = true
+[Server] Port = 6004
+Looking for SQLite database file at: C:\Projects\Convexa\prisma\dev.db
+✓ Database found at: C:\Projects\Convexa\prisma\dev.db
+🚀 FlipTracker Integrated API Server running on port 6004
+💾 Connected to database with 3064 leads
+🏠 ATTOM Property Data API enabled
+✅ API endpoints ready for use:
+  - Health: http://localhost:6004/health
+  - Search: http://localhost:6004/api/zip-search-new/search?limit=5
+  - Analytics: http://localhost:6004/api/zip-search-new/revenue-analytics
+  - ATTOM Property Lookup: http://localhost:6004/api/attom/property/address?address=123+Main+St&city=Beverly+Hills&state=CA&zip=90210
+2025-09-17T14:11:25.444Z - GET /api/debug/config
+2025-09-17T14:11:38.938Z - POST /api/zip-search-new/add-lead
+2025-09-17T14:12:19.925Z - POST /api/leads/6ca7a8ef-f0bb-4407-854f-80deb453fc1a/skiptrace
+2025-09-17T14:12:40.627Z - GET /api/skiptrace/quota
+Closing database connection...

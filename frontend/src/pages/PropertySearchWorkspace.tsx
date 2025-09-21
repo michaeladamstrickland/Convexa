@@ -3,10 +3,8 @@ import {
   Box,
   Button,
   Card,
-  Container,
   Divider,
   FormControl,
-  Grid,
   InputLabel,
   MenuItem,
   Select,
@@ -15,12 +13,11 @@ import {
   CircularProgress,
   Alert,
   Paper,
-  Tab,
-  Tabs,
   IconButton,
   Chip,
   List,
   ListItem,
+  ListItemButton,
   ListItemText,
   ListItemSecondaryAction,
   Drawer,
@@ -33,32 +30,29 @@ import {
   Switch,
   FormControlLabel
 } from '@mui/material';
+import MuiGrid from '@mui/material/Grid';
 
 import {
   Search,
   Save,
   Delete,
-  Edit,
   FilterList,
-  Favorite,
-  Home,
-  LocationOn,
   Add,
   Close,
   Menu as MenuIcon,
-  PersonSearch,
-  Check,
   Star,
   StarBorder,
   FileDownload,
   Map
 } from '@mui/icons-material';
 
-import AttomPropertySearch from '../components/AttomPropertySearch';
 import PropertyMapView from '../components/PropertyMapView';
 import { AttomPropertyService } from '../services/AttomPropertyService';
 import { LeadService } from '../services/leadService';
 import SavedSearchesAPI, { SavedSearch as APISavedSearch } from '../services/SavedSearchesAPI';
+
+// Alias Grid as any to smooth over MUI Grid typing differences
+const Grid: any = (MuiGrid as unknown) as any;
 
 // Saved searches are handled through SavedSearchesAPI (shared axios client)
 
@@ -101,13 +95,13 @@ interface PropertyResult {
   city: string;
   state: string;
   zipCode: string;
-  latitude: string;
-  longitude: string;
   propertyType: string;
-  bedrooms: number;
-  bathrooms: number;
-  squareFeet: number;
-  yearBuilt: number;
+  latitude?: number;
+  longitude?: number;
+  bedrooms?: number;
+  bathrooms?: number;
+  squareFeet?: number;
+  yearBuilt?: number;
   ownerName?: string;
   ownerOccupied?: boolean;
   estimatedValue?: number;
@@ -165,9 +159,8 @@ interface NotificationState {
   }, []);
   
   // Handle tab change
-  const handleTabChange = (event, newValue) => {
-    setActiveTab(newValue);
-  };
+  // Tabs have been removed from this workspace; no-op retained for potential future use
+  // const handleTabChange = (_event: any, _newValue: number) => {};
   
   // Toggle drawer
   const toggleDrawer = () => {
@@ -192,7 +185,7 @@ interface NotificationState {
       setSavedSearches(mapped);
     } catch (error) {
       console.error('Error loading saved searches:', error);
-      setError('Failed to load saved searches');
+      setNotification({ open: true, message: 'Failed to load saved searches', severity: 'error' });
     } finally {
       setLoading(false);
     }
@@ -201,7 +194,7 @@ interface NotificationState {
   // Handle save search
   const handleSaveSearch = async () => {
     if (!searchName) {
-      setError('Search name is required');
+      setNotification({ open: true, message: 'Search name is required', severity: 'warning' });
       return;
     }
     try {
@@ -233,8 +226,8 @@ interface NotificationState {
   };
   
   // Handle filter change
-  const handleFilterChange = (event: React.ChangeEvent<HTMLInputElement | { name?: string; value: unknown }>) => {
-    const { name, value } = event.target;
+  const handleFilterChange = (event: any) => {
+    const { name, value } = event.target as { name?: string; value: unknown };
     if (name) {
       setFilters({ ...filters, [name]: value });
     }
@@ -246,7 +239,11 @@ interface NotificationState {
     setSearchError(null);
     
     try {
-      const response = await AttomPropertyService.searchProperties(filters);
+      const response = await AttomPropertyService.searchProperties({
+        ...filters,
+        // Service expects polygon undefined rather than null
+        polygon: filters.polygon ?? undefined,
+      } as any);
       setSearchResults(response.properties);
       
       // Update result count in selected search if applicable
@@ -309,7 +306,7 @@ interface NotificationState {
     
     try {
       // Combine existing filters with map search parameters
-      const searchFilters = {
+  const searchFilters = {
         ...filters,
         ...mapSearchParams
       };
@@ -318,7 +315,10 @@ interface NotificationState {
       setFilters(searchFilters);
       
       // Perform the search
-      const response = await AttomPropertyService.searchProperties(searchFilters);
+      const response = await AttomPropertyService.searchProperties({
+        ...searchFilters,
+        polygon: searchFilters.polygon ?? undefined,
+      } as any);
       setSearchResults(response.properties);
     } catch (error) {
       console.error('Error searching properties by map:', error);
@@ -394,56 +394,60 @@ interface NotificationState {
     return (
       <List>
         {savedSearches.map(search => (
-          <ListItem 
+          <ListItem
             key={search.id}
-            selected={selectedSearch && selectedSearch.id === search.id}
-            onClick={() => handleSelectSearch(search)}
-            sx={{ 
-              borderLeft: search.isFavorite ? '3px solid #1976d2' : '3px solid transparent',
-              mb: 1,
-              cursor: 'pointer'
-            }}
+            disablePadding
+            sx={{ mb: 1, pl: 0, pr: 0 }}
           >
-            <ListItemText
-              primary={
-                <Typography component="span" sx={{ display: 'flex', alignItems: 'center' }}>
-                  {search.name}
-                  {search.resultCount > 0 && (
-                    <Chip 
-                      label={search.resultCount} 
-                      size="small" 
-                      sx={{ ml: 1 }} 
-                    />
-                  )}
-                </Typography>
-              }
-              secondary={
-                <Typography component="span" variant="body2">
-                  <Typography component="span" variant="caption" display="block">
-                    {search.description}
+            <ListItemButton
+              selected={!!(selectedSearch && selectedSearch.id === search.id)}
+              onClick={() => handleSelectSearch(search)}
+              sx={{
+                borderLeft: search.isFavorite ? '3px solid #1976d2' : '3px solid transparent',
+                cursor: 'pointer'
+              }}
+            >
+              <ListItemText
+                primary={
+                  <Typography component="span" sx={{ display: 'flex', alignItems: 'center' }}>
+                    {search.name}
+                    {search.resultCount > 0 && (
+                      <Chip
+                        label={search.resultCount}
+                        size="small"
+                        sx={{ ml: 1 }}
+                      />
+                    )}
                   </Typography>
-                  <Typography component="span" variant="caption" color="text.secondary">
-                    Last run: {new Date(search.lastRun).toLocaleDateString()}
+                }
+                secondary={
+                  <Typography component="span" variant="body2">
+                    <Typography component="span" variant="caption" display="block">
+                      {search.description}
+                    </Typography>
+                    <Typography component="span" variant="caption" color="text.secondary">
+                      Last run: {new Date(search.lastRun).toLocaleDateString()}
+                    </Typography>
                   </Typography>
-                </Typography>
-              }
-            />
-            <ListItemSecondaryAction>
-              <IconButton 
-                edge="end" 
-                aria-label="toggle favorite"
-                onClick={() => handleToggleFavorite(search.id)}
-              >
-                {search.isFavorite ? <Star color="primary" /> : <StarBorder />}
-              </IconButton>
-              <IconButton 
-                edge="end" 
-                aria-label="delete" 
-                onClick={() => handleDeleteSearch(search.id)}
-              >
-                <Delete />
-              </IconButton>
-            </ListItemSecondaryAction>
+                }
+              />
+              <ListItemSecondaryAction>
+                <IconButton
+                  edge="end"
+                  aria-label="toggle favorite"
+                  onClick={() => handleToggleFavorite(search.id)}
+                >
+                  {search.isFavorite ? <Star color="primary" /> : <StarBorder />}
+                </IconButton>
+                <IconButton
+                  edge="end"
+                  aria-label="delete"
+                  onClick={() => handleDeleteSearch(search.id)}
+                >
+                  <Delete />
+                </IconButton>
+              </ListItemSecondaryAction>
+            </ListItemButton>
           </ListItem>
         ))}
       </List>

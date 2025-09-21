@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Box, 
-  Card, 
-  CardContent, 
-  Typography, 
-  Tabs, 
-  Tab, 
-  Grid, 
+import {
+  Box,
+  Card,
+  CardContent,
+  Typography,
+  Tabs,
+  Tab,
   FormControl,
   FormLabel,
   RadioGroup,
@@ -28,18 +27,19 @@ import {
   Dialog,
   DialogActions,
   DialogContent,
-  DialogContentText,
   DialogTitle,
   MenuItem,
   Select,
-  Paper
+  Paper,
+  InputAdornment
 } from '@mui/material';
+import Grid from '@mui/material/GridLegacy';
 import { styled } from '@mui/material/styles';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import { v4 as uuidv4 } from 'uuid';
-import { RenoLineItem } from '../../../shared/types/deal';
+import { RenoLineItem } from '../../../../shared/types/deal';
 
 // Types
 interface RenovationCalculatorProps {
@@ -51,10 +51,7 @@ interface RenovationCalculatorProps {
     bedrooms: number;
     bathrooms: number;
   };
-  onUpdate: (renovation: { 
-    budget: number; 
-    lineItems: RenoLineItem[] 
-  }) => void;
+  onUpdate: (renovation: { budget: number; lineItems: RenoLineItem[] }) => void;
   isLoading?: boolean;
 }
 
@@ -80,21 +77,18 @@ const StyledSlider = styled(Slider)(({ theme }) => ({
     border: 'none',
   },
   '& .MuiSlider-thumb': {
-    height: 24,
     width: 24,
     backgroundColor: '#fff',
     border: '2px solid currentColor',
     '&:focus, &:hover, &.Mui-active, &.Mui-focusVisible': {
-      boxShadow: '0 0 0 8px rgba(25, 118, 210, 0.16)',
-    },
-  },
+      boxShadow: '0 0 0 8px rgba(25, 118, 210, 0.16)'
+    }
+  }
 }));
-
 const CostDisplay = styled(Box)(({ theme }) => ({
   padding: theme.spacing(2),
-  borderRadius: theme.shape.borderRadius,
   backgroundColor: theme.palette.background.default,
-  marginTop: theme.spacing(2),
+  marginTop: theme.spacing(2)
 }));
 
 // Main component
@@ -114,7 +108,6 @@ const RenovationCalculator: React.FC<RenovationCalculatorProps> = ({
   const [lineItems, setLineItems] = useState<RenoLineItem[]>(initialLineItems);
   const [currentLineItem, setCurrentLineItem] = useState<RenoLineItem | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
-  
   const [extraFeatures, setExtraFeatures] = useState<Record<string, boolean>>({
     roof: false,
     hvac: false,
@@ -126,10 +119,9 @@ const RenovationCalculator: React.FC<RenovationCalculatorProps> = ({
     landscaping: false,
     deck: false
   });
-  
   const [isDIY, setIsDIY] = useState(false);
-  const [contingencyPercent, setContingencyPercent] = useState(10);
   const [currentTab, setCurrentTab] = useState(0);
+  const [contingencyPercent, setContingencyPercent] = useState<number>(10);
   
   // Mocked estimate data for UI development
   const [estimatedCosts, setEstimatedCosts] = useState<RenovationEstimate>({
@@ -140,7 +132,6 @@ const RenovationCalculator: React.FC<RenovationCalculatorProps> = ({
     contingency: 0,
     totalCost: 0
   });
-  
   // Initialize line items from the quick selection if none provided
   useEffect(() => {
     if (initialLineItems.length === 0) {
@@ -151,16 +142,7 @@ const RenovationCalculator: React.FC<RenovationCalculatorProps> = ({
   // Calculate costs when selections change
   useEffect(() => {
     calculateCosts();
-  }, [
-    kitchenReno, 
-    bathroomReno, 
-    bedroomReno, 
-    livingSpaceReno, 
-    extraFeatures,
-    isDIY,
-    contingencyPercent,
-    lineItems
-  ]);
+  }, [kitchenReno, bathroomReno, bedroomReno, livingSpaceReno, extraFeatures, isDIY, contingencyPercent, lineItems]);
   
   // Handle tab changes
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
@@ -178,7 +160,6 @@ const RenovationCalculator: React.FC<RenovationCalculatorProps> = ({
   // Convert quick selection options to line items
   const generateLineItemsFromQuickOptions = () => {
     const newLineItems: RenoLineItem[] = [];
-    
     // Kitchen
     if (kitchenReno !== 'none') {
       let kitchenCost = 0;
@@ -304,7 +285,7 @@ const RenovationCalculator: React.FC<RenovationCalculatorProps> = ({
     }
     
     // Extra features
-    const featureCosts = {
+  const featureCosts = {
       roof: { cost: 15000, name: 'New Roof', category: 'Exterior' as const },
       hvac: { cost: 8000, name: 'HVAC System', category: 'Systems' as const },
       plumbing: { cost: 12000, name: 'Plumbing Updates', category: 'Systems' as const },
@@ -642,7 +623,7 @@ const RenovationCalculator: React.FC<RenovationCalculatorProps> = ({
           </Typography>
         </Grid>
         
-        <Grid xs={12}>
+  <Grid xs={12}>
           <Typography gutterBottom>
             Contingency: {contingencyPercent}%
           </Typography>
@@ -664,7 +645,7 @@ const RenovationCalculator: React.FC<RenovationCalculatorProps> = ({
           </Typography>
         </Grid>
         
-        <Grid xs={12}>
+  <Grid xs={12}>
           <FormControl fullWidth>
             <FormLabel>ZIP Code</FormLabel>
             <TextField
@@ -946,7 +927,7 @@ const RenovationCalculator: React.FC<RenovationCalculatorProps> = ({
                 <Grid xs={6}>
                   <Typography variant="body2">
                     Labor: {formatCurrency(estimatedCosts.laborCost)}
-                    {isDIY && " (DIY Discount Applied)"}
+                    {isDIY && ' (DIY Discount Applied)'}
                   </Typography>
                 </Grid>
                 <Grid xs={6}>

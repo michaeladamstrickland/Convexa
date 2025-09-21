@@ -1,11 +1,11 @@
-# 🌟 LeadFlow AI MASTER SETUP GUIDE
+# 🌟 Convexa AI MASTER SETUP GUIDE
 ## The Ultimate Real Estate Lead Generation System
 
-LeadFlow AI now connects to **24+ premium APIs** to provide the most comprehensive real estate lead intelligence available. This makes it more powerful than PropStream, BatchLeads, and REsimpli combined.
+Convexa AI now connects to **24+ premium APIs** to provide the most comprehensive real estate lead intelligence available. This makes it more powerful than PropStream, BatchLeads, and REsimpli combined.
 
 ---
 
-## 🎯 **WHAT MAKES LEADFLOW AI SUPERIOR**
+## 🎯 **WHAT MAKES CONVEXA AI SUPERIOR**
 
 ### **vs PropStream**
 - ✅ 15+ additional data sources  
@@ -161,7 +161,7 @@ Create `.env.local` in the backend folder:
 
 ```bash
 # ===================================
-# LEADFLOW AI MASTER CONFIGURATION
+# CONVEXA AI MASTER CONFIGURATION
 # ===================================
 
 # Tier Selection (starter, professional, enterprise)

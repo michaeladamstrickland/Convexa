@@ -24,7 +24,7 @@ const config = {
   level: process.env.LOG_LEVEL || 'INFO',
   logToConsole: process.env.LOG_TO_CONSOLE !== 'false',
   logToFile: process.env.LOG_TO_FILE !== 'false',
-  logFilePath: process.env.LOG_FILE_PATH || path.join(__dirname, '../logs/leadflow-ai.log'),
+  logFilePath: process.env.LOG_FILE_PATH || path.join(__dirname, '../logs/convexa-ai.log'),
   maxLogFileSize: parseInt(process.env.MAX_LOG_FILE_SIZE || '10485760', 10), // 10MB default
   logRotation: true
 };

@@ -1,0 +1,71 @@
+{
+  "success": true,
+  "id1": "752ee57c-60cd-467e-aded-9f90ca99721f",
+  "id2": "f2b8dc41-8244-41a5-a2ad-2cc038f03f33",
+  "call1": {
+    "success": true,
+    "message": "Skip trace completed successfully",
+    "data": {
+      "leadId": "752ee57c-60cd-467e-aded-9f90ca99721f",
+      "phones": [
+        {
+          "number": "8568547061",
+          "type": "Land Line",
+          "tested": false,
+          "reachable": false,
+          "isPrimary": true,
+          "isDoNotCall": true,
+          "confidence": 100
+        }
+      ],
+      "emails": [
+        {
+          "address": "kathleensilvagni@earthlink.net",
+          "type": "unknown",
+          "isPrimary": true,
+          "confidence": 0
+        }
+      ],
+      "cached": false,
+      "cost": 0,
+      "provider": "batchdata"
+    }
+  },
+  "call2": {
+    "success": false,
+    "message": "Skip trace failed",
+    "data": {
+      "leadId": "f2b8dc41-8244-41a5-a2ad-2cc038f03f33",
+      "phones": [],
+      "emails": [],
+      "cached": false,
+      "cost": 0,
+      "provider": "whitepages"
+    },
+    "error": "BudgetPause"
+  },
+  "snapshot": {
+    "success": true,
+    "data": {
+      "breaker": {
+        "state": "closed",
+        "ok": 1,
+        "err": 0,
+        "total": 1,
+        "errRatio": 0,
+        "nextProbeAt": 0
+      },
+      "budget": {
+        "capCents": 2,
+        "spentCents": 25,
+        "remainingCents": 0
+      },
+      "rps": 4,
+      "bucket": {
+        "capacity": 4,
+        "tokens": 4,
+        "refillPerSec": 4
+      }
+    }
+  }
+}

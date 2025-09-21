@@ -34,11 +34,12 @@ export async function shutdownScraperQueue() {
   }
 }
 
-export async function enqueueScraperJob(raw: unknown) {
+export async function enqueueScraperJob(raw: unknown, opts?: { jobId?: string; attempts?: number; backoff?: { type: string; delay: number } }) {
   const payload: ScraperJobPayload = parseScraperJobPayload(raw);
   const job = await scraperQueue.add('scrape-job', payload, {
-    attempts: 3,
-    backoff: { type: 'exponential', delay: 5000 },
+    jobId: opts?.jobId,
+    attempts: opts?.attempts || 3,
+    backoff: opts?.backoff || { type: 'exponential', delay: 5000 },
     removeOnComplete: 1000,
     removeOnFail: 2000
   });

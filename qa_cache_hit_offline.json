@@ -1,0 +1,23 @@
+{
+  "leadId": "8fa3b6dc-cdf5-4834-99b5-6d683e20a56d",
+  "first": {
+    "success": true,
+    "cached": false,
+    "provider": "batchdata",
+    "phones": 1,
+    "emails": 1
+  },
+  "second": {
+    "success": true,
+    "cached": true,
+    "provider": "batchdata",
+    "phones": 1,
+    "emails": 1
+  },
+  "provider_calls_after_first": 0,
+  "provider_calls_after_second": 0,
+  "log_entries_after_first": 4,
+  "log_entries_after_second": 4,
+  "delta_calls": 0,
+  "delta_logs": 0
+}

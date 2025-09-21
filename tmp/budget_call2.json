@@ -1,0 +1,13 @@
+{
+  "success": false,
+  "message": "Skip trace failed",
+  "data": {
+    "leadId": "f2b8dc41-8244-41a5-a2ad-2cc038f03f33",
+    "phones": [],
+    "emails": [],
+    "cached": false,
+    "cost": 0,
+    "provider": "whitepages"
+  },
+  "error": "BudgetPause"
+}

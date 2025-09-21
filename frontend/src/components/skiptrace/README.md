@@ -1,6 +1,6 @@
 # Skip Trace UI Components
 
-This directory contains the UI components for the skip trace feature in LeadFlow AI. These components allow users to run single and bulk traces, see confidence-ranked results, stay compliant, and track cost without leaving LeadFlow.
+This directory contains the UI components for the skip trace feature in Convexa AI. These components allow users to run single and bulk traces, see confidence-ranked results, stay compliant, and track cost without leaving Convexa.
 
 ## Components Overview
 

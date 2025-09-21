@@ -1,4 +1,4 @@
-# 🚀 LeadFlow MVP Roadmap
+# 🚀 Convexa MVP Roadmap
 
 ## 🎯 ### Phase 2: AI Lead Scoring (Week 2)
 

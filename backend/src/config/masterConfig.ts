@@ -89,7 +89,7 @@ export class MasterConfigService {
       throw new Error(`Invalid LEADFLOW_TIER. Must be one of: ${validTiers.join(', ')}`);
     }
 
-    console.log(`🎯 LeadFlow AI initialized with ${process.env.LEADFLOW_TIER} tier`);
+  console.log(`🎯 Convexa AI initialized with ${process.env.LEADFLOW_TIER} tier`);
   }
 
   private buildMasterConfig(): MasterAPIConfig {

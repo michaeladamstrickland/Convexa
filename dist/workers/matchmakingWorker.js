@@ -56,6 +56,26 @@ exports.matchmakingWorker = new bullmq_1.Worker(matchmakingQueue_1.MATCHMAKING_Q
         catch (e) {
             console.log(JSON.stringify({ level: 'warn', component: 'matchmaking', action: 'webhook_emit_failed', matchmakingJobId, error: e?.message }));
         }
+        // CRM Activity record + webhook (crm.activity)
+        try {
+            const activity = await prisma_1.prisma.crmActivity.create({ data: { type: 'matchmaking.completed', metadata: { matchmakingJobId, matchedCount } } });
+            const cm = (global.__CRM_ACTIVITY_METRICS__ = global.__CRM_ACTIVITY_METRICS__ || { total: 0, perType: new Map(), webhook: { success: 0, fail: 0 } });
+            cm.total++;
+            cm.perType.set('matchmaking.completed', (cm.perType.get?.('matchmaking.completed') || 0) + 1);
+            try {
+                const subs = await prisma_1.prisma.webhookSubscription.findMany({ where: { isActive: true } }).catch(() => []);
+                const interested = subs.filter(s => Array.isArray(s.eventTypes) && s.eventTypes.includes('crm.activity'));
+                if (interested.length) {
+                    const payload = { id: activity.id, type: activity.type, propertyId: activity.propertyId, leadId: activity.leadId, userId: activity.userId, metadata: activity.metadata, createdAt: activity.createdAt };
+                    await Promise.all(interested.map(s => (0, webhookQueue_1.enqueueWebhookDelivery)({ subscriptionId: s.id, eventType: 'crm.activity', payload })));
+                    cm.webhook.success += interested.length;
+                }
+            }
+            catch {
+                cm.webhook.fail++;
+            }
+        }
+        catch { }
     }
     catch (e) {
         await prisma_1.prisma.matchmakingJob.update({ where: { id: job.data.matchmakingJobId }, data: { status: 'failed' } }).catch(() => { });

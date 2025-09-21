@@ -1,4 +1,4 @@
-// Core types for the LeadFlow AI Empire system
+// Core types for the Convexa AI Empire system
 
 export interface DeathIntelligence {
   deceased_name: string;

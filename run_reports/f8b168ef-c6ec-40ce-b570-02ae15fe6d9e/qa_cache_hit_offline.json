@@ -1,0 +1,41 @@
+{
+  "address": "123 Main St, Collingswood, NJ 08108",
+  "owner": "John Doe",
+  "lead_id": "proof-lead-1",
+  "first_invocation": {
+    "result": {
+      "primaryPhone": null,
+      "phonesCount": 0,
+      "primaryEmail": "prooflead1@example.com",
+      "emailsCount": 1,
+      "hasDNC": 0,
+      "isCached": 1,
+      "costCents": 0
+    },
+    "counters_after": {
+      "providerCalls": 1,
+      "skipTraceLogs": 3
+    }
+  },
+  "second_invocation": {
+    "result": {
+      "primaryPhone": null,
+      "phonesCount": 0,
+      "primaryEmail": "prooflead1@example.com",
+      "emailsCount": 1,
+      "hasDNC": 0,
+      "isCached": 1,
+      "costCents": 0
+    },
+    "counters_after": {
+      "providerCalls": 1,
+      "skipTraceLogs": 4
+    }
+  },
+  "deltas": {
+    "provider_calls": 0,
+    "skip_trace_logs": 1
+  },
+  "verdict": "PASS",
+  "notes": "Expected: second invocation is cached (isCached=1), provider_calls delta is 0, skip_trace_logs delta is 1 (for the cache hit log). Actual: second_invocation.result.isCached=1, provider_calls_delta=0, skip_trace_logs_delta=1"
+}

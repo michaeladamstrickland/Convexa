@@ -129,14 +129,14 @@ export class LeadFlowAIEmpire {
     this.dealEngine = new DealExecutionEngine();
     this.campaignAutomation = new IntelligentCampaignAutomation();
 
-    console.log(`🏰 LeadFlow AI Empire initialized!`);
+  console.log(`🏰 Convexa AI Empire initialized!`);
     console.log(`📈 Daily Target: ${this.config.daily_lead_target} leads`);
     console.log(`💰 Monthly Goal: $${this.config.monthly_revenue_goal.toLocaleString()}`);
     console.log(`🤖 Automation: ${this.config.automation_enabled ? 'ENABLED' : 'DISABLED'}`);
   }
 
   async startEmpireOperations(): Promise<void> {
-    console.log(`🚀 Starting LeadFlow AI Empire operations...`);
+  console.log(`🚀 Starting Convexa AI Empire operations...`);
     console.log(`🎯 Target: 50,000+ qualified leads per month`);
     console.log(`💎 Goal: $500K-$2M monthly revenue within 120 days`);
 

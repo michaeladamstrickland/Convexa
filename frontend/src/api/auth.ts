@@ -42,7 +42,10 @@ export const authApi = {
   },
 
   logout: () => {
-    localStorage.removeItem('leadflow_token');
-    localStorage.removeItem('leadflow_user');
+  localStorage.removeItem('convexa_token');
+  localStorage.removeItem('convexa_user');
+  // Backward-compat cleanup
+  localStorage.removeItem('leadflow_token');
+  localStorage.removeItem('leadflow_user');
   },
 };

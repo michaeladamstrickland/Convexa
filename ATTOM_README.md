@@ -1,6 +1,6 @@
-# LeadFlow AI - ATTOM Batch Integration
+# Convexa AI - ATTOM Batch Integration
 
-This module provides ATTOM Property Data API batch integration for LeadFlow AI. It allows you to process property data in bulk, normalize it, and convert it to leads in the system.
+This module provides ATTOM Property Data API batch integration for Convexa AI. It allows you to process property data in bulk, normalize it, and convert it to leads in the system.
 
 ## Overview
 

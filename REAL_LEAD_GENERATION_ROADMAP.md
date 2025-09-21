@@ -1,4 +1,4 @@
-# 🚀 LEADFLOW AI - FROM UI TO REAL LEAD GENERATION ROADMAP
+# 🚀 CONVEXA AI - FROM UI TO REAL LEAD GENERATION ROADMAP
 
 ## 🎯 CURRENT STATUS
 ✅ **UI Complete**: React frontend with Phase 3 empire features

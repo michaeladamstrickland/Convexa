@@ -1,0 +1,10 @@
+const Database = require('better-sqlite3');
+const path = require('path');
+const root = path.resolve(__dirname, '..');
+const dbEnv = process.env.SQLITE_DB_PATH || 'backend/data/convexa.db';
+const p = path.isAbsolute(dbEnv) ? dbEnv : path.resolve(root, dbEnv);
+const db=new Database(p,{readonly:true});
+const total=db.prepare("SELECT COUNT(DISTINCT lead_id) AS n FROM skip_trace_logs WHERE success=1 AND provider='batchdata' AND (phones_found>0 OR emails_found>0)").get().n;
+const today=new Date().toISOString().split('T')[0];
+const nToday=db.prepare("SELECT COUNT(DISTINCT lead_id) AS n FROM skip_trace_logs WHERE success=1 AND provider='batchdata' AND (phones_found>0 OR emails_found>0) AND created_at BETWEEN ? AND ?").get(`${today}T00:00:00.000Z`,`${today}T23:59:59.999Z`).n;
+console.log(JSON.stringify({total,nToday,p}));

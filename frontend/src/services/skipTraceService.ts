@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { 
   Lead, 
   SkipTraceResult, 
@@ -72,15 +72,28 @@ export async function getSkipTraceMetrics(period: 'day' | 'week' | 'month' | 'ye
 
 // Hook to skip trace a single lead
 export function useSkipTraceLead() {
+  const qc = useQueryClient();
   return useMutation({
     mutationFn: skipTraceLead,
+    onSuccess: (data) => {
+      if (data?.leadId) {
+        qc.invalidateQueries({ queryKey: ['leadContacts', data.leadId] });
+        qc.invalidateQueries({ queryKey: ['leads'] });
+      }
+    },
   });
 }
 
 // Hook to skip trace multiple leads
 export function useSkipTraceLeadsBulk() {
+  const qc = useQueryClient();
   return useMutation({
     mutationFn: skipTraceLeadsBulk,
+    onSuccess: (res) => {
+      const ids = res?.results?.map(r => r.leadId).filter(Boolean) as string[];
+      ids.forEach((id) => qc.invalidateQueries({ queryKey: ['leadContacts', id] }));
+      qc.invalidateQueries({ queryKey: ['leads'] });
+    },
   });
 }
 

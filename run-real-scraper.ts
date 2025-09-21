@@ -62,8 +62,8 @@ async function main() {
     console.log(`   🎯 Est. Deal Revenue: $${(totalValue * 0.1).toLocaleString()} (10% capture)`);
     console.log('');
     
-    console.log('✅ Real data scraping pipeline completed successfully!');
-    console.log('🚀 Your LeadFlow AI system is now generating REAL leads!');
+  console.log('✅ Real data scraping pipeline completed successfully!');
+  console.log('🚀 Your Convexa AI system is now generating REAL leads!');
     
   } catch (error) {
     console.error('❌ Error in real lead generation pipeline:', error);

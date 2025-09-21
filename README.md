@@ -1,8 +1,8 @@
-## 🏆 LeadFlow AI Master Platform - Frontend Integration
+## 🏆 Convexa AI Master Platform - Frontend Integration
 
 **Superior to PropStream, BatchLeads & REsimpli**  
 **26 Premium APIs • AI-Powered Analysis • $1.57 per comprehensive search**  
-**Now with direct ATTOM Property Data and BatchData Skip Trace integration** LeadFlow AI Master Platform - Frontend Integration
+**Now with direct ATTOM Property Data and BatchData Skip Trace integration** Convexa AI Master Platform - Frontend Integration
 
 **Superior to PropStream, BatchLeads & REsimpli**  
 **26 Premium APIs • AI-Powered Analysis • $1.57 per comprehensive search**

@@ -10,7 +10,7 @@ YELLOW='\033[1;33m'
 MAGENTA='\033[0;35m'
 NC='\033[0m' # No Color
 
-echo -e "${MAGENTA}===== LeadFlow AI - ATTOM + BatchData Integration Test =====${NC}"
+echo -e "${MAGENTA}===== Convexa AI - ATTOM + BatchData Integration Test =====${NC}"
 echo "Testing API connectivity and integration setup..."
 echo ""
 

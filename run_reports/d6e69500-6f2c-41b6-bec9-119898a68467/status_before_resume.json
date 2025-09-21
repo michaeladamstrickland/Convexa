@@ -1,0 +1,14 @@
+{
+  "success": true,
+  "run_id": "d6e69500-6f2c-41b6-bec9-119898a68467",
+  "soft_paused": true,
+  "started_at": "2025-09-20T10:17:05.966Z",
+  "finished_at": "2025-09-20 10:17:06",
+  "totals": {
+    "total": 20,
+    "done": 20,
+    "failed": 0,
+    "queued": 0,
+    "in_flight": 0
+  }
+}

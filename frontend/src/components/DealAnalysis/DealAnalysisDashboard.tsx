@@ -6,7 +6,6 @@ import {
   Tabs,
   Tab,
   Paper,
-  Grid,
   Button,
   Stepper,
   Step,
@@ -25,6 +24,7 @@ import {
   Snackbar,
   Alert
 } from '@mui/material';
+import Grid from '@mui/material/GridLegacy';
 import { styled } from '@mui/material/styles';
 import SaveIcon from '@mui/icons-material/Save';
 import ShareIcon from '@mui/icons-material/Share';
@@ -38,7 +38,7 @@ import ROICalculator from './ROICalculator';
 import ComparablePropertiesViewer from './ComparablePropertiesViewer';
 
 // Import types
-import { DealAnalysis, Comparable, RenoLineItem, computeRoi, computeArvFromComps } from '../../../shared/types/deal';
+import { DealAnalysis, Comparable, RenoLineItem, computeRoi, computeArvFromComps } from '../../../../shared/types/deal';
 
 // API services
 import { 
@@ -387,7 +387,7 @@ const DealAnalysisDashboard: React.FC<DealAnalysisDashboardProps> = ({ leadId })
     
     // Recalculate ARV without excluded comps
     if (dealData.property.sqft && dealData.comps.length > 0) {
-      const filteredComps = dealData.comps.filter(comp => !removedCompIds.includes(comp.address));
+      const filteredComps = dealData.comps.filter((comp: Comparable) => !removedCompIds.includes(comp.address));
       
       if (filteredComps.length > 0) {
         const { arv } = computeArvFromComps(dealData.property.sqft, filteredComps);
@@ -435,7 +435,7 @@ const DealAnalysisDashboard: React.FC<DealAnalysisDashboardProps> = ({ leadId })
     <StyledPaper>
       {dealData ? (
         <Grid container spacing={3} alignItems="center">
-          <Grid xs={12} md={6}>
+          <Grid item xs={12} md={6}>
             <Typography variant="h4" gutterBottom>
               {dealData.property.address}
             </Typography>
@@ -447,7 +447,7 @@ const DealAnalysisDashboard: React.FC<DealAnalysisDashboardProps> = ({ leadId })
             </Typography>
           </Grid>
           
-          <Grid xs={12} md={6} textAlign="right">
+          <Grid item xs={12} md={6} textAlign="right">
             <Typography variant="h5">
               {formatCurrency(dealData.purchase.offerPrice)}
             </Typography>
@@ -558,7 +558,7 @@ const DealAnalysisDashboard: React.FC<DealAnalysisDashboardProps> = ({ leadId })
           </Box>
         ) : (
           <Grid container spacing={3}>
-            <Grid xs={12} md={6}>
+            <Grid item xs={12} md={6}>
               <Typography variant="subtitle2" gutterBottom>
                 Property Information
               </Typography>
@@ -589,7 +589,7 @@ const DealAnalysisDashboard: React.FC<DealAnalysisDashboardProps> = ({ leadId })
               </Box>
             </Grid>
             
-            <Grid xs={12} md={6}>
+            <Grid item xs={12} md={6}>
               <Typography variant="subtitle2" gutterBottom>
                 Financial Details
               </Typography>
@@ -632,7 +632,7 @@ const DealAnalysisDashboard: React.FC<DealAnalysisDashboardProps> = ({ leadId })
             </Grid>
             
             {dealData.comps && dealData.comps.length > 0 && (
-              <Grid xs={12}>
+              <Grid item xs={12}>
                 <Box mt={2}>
                   <Typography variant="subtitle2" gutterBottom>
                     Comparable Sales
@@ -716,6 +716,31 @@ const DealAnalysisDashboard: React.FC<DealAnalysisDashboardProps> = ({ leadId })
   // Render the final report step
   const renderFinalReport = () => (
     <Box>
+      {dealData && (() => {
+        // Derive ROI breakdown values from dealData for display
+        const offer = dealData.purchase.offerPrice || 0;
+        const reno = dealData.renovation.budget || 0;
+        const closing = offer * (dealData.purchase.closingCostsPct || 0);
+        const carry = (offer / 2 + reno / 2) * ((dealData.purchase.rateAPR || 0.1) / 12) * (dealData.purchase.holdingMonths || 0);
+        const arv = dealData.property.arv ?? dealData.property.estValue ?? 0;
+        const selling = arv * (dealData.purchase.sellingCostsPct || 0);
+        const totalInvestment = offer + closing + reno + carry;
+        const netProfit = arv - selling - totalInvestment;
+        const roiPct = totalInvestment > 0 ? (netProfit / totalInvestment) * 100 : 0;
+
+        const formatCurrency = (amount?: number) => {
+          if (amount === undefined || amount === null) return '-';
+          return new Intl.NumberFormat('en-US', {
+            style: 'currency',
+            currency: 'USD',
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0
+          }).format(amount);
+        };
+        const formatPercent = (p?: number) => (p === undefined || p === null ? '-' : `${p.toFixed(1)}%`);
+
+        return (
+          <>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
         <Typography variant="h5" component="h2">
           Deal Analysis Report
@@ -748,80 +773,75 @@ const DealAnalysisDashboard: React.FC<DealAnalysisDashboardProps> = ({ leadId })
       {/* Property Summary */}
       <Paper variant="outlined" sx={{ p: 2, mb: 3 }}>
         <Grid container spacing={2}>
-          <Grid xs={12} md={6}>
+          <Grid item xs={12} md={6}>
             <Typography variant="subtitle1" gutterBottom>
-              {property.address.street}
+              {dealData.property.address || 'Property'}
             </Typography>
             <Typography variant="body2" color="textSecondary" gutterBottom>
-              {property.address.city}, {property.address.state} {property.address.zipCode}
+              {dealData.property.city}, {dealData.property.state} {dealData.property.zip}
             </Typography>
             <Typography variant="body2">
-              {property.attributes.bedrooms} beds • {property.attributes.bathrooms} baths • {property.attributes.squareFootage.toLocaleString()} sqft • Built {property.attributes.yearBuilt}
+              {(dealData.property.beds ?? '?')} beds • {(dealData.property.baths ?? '?')} baths • {(dealData.property.sqft?.toLocaleString?.() ?? '?')} sqft{dealData.property.yearBuilt ? ` • Built ${dealData.property.yearBuilt}` : ''}
             </Typography>
           </Grid>
-          <Grid xs={12} md={6} textAlign={{xs: 'left', md: 'right'}}>
+          <Grid item xs={12} md={6} textAlign={{xs: 'left', md: 'right'}}>
             <Typography variant="body2" color="textSecondary">List Price</Typography>
-            <Typography variant="h6">{formatCurrency(property.financials.listPrice)}</Typography>
+            <Typography variant="h6">{formatCurrency(offer)}</Typography>
             <Typography variant="body2" color="textSecondary">After Repair Value (ARV)</Typography>
-            <Typography variant="h6">{formatCurrency(property.financials.estimatedARV)}</Typography>
+            <Typography variant="h6">{formatCurrency(arv)}</Typography>
           </Grid>
         </Grid>
       </Paper>
       
       {/* Key Metrics */}
       <Grid container spacing={3} mb={3}>
-        <Grid xs={12} sm={6} md={3}>
+        <Grid item xs={12} sm={6} md={3}>
           <SummaryCard>
             <SummaryCardContent>
               <Typography variant="subtitle2" color="textSecondary" gutterBottom>
                 Total Investment
               </Typography>
               <MetricValue>
-                {formatCurrency(
-                  (roiCalculation?.purchasePrice || 0) + 
-                  (roiCalculation?.closingCosts || 0) + 
-                  (roiCalculation?.renovationCosts || 0) + 
-                  (roiCalculation?.holdingCosts.total || 0)
-                )}
+                {formatCurrency(totalInvestment)}
               </MetricValue>
             </SummaryCardContent>
           </SummaryCard>
         </Grid>
         
-        <Grid xs={12} sm={6} md={3}>
+        <Grid item xs={12} sm={6} md={3}>
           <SummaryCard>
             <SummaryCardContent>
               <Typography variant="subtitle2" color="textSecondary" gutterBottom>
                 Renovation Budget
               </Typography>
               <MetricValue>
-                {formatCurrency(renovationEstimate?.totalCost)}
+                {formatCurrency(reno)}
               </MetricValue>
             </SummaryCardContent>
           </SummaryCard>
         </Grid>
         
-        <Grid xs={12} sm={6} md={3}>
+        <Grid item xs={12} sm={6} md={3}>
           <SummaryCard>
             <SummaryCardContent>
               <Typography variant="subtitle2" color="textSecondary" gutterBottom>
                 Net Profit
               </Typography>
               <MetricValue>
-                {formatCurrency(roiCalculation?.netProfit)}
+                {formatCurrency(netProfit)}
               </MetricValue>
             </SummaryCardContent>
           </SummaryCard>
         </Grid>
         
-        <Grid xs={12} sm={6} md={3}>
+        <Grid item xs={12} sm={6} md={3}>
           <SummaryCard>
             <SummaryCardContent>
               <Typography variant="subtitle2" color="textSecondary" gutterBottom>
                 Return on Investment
               </Typography>
               <MetricValue>
-                {formatPercent(roiCalculation?.roi)}
+                {formatPercent(roiPct)}
               </MetricValue>
             </SummaryCardContent>
           </SummaryCard>
@@ -847,50 +867,50 @@ const DealAnalysisDashboard: React.FC<DealAnalysisDashboardProps> = ({ leadId })
           {/* Summary Tab */}
           {activeTab === 0 && (
             <Grid container spacing={3}>
-              <Grid xs={12} md={6}>
+              <Grid item xs={12} md={6}>
                 <Typography variant="subtitle1" gutterBottom>Deal Summary</Typography>
                 
                 <Box component="dl" sx={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: 1, alignItems: 'center' }}>
                   <Typography component="dt" variant="body2" color="textSecondary">Purchase Price:</Typography>
-                  <Typography component="dd" variant="body1">{formatCurrency(property.financials.listPrice)}</Typography>
+                  <Typography component="dd" variant="body1">{formatCurrency(offer)}</Typography>
                   
                   <Typography component="dt" variant="body2" color="textSecondary">Closing Costs:</Typography>
-                  <Typography component="dd" variant="body1">{formatCurrency(roiCalculation?.closingCosts)}</Typography>
+                  <Typography component="dd" variant="body1">{formatCurrency(closing)}</Typography>
                   
                   <Typography component="dt" variant="body2" color="textSecondary">Renovation Budget:</Typography>
-                  <Typography component="dd" variant="body1">{formatCurrency(renovationEstimate?.totalCost)}</Typography>
+                  <Typography component="dd" variant="body1">{formatCurrency(reno)}</Typography>
                   
                   <Typography component="dt" variant="body2" color="textSecondary">Holding Costs:</Typography>
-                  <Typography component="dd" variant="body1">{formatCurrency(roiCalculation?.holdingCosts.total)}</Typography>
+                  <Typography component="dd" variant="body1">{formatCurrency(carry)}</Typography>
                   
                   <Typography component="dt" variant="body2" color="textSecondary">After Repair Value:</Typography>
-                  <Typography component="dd" variant="body1">{formatCurrency(property.financials.estimatedARV)}</Typography>
+                  <Typography component="dd" variant="body1">{formatCurrency(arv)}</Typography>
                   
                   <Typography component="dt" variant="body2" color="textSecondary">Selling Costs:</Typography>
-                  <Typography component="dd" variant="body1">{formatCurrency(roiCalculation?.sellingCosts)}</Typography>
+                  <Typography component="dd" variant="body1">{formatCurrency(selling)}</Typography>
                   
                   <Divider sx={{ gridColumn: '1 / -1', my: 1 }} />
                   
                   <Typography component="dt" variant="subtitle2">Net Profit:</Typography>
-                  <Typography component="dd" variant="subtitle1" fontWeight="bold">{formatCurrency(roiCalculation?.netProfit)}</Typography>
+                  <Typography component="dd" variant="subtitle1" fontWeight="bold">{formatCurrency(netProfit)}</Typography>
                   
                   <Typography component="dt" variant="subtitle2">ROI:</Typography>
-                  <Typography component="dd" variant="subtitle1" fontWeight="bold">{formatPercent(roiCalculation?.roi)}</Typography>
+                  <Typography component="dd" variant="subtitle1" fontWeight="bold">{formatPercent(roiPct)}</Typography>
                 </Box>
               </Grid>
               
-              <Grid xs={12} md={6}>
+              <Grid item xs={12} md={6}>
                 <Typography variant="subtitle1" gutterBottom>Key Recommendations</Typography>
                 
                 <Box mb={2}>
                   <SummaryMetric>
                     <Grid container>
-                      <Grid xs={8}>
+                      <Grid item xs={8}>
                         <Typography variant="body2" color="textSecondary">Maximum Purchase Price for 15% ROI</Typography>
                       </Grid>
-                      <Grid xs={4}>
+                      <Grid item xs={4}>
                         <Typography variant="body1" textAlign="right" fontWeight="bold">
-                          {formatCurrency(property.financials.listPrice * 0.9)}
+                          {formatCurrency(offer * 0.9)}
                         </Typography>
                       </Grid>
                     </Grid>
@@ -898,12 +918,12 @@ const DealAnalysisDashboard: React.FC<DealAnalysisDashboardProps> = ({ leadId })
                   
                   <SummaryMetric>
                     <Grid container>
-                      <Grid xs={8}>
+                      <Grid item xs={8}>
                         <Typography variant="body2" color="textSecondary">Recommended Offer Price</Typography>
                       </Grid>
-                      <Grid xs={4}>
+                      <Grid item xs={4}>
                         <Typography variant="body1" textAlign="right" fontWeight="bold">
-                          {formatCurrency(property.financials.listPrice * 0.95)}
+                          {formatCurrency(offer * 0.95)}
                         </Typography>
                       </Grid>
                     </Grid>
@@ -911,12 +931,12 @@ const DealAnalysisDashboard: React.FC<DealAnalysisDashboardProps> = ({ leadId })
                   
                   <SummaryMetric>
                     <Grid container>
-                      <Grid xs={8}>
+                      <Grid item xs={8}>
                         <Typography variant="body2" color="textSecondary">Maximum Renovation Budget</Typography>
                       </Grid>
-                      <Grid xs={4}>
+                      <Grid item xs={4}>
                         <Typography variant="body1" textAlign="right" fontWeight="bold">
-                          {formatCurrency(renovationEstimate?.totalCost || 0 * 1.1)}
+                          {formatCurrency(reno * 1.1)}
                         </Typography>
                       </Grid>
                     </Grid>
@@ -925,9 +945,9 @@ const DealAnalysisDashboard: React.FC<DealAnalysisDashboardProps> = ({ leadId })
                 
                 <Typography variant="body2" gutterBottom fontWeight="bold">Deal Analysis:</Typography>
                 <Typography variant="body2" paragraph>
-                  {roiCalculation?.roi && roiCalculation.roi > 15 
+                  {roiPct > 15 
                     ? "This property appears to be a strong investment opportunity with potential for significant returns."
-                    : roiCalculation?.roi && roiCalculation.roi > 10
+                    : roiPct > 10
                     ? "This property shows moderate potential, but careful management of renovation costs is necessary."
                     : "This property may not meet target ROI thresholds. Consider negotiating a lower purchase price."
                   }
@@ -935,12 +955,7 @@ const DealAnalysisDashboard: React.FC<DealAnalysisDashboardProps> = ({ leadId })
                 
                 <Typography variant="body2" gutterBottom fontWeight="bold">Risk Assessment:</Typography>
                 <Typography variant="body2">
-                  {roiCalculation?.timelineImpact && roiCalculation.timelineImpact.worstCase > 5 
-                    ? "Low Risk: Even in worst-case scenarios, this deal maintains positive returns."
-                    : roiCalculation?.timelineImpact && roiCalculation.timelineImpact.worstCase > 0
-                    ? "Moderate Risk: Careful monitoring of renovation costs and timeline is advised."
-                    : "High Risk: This deal could become unprofitable if market conditions change or costs increase."
-                  }
+                  {roiPct > 15 ? 'Low Risk: Even in worst-case scenarios, this deal maintains positive returns.' : roiPct > 10 ? 'Moderate Risk: Careful monitoring of renovation costs and timeline is advised.' : 'High Risk: This deal could become unprofitable if market conditions change or costs increase.'}
                 </Typography>
               </Grid>
             </Grid>
@@ -951,41 +966,33 @@ const DealAnalysisDashboard: React.FC<DealAnalysisDashboardProps> = ({ leadId })
             <Box>
               <Typography variant="subtitle1" gutterBottom>Renovation Breakdown</Typography>
               
-              {renovationEstimate ? (
+              {true ? (
                 <>
                   <Grid container spacing={2} mb={3}>
-                    <Grid xs={12} md={6}>
+                    <Grid item xs={12} md={6}>
                       <Typography variant="subtitle2" gutterBottom>Room-by-Room Costs</Typography>
-                      <Box component="ul" sx={{ pl: 2 }}>
-                        {Object.entries(renovationEstimate.roomBreakdown).map(([room, cost]) => (
-                          <li key={room}>
-                            <Typography variant="body2">
-                              {room}: {formatCurrency(cost)}
-                            </Typography>
-                          </li>
-                        ))}
-                      </Box>
+                      <Typography variant="body2" color="textSecondary">Detailed line items available in the estimator above.</Typography>
                     </Grid>
                     
-                    <Grid xs={12} md={6}>
+                    <Grid item xs={12} md={6}>
                       <Typography variant="subtitle2" gutterBottom>Cost Breakdown</Typography>
                       <Box component="dl" sx={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: 1, alignItems: 'center' }}>
                         <Typography component="dt" variant="body2" color="textSecondary">Materials:</Typography>
-                        <Typography component="dd" variant="body1">{formatCurrency(renovationEstimate.materialsCost)}</Typography>
+                        <Typography component="dd" variant="body1">—</Typography>
                         
                         <Typography component="dt" variant="body2" color="textSecondary">Labor:</Typography>
-                        <Typography component="dd" variant="body1">{formatCurrency(renovationEstimate.laborCost)}</Typography>
+                        <Typography component="dd" variant="body1">—</Typography>
                         
                         <Typography component="dt" variant="body2" color="textSecondary">Permits & Fees:</Typography>
-                        <Typography component="dd" variant="body1">{formatCurrency(renovationEstimate.permitsCost)}</Typography>
+                        <Typography component="dd" variant="body1">—</Typography>
                         
                         <Typography component="dt" variant="body2" color="textSecondary">Contingency:</Typography>
-                        <Typography component="dd" variant="body1">{formatCurrency(renovationEstimate.contingency)}</Typography>
+                        <Typography component="dd" variant="body1">—</Typography>
                         
                         <Divider sx={{ gridColumn: '1 / -1', my: 1 }} />
                         
                         <Typography component="dt" variant="subtitle2">Total Budget:</Typography>
-                        <Typography component="dd" variant="subtitle1" fontWeight="bold">{formatCurrency(renovationEstimate.totalCost)}</Typography>
+                        <Typography component="dd" variant="subtitle1" fontWeight="bold">{formatCurrency(reno)}</Typography>
                       </Box>
                     </Grid>
                   </Grid>
@@ -994,12 +1001,12 @@ const DealAnalysisDashboard: React.FC<DealAnalysisDashboardProps> = ({ leadId })
                   <Typography variant="body2" paragraph>
                     The renovation budget includes essential updates to make this property competitive in the local market.
                     Key improvements include kitchen and bathroom updates, new flooring throughout, and fresh paint.
-                    The budget includes a contingency of {formatCurrency(renovationEstimate.contingency)} for unexpected issues.
+                    The budget includes a contingency for unexpected issues.
                   </Typography>
                   
                   <Typography variant="subtitle2" gutterBottom>Timeline Estimate</Typography>
                   <Typography variant="body2">
-                    Based on the scope of work, this renovation should take approximately {Math.ceil(renovationEstimate.totalCost / 10000)} weeks to complete.
+                    Based on the scope of work, this renovation should take approximately {Math.ceil((reno || 0) / 10000)} weeks to complete.
                   </Typography>
                 </>
               ) : (
@@ -1015,98 +1022,88 @@ const DealAnalysisDashboard: React.FC<DealAnalysisDashboardProps> = ({ leadId })
             <Box>
               <Typography variant="subtitle1" gutterBottom>Return on Investment Analysis</Typography>
               
-              {roiCalculation ? (
+              {true ? (
                 <>
                   <Grid container spacing={3}>
-                    <Grid xs={12} md={6}>
+                    <Grid item xs={12} md={6}>
                       <Typography variant="subtitle2" gutterBottom>Investment Details</Typography>
                       <Box component="dl" sx={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: 1, alignItems: 'center' }}>
                         <Typography component="dt" variant="body2" color="textSecondary">Purchase Price:</Typography>
-                        <Typography component="dd" variant="body1">{formatCurrency(roiCalculation.purchasePrice)}</Typography>
+                        <Typography component="dd" variant="body1">{formatCurrency(offer)}</Typography>
                         
                         <Typography component="dt" variant="body2" color="textSecondary">Closing Costs:</Typography>
-                        <Typography component="dd" variant="body1">{formatCurrency(roiCalculation.closingCosts)}</Typography>
+                        <Typography component="dd" variant="body1">{formatCurrency(closing)}</Typography>
                         
                         <Typography component="dt" variant="body2" color="textSecondary">Renovation Costs:</Typography>
-                        <Typography component="dd" variant="body1">{formatCurrency(roiCalculation.renovationCosts)}</Typography>
+                        <Typography component="dd" variant="body1">{formatCurrency(reno)}</Typography>
                         
                         <Typography component="dt" variant="body2" color="textSecondary">Monthly Holding Costs:</Typography>
-                        <Typography component="dd" variant="body1">{formatCurrency(roiCalculation.holdingCosts.monthly)}</Typography>
+                        <Typography component="dd" variant="body1">—</Typography>
                         
                         <Typography component="dt" variant="body2" color="textSecondary">Total Holding Costs:</Typography>
-                        <Typography component="dd" variant="body1">{formatCurrency(roiCalculation.holdingCosts.total)}</Typography>
+                        <Typography component="dd" variant="body1">{formatCurrency(carry)}</Typography>
                         
                         <Divider sx={{ gridColumn: '1 / -1', my: 1 }} />
                         
                         <Typography component="dt" variant="subtitle2">Total Investment:</Typography>
                         <Typography component="dd" variant="subtitle1" fontWeight="bold">
-                          {formatCurrency(
-                            roiCalculation.purchasePrice + 
-                            roiCalculation.closingCosts + 
-                            roiCalculation.renovationCosts + 
-                            roiCalculation.holdingCosts.total
-                          )}
+                          {formatCurrency(totalInvestment)}
                         </Typography>
                       </Box>
                     </Grid>
                     
-                    <Grid xs={12} md={6}>
+                    <Grid item xs={12} md={6}>
                       <Typography variant="subtitle2" gutterBottom>Return Details</Typography>
                       <Box component="dl" sx={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: 1, alignItems: 'center' }}>
                         <Typography component="dt" variant="body2" color="textSecondary">After Repair Value:</Typography>
-                        <Typography component="dd" variant="body1">{formatCurrency(roiCalculation.projectedARV)}</Typography>
+                        <Typography component="dd" variant="body1">{formatCurrency(arv)}</Typography>
                         
                         <Typography component="dt" variant="body2" color="textSecondary">Selling Costs:</Typography>
-                        <Typography component="dd" variant="body1">{formatCurrency(roiCalculation.sellingCosts)}</Typography>
+                        <Typography component="dd" variant="body1">{formatCurrency(selling)}</Typography>
                         
                         <Typography component="dt" variant="body2" color="textSecondary">Net Sale Proceeds:</Typography>
-                        <Typography component="dd" variant="body1">{formatCurrency(roiCalculation.projectedARV - roiCalculation.sellingCosts)}</Typography>
+                        <Typography component="dd" variant="body1">{formatCurrency(arv - selling)}</Typography>
                         
                         <Divider sx={{ gridColumn: '1 / -1', my: 1 }} />
                         
                         <Typography component="dt" variant="subtitle2">Net Profit:</Typography>
-                        <Typography component="dd" variant="subtitle1" fontWeight="bold">{formatCurrency(roiCalculation.netProfit)}</Typography>
+                        <Typography component="dd" variant="subtitle1" fontWeight="bold">{formatCurrency(netProfit)}</Typography>
                         
                         <Typography component="dt" variant="subtitle2">Return on Investment:</Typography>
-                        <Typography component="dd" variant="subtitle1" fontWeight="bold">{formatPercent(roiCalculation.roi)}</Typography>
+                        <Typography component="dd" variant="subtitle1" fontWeight="bold">{formatPercent(roiPct)}</Typography>
                         
-                        {roiCalculation.cashOnCashReturn && (
-                          <>
-                            <Typography component="dt" variant="subtitle2">Cash-on-Cash Return:</Typography>
-                            <Typography component="dd" variant="subtitle1" fontWeight="bold">{formatPercent(roiCalculation.cashOnCashReturn)}</Typography>
-                          </>
-                        )}
+                        {/* Cash-on-Cash requires financing details; omitted in this summary */}
                       </Box>
                     </Grid>
                     
-                    <Grid xs={12}>
+                    <Grid item xs={12}>
                       <Typography variant="subtitle2" gutterBottom>Risk Assessment</Typography>
                       <Box sx={{ bgcolor: '#f5f5f5', p: 2, borderRadius: 1 }}>
                         <Grid container spacing={3}>
-                          <Grid xs={12} sm={4} textAlign="center">
+                          <Grid item xs={12} sm={4} textAlign="center">
                             <Typography variant="body2" color="textSecondary" gutterBottom>
                               Worst Case
                             </Typography>
-                            <Typography variant="h6" color={roiCalculation.timelineImpact.worstCase < 0 ? 'error' : 'inherit'}>
-                              {formatPercent(roiCalculation.timelineImpact.worstCase)}
+                            <Typography variant="h6" color={roiPct - 10 < 0 ? 'error' : 'inherit'}>
+                              {formatPercent(Math.max(roiPct - 10, -100))}
                             </Typography>
                           </Grid>
                           
-                          <Grid xs={12} sm={4} textAlign="center">
+                          <Grid item xs={12} sm={4} textAlign="center">
                             <Typography variant="body2" color="textSecondary" gutterBottom>
                               Expected
                             </Typography>
                             <Typography variant="h6" color="primary">
-                              {formatPercent(roiCalculation.timelineImpact.expected)}
+                              {formatPercent(roiPct)}
                             </Typography>
                           </Grid>
                           
-                          <Grid xs={12} sm={4} textAlign="center">
+                          <Grid item xs={12} sm={4} textAlign="center">
                             <Typography variant="body2" color="textSecondary" gutterBottom>
                               Best Case
                             </Typography>
                             <Typography variant="h6" color="success.main">
-                              {formatPercent(roiCalculation.timelineImpact.bestCase)}
+                              {formatPercent(roiPct + 10)}
                             </Typography>
                           </Grid>
                         </Grid>
@@ -1127,31 +1124,8 @@ const DealAnalysisDashboard: React.FC<DealAnalysisDashboardProps> = ({ leadId })
             <Box>
               <Typography variant="subtitle1" gutterBottom>Comparable Sales Analysis</Typography>
               
-              {comparablesResult ? (
+              {dealData.comps && dealData.comps.length > 0 ? (
                 <Box>
-                  <Grid container spacing={2} mb={3}>
-                    <Grid xs={12} md={6}>
-                      <Box bgcolor="#f5f5f5" p={2} borderRadius={1}>
-                        <Typography variant="subtitle2" gutterBottom>Estimated ARV</Typography>
-                        <Typography variant="h5" color="primary">{formatCurrency(comparablesResult.estimatedARV)}</Typography>
-                        <Typography variant="body2" color="textSecondary">
-                          Confidence Score: {comparablesResult.confidenceScore}%
-                        </Typography>
-                      </Box>
-                    </Grid>
-                    
-                    <Grid xs={12} md={6}>
-                      <Typography variant="subtitle2" gutterBottom>Analysis Notes</Typography>
-                      <Box component="ul" sx={{ pl: 2, m: 0 }}>
-                        {comparablesResult.adjustmentExplanations.map((explanation, index) => (
-                          <li key={index}>
-                            <Typography variant="body2">{explanation}</Typography>
-                          </li>
-                        ))}
-                      </Box>
-                    </Grid>
-                  </Grid>
-                  
                   <Typography variant="subtitle2" gutterBottom>Comparable Properties</Typography>
                   <Box sx={{ width: '100%', overflowX: 'auto' }}>
                     <Box sx={{ minWidth: 650 }}>
@@ -1163,18 +1137,18 @@ const DealAnalysisDashboard: React.FC<DealAnalysisDashboardProps> = ({ leadId })
                             <th style={{ padding: '8px', textAlign: 'right' }}>Sale Price</th>
                             <th style={{ padding: '8px', textAlign: 'center' }}>Bed/Bath</th>
                             <th style={{ padding: '8px', textAlign: 'right' }}>Sqft</th>
-                            <th style={{ padding: '8px', textAlign: 'right' }}>Adjusted Value</th>
+                            <th style={{ padding: '8px', textAlign: 'right' }}>Adj. Value</th>
                           </tr>
                         </thead>
                         <tbody>
-                          {comparablesResult.comparableSales.map((comp, index) => (
+                          {dealData.comps.map((comp, index) => (
                             <tr key={index} style={{ borderTop: '1px solid #ddd' }}>
                               <td style={{ padding: '8px' }}>{comp.address}</td>
-                              <td style={{ padding: '8px', textAlign: 'right' }}>{comp.saleDate.toLocaleDateString()}</td>
-                              <td style={{ padding: '8px', textAlign: 'right' }}>{formatCurrency(comp.salePrice)}</td>
-                              <td style={{ padding: '8px', textAlign: 'center' }}>{comp.bedrooms}/{comp.bathrooms}</td>
-                              <td style={{ padding: '8px', textAlign: 'right' }}>{comp.squareFootage.toLocaleString()}</td>
-                              <td style={{ padding: '8px', textAlign: 'right' }}>{formatCurrency(comp.adjustedValue)}</td>
+                              <td style={{ padding: '8px', textAlign: 'right' }}>{new Date(comp.saleDate).toLocaleDateString()}</td>
+                              <td style={{ padding: '8px', textAlign: 'right' }}>{new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0}).format(comp.salePrice)}</td>
+                              <td style={{ padding: '8px', textAlign: 'center' }}>{comp.beds}/{comp.baths}</td>
+                              <td style={{ padding: '8px', textAlign: 'right' }}>{(comp.sqft || 0).toLocaleString()}</td>
+                              <td style={{ padding: '8px', textAlign: 'right' }}>{comp.adjustedPrice ? new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0}).format(comp.adjustedPrice) : '—'}</td>
                             </tr>
                           ))}
                         </tbody>
@@ -1191,6 +1165,9 @@ const DealAnalysisDashboard: React.FC<DealAnalysisDashboardProps> = ({ leadId })
           )}
         </Box>
       </Paper>
+          </>
+        );
+      })()}
     </Box>
   );
   

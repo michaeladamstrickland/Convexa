@@ -1,6 +1,6 @@
-# LeadFlow AI — ATTOM + BatchData Integration Guide
+# Convexa AI — ATTOM + BatchData Integration Guide
 
-This guide walks you through the setup and usage of the ATTOM Property Data API and BatchData Skip Trace integration in LeadFlow AI.
+This guide walks you through the setup and usage of the ATTOM Property Data API and BatchData Skip Trace integration in Convexa AI.
 
 ## Quick Start
 

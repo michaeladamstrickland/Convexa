@@ -47,7 +47,12 @@ export class BatchSkipTraceService {
     this.apiKey = process.env.BATCHDATA_API_KEY || '';
     
     if (!this.apiKey) {
-      throw new Error('BatchData API key not found in environment variables');
+      // Disabled mode: allow server to run without key; routes will respond with success: false
+      console.warn('BatchData API key not found; Skip Trace service is running in disabled mode. Set BATCHDATA_API_KEY to enable.');
+      // Minimal client to satisfy typing; not used in disabled mode
+      this.client = axios.create();
+      (this as any)._disabled = true;
+      return;
     }
 
     this.client = axios.create({
@@ -69,6 +74,10 @@ export class BatchSkipTraceService {
    */
   async skipTraceByAddress(request: SkipTraceRequest): Promise<SkipTraceResult> {
     try {
+      // Disabled mode short-circuit
+      if ((this as any)._disabled) {
+        return { success: false, cost: 0 };
+      }
       // Check rate limits
       await this.checkRateLimit();
       
@@ -164,6 +173,10 @@ export class BatchSkipTraceService {
    * @returns Array of skip trace results
    */
   async batchSkipTrace(requests: SkipTraceRequest[]): Promise<SkipTraceResult[]> {
+    // Disabled mode short-circuit
+    if ((this as any)._disabled) {
+      return requests.map(() => ({ success: false, cost: 0 }));
+    }
     const results: SkipTraceResult[] = [];
     
     // Process in batches of 10 to avoid rate limits

@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# LeadFlow AI Master Platform - Full System Startup Script
+# Convexa AI Master Platform - Full System Startup Script
 # Starts both backend demo server and React frontend
 
-echo "🚀 Starting LeadFlow AI Master Platform..."
+echo "🚀 Starting Convexa AI Master Platform..."
 echo "📊 Superior to PropStream, BatchLeads & REsimpli"
 echo "⚡ 26 Premium APIs • AI-Powered Analysis • $1.57/search"
 echo ""
@@ -89,7 +89,7 @@ start_frontend() {
 
 # Cleanup function
 cleanup() {
-    echo -e "${RED}🛑 Shutting down LeadFlow AI Platform...${NC}"
+    echo -e "${RED}🛑 Shutting down Convexa AI Platform...${NC}"
     
     if [ ! -z "$BACKEND_PID" ]; then
         kill $BACKEND_PID 2>/dev/null
@@ -105,7 +105,7 @@ cleanup() {
     lsof -ti:5001 | xargs kill -9 2>/dev/null
     lsof -ti:3000 | xargs kill -9 2>/dev/null
     
-    echo -e "${GREEN}✅ LeadFlow AI Platform shutdown complete${NC}"
+    echo -e "${GREEN}✅ Convexa AI Platform shutdown complete${NC}"
     exit 0
 }
 
@@ -114,7 +114,7 @@ trap cleanup INT TERM EXIT
 
 # Main execution
 main() {
-    echo -e "${GREEN}🎯 Initializing LeadFlow AI Master Platform...${NC}"
+    echo -e "${GREEN}🎯 Initializing Convexa AI Master Platform...${NC}"
     
     # Check and install dependencies
     check_dependencies
@@ -126,7 +126,7 @@ main() {
     start_frontend
     
     echo ""
-    echo -e "${GREEN}🎉 LeadFlow AI Master Platform is now running!${NC}"
+    echo -e "${GREEN}🎉 Convexa AI Master Platform is now running!${NC}"
     echo ""
     echo -e "${BLUE}📱 Frontend (React):${NC} http://localhost:3000"
     echo -e "${BLUE}🔧 Backend (API):${NC} http://localhost:5001"

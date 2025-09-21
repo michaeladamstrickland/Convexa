@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-// LeadFlow AI Master System Server
+// Convexa AI Master System Server
 // Enhanced real estate platform with comprehensive API integration
 
 import express from 'express';
@@ -34,7 +34,7 @@ import { errorHandler } from './middleware/errorHandler';
 async function startServer() {
   const app = express();
   
-  console.log('🚀 Starting LeadFlow AI Master Platform');
+  console.log('🚀 Starting Convexa AI Master Platform');
   console.log('=====================================\n');
 
   try {
@@ -206,7 +206,7 @@ async function startServer() {
     const port = process.env.PORT || 3001;
     
     app.listen(port, () => {
-      console.log(`\n🎯 LeadFlow AI Server Started!`);
+  console.log(`\n🎯 Convexa AI Server Started!`);
       console.log(`   🌐 URL: http://localhost:${port}`);
       console.log(`   📊 Health: http://localhost:${port}/health`);
       console.log(`   🔧 Status: http://localhost:${port}/api/system/status`);

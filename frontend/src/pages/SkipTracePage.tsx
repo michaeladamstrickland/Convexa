@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { api } from '../api/client';
 import {
   Box,
   Button,
@@ -7,7 +8,6 @@ import {
   Container,
   Divider,
   FormControl,
-  Grid,
   InputLabel,
   MenuItem,
   Select,
@@ -25,10 +25,11 @@ import {
   Tabs,
   Tab
 } from '@mui/material';
+import MuiGrid from '@mui/material/Grid';
 import { Search, PersonSearch, AccountCircle, AttachMoney, BarChart } from '@mui/icons-material';
 
-// API base URL
-const API_BASE_URL = 'http://localhost:5001';
+// Use shared API client base (http://localhost:5001/api by default)
+const API_BASE_URL = api.defaults.baseURL?.replace(/\/$/, '') || 'http://localhost:5001/api';
 
 interface SkipTraceQuotaData {
   daily: {
@@ -59,6 +60,8 @@ interface SkipTraceCostData {
   };
 }
 
+const Grid: any = (MuiGrid as unknown) as any;
+
 const SkipTracePage = () => {
   // State for tabs
   const [activeTab, setActiveTab] = useState(0);
@@ -84,7 +87,7 @@ const SkipTracePage = () => {
   const loadQuotaData = async () => {
     setLoading(true);
     try {
-      const response = await axios.get(`${API_BASE_URL}/api/skiptrace/quota`);
+  const response = await axios.get(`${API_BASE_URL}/skiptrace/quota`);
       setQuotaData(response.data.data);
       setError(null);
     } catch (error) {
@@ -100,7 +103,7 @@ const SkipTracePage = () => {
     setLoading(true);
     try {
       // Default to last 30 days
-      const response = await axios.get(`${API_BASE_URL}/api/skiptrace/analytics`);
+  const response = await axios.get(`${API_BASE_URL}/skiptrace/analytics`);
       setCostData(response.data.data);
       setError(null);
     } catch (error) {
@@ -161,7 +164,7 @@ const SkipTracePage = () => {
       <Box hidden={activeTab !== 0} id="tabpanel-0" aria-labelledby="tab-0">
         {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
         
-        <Grid container spacing={3}>
+  <Grid container spacing={3}>
           {/* Quota Card */}
           <Grid xs={12} md={6}>
             <Paper elevation={3} sx={{ p: 3, height: '100%' }}>
@@ -335,7 +338,7 @@ const SkipTracePage = () => {
       <Box hidden={activeTab !== 1} id="tabpanel-1" aria-labelledby="tab-1">
         {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
         
-        <Grid container spacing={3}>
+  <Grid container spacing={3}>
           {/* Summary Card */}
           <Grid xs={12} md={4}>
             <Paper elevation={3} sx={{ p: 3, height: '100%' }}>

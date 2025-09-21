@@ -1,7 +1,7 @@
-# LeadFlow AI Lead Management System
+# Convexa AI Lead Management System
 
 ## Overview
-The Lead Management System is a core component of the LeadFlow AI application that allows real estate investors to effectively track, manage, and communicate with potential property leads. This system integrates with the ATTOM Property Data API to provide comprehensive property information and streamline the lead generation process.
+The Lead Management System is a core component of the Convexa AI application that allows real estate investors to effectively track, manage, and communicate with potential property leads. This system integrates with the ATTOM Property Data API to provide comprehensive property information and streamline the lead generation process.
 
 ## Features
 
