@@ -1,7 +1,8 @@
 # ignore everything by default
 **
-# keep only these
+# keep only what we need in the image
 !package*.json
 !backend/**
 !ops/**
+!infra/**
 !Dockerfile

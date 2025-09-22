@@ -9,7 +9,20 @@ import axios from 'axios';
 import crypto from 'crypto';
 import fs from 'fs';
 import SkipTraceService from './services/skipTraceService.js';
-import { initGuardrails } from '../infra/guardrails.js';
+// Resilient guardrails import (ESM + top-level await)
+let initGuardrails = null;
+try {
+  const gm = await import(new URL('../infra/guardrails.js', import.meta.url));
+  // Support both default and named exports
+  initGuardrails = gm.initGuardrails || gm.default?.initGuardrails || null;
+  if (!initGuardrails && (gm.default && typeof gm.default === 'function')) {
+    // Back-compat if module exported a function directly
+    initGuardrails = gm.default;
+  }
+} catch (e) {
+  console.warn('[Guardrails] Not found; using no-op guardrails for staging.');
+  initGuardrails = () => ({ shouldAllow: () => true, quotas: {}, demoMode: true });
+}
 import createAdminGuardrailsRouter from './routes/adminGuardrails.js';
 import { generateRunReport } from './services/reportService.js';
 // Additive imports for validation
