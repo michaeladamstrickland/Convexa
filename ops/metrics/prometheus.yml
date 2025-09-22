@@ -14,3 +14,12 @@ scrape_configs:
           # - "localhost:6027"
           # - "localhost:6033"
           # - "localhost:6035"
+
+  - job_name: "convexa_staging"
+    metrics_path: /metrics
+    scheme: https
+    static_configs:
+      - targets: ["leadshepard.up.railway.app:443"]
+    basic_auth:
+      username: ${PROM_BASIC_AUTH_USER}
+      password: ${PROM_BASIC_AUTH_PASS}

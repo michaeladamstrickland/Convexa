@@ -439,3 +439,16 @@ Metrics (via GET /api/dev/metrics)
 - leadflow_call_summary_total{status="success|fail"}
 - leadflow_call_transcription_ms_* histogram
 - leadflow_call_scoring_ms_* histogram
+
+---
+
+## Compatibility Aliases (staging integrated server)
+
+For staging deployed via `backend/integrated-server.js`, the following aliases are provided to maintain compatibility with existing scripts and clients:
+
+- GET /api/search → Mirrors `/api/zip-search-new/search` with identical query params and response shape.
+- POST /api/leads → Mirrors `/api/zip-search-new/add-lead` using the same validation (Problem+JSON on error).
+
+Notes
+- These aliases are additive and do not deprecate the primary routes under `/api/zip-search-new/*`.
+- Auth is not enforced on these in the integrated server; gate at the proxy if needed.

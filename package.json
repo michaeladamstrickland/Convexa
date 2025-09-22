@@ -25,12 +25,12 @@
     "empire-report": "tsc && node dist/phase3-launcher.js report",
     "empire-autonomous": "tsc && node dist/phase3-launcher.js autonomous",
     "empire-status": "tsc && node dist/phase3-launcher.js status",
-  "test": "jest --detectOpenHandles",
+    "test": "jest --detectOpenHandles",
     "test:unit": "vitest run --reporter=dot",
     "test:contract": "vitest run tests/contract --reporter=dot",
     "test:smoke": "vitest run tests/smoke --reporter=dot",
-  "test:routes": "vitest run -t routes --reporter=default",
-  "test:smoke:tiny": "node scripts/smoke/dialerTiny.mjs",
+    "test:routes": "vitest run -t routes --reporter=default",
+    "test:smoke:tiny": "node scripts/smoke/dialerTiny.mjs",
     "coverage": "vitest run --coverage",
     "lint": "eslint src/**/*.ts",
     "test:prepare": "node prepare-tests.js",
@@ -53,7 +53,8 @@
     "ops:warm": "node scripts/smoke/warmMetrics.mjs",
     "ops:prom:check": "node scripts/ops/checkProm.mjs",
     "ops:dashboard:notes": "echo Import ops/dashboards/convexa.json in Grafana, pick Prometheus DS, set Last 30m + 10s refresh.",
-    "ops:staging:smoke": "node scripts/smoke/stagingSmoke.mjs"
+    "ops:staging:smoke": "node scripts/runStagingSmoke.cjs",
+    "ops:staging:seed": "node scripts/seedStagingLeads.cjs"
   },
   "keywords": [
     "real-estate",
@@ -67,6 +68,7 @@
   "author": "Empire Builder",
   "license": "MIT",
   "dependencies": {
+    "@faker-js/faker": "^10.0.0",
     "@prisma/client": "^5.22.0",
     "@types/better-sqlite3": "^7.6.13",
     "@types/json2csv": "^5.0.7",
@@ -113,12 +115,14 @@
     "ws": "^8.18.3"
   },
   "devDependencies": {
+    "@types/basic-auth": "^1.1.8",
     "@types/cors": "^2.8.17",
     "@types/express": "^4.17.21",
     "@types/node": "^20.10.0",
     "@typescript-eslint/eslint-plugin": "^6.10.0",
     "@typescript-eslint/parser": "^6.10.0",
     "@vitest/coverage-v8": "^2.1.9",
+    "cross-env": "^10.0.0",
     "eslint": "^8.53.0",
     "pg": "^8.16.3",
     "prisma": "^5.22.0",

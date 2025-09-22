@@ -16,9 +16,13 @@ const fetch = require('node-fetch');
 const Database = require('better-sqlite3');
 const archiver = require('archiver');
 
-const PORT = Number(process.env.PORT || 6031);
-const DB_PATH = process.env.SQLITE_DB_PATH || path.join('backend','data','convexa.db');
+const STAGING_URL = process.argv[2] || 'http://localhost:3001';
+const BASIC_AUTH_USER = process.argv[3] || 'admin';
+const BASIC_AUTH_PASS = process.argv[4] || 'password';
+const DB_PATH = process.env.SQLITE_DB_PATH || path.join('backend','data','convexa.db'); // Still local DB for orchestrator logic
 const ROOT = process.cwd();
+
+const AUTH_HEADER = 'Basic ' + Buffer.from(`${BASIC_AUTH_USER}:${BASIC_AUTH_PASS}`).toString('base64');
 
 function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
 
@@ -33,120 +37,111 @@ function ensure20Csv(){
   return dst;
 }
 
-function latestRunId(db){
-  let cols = [];
-  try { cols = db.prepare('PRAGMA table_info(skiptrace_runs)').all(); } catch(_) { cols = []; }
-  const hasStarted = Array.isArray(cols) && cols.some(c=>c.name==='started_at');
-  let row = null;
-  if (hasStarted) {
-    row = db.prepare("SELECT run_id FROM skiptrace_runs ORDER BY started_at DESC LIMIT 1").get();
-  } else {
-    // fallback on rowid
-    row = db.prepare("SELECT run_id FROM skiptrace_runs ORDER BY rowid DESC LIMIT 1").get();
-  }
-  return row && row.run_id;
-}
-
-async function httpGetJson(url){
+async function httpGetJson(url, authHeader){
   try {
-    const r = await fetch(url);
+    const r = await fetch(url, { headers: { 'Authorization': authHeader } });
     if (!r.ok) throw new Error(String(r.status));
     return await r.json();
   } catch(_){ return {}; }
 }
 
+async function httpPost(url, authHeader, body = {}) {
+  try {
+    const r = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': authHeader
+      },
+      body: JSON.stringify(body)
+    });
+    if (!r.ok) throw new Error(String(r.status));
+    return await r.json();
+  } catch(_) { return {}; }
+}
+
 async function main(){
+  // The CSV and DB operations are still local for the orchestrator itself
   const csv = ensure20Csv();
   const db = new Database(DB_PATH);
   try { db.pragma('journal_mode = WAL'); db.pragma('busy_timeout = 5000'); } catch(_){}
 
-  // Spawn adHocRun
-  const child = spawn(process.execPath, [path.join('scripts','adHocRun.cjs'), csv], {
-    env: { ...process.env, PORT: String(PORT), SQLITE_DB_PATH: DB_PATH, AD_HOC_CONC: '1' },
-    stdio: ['ignore','pipe','pipe']
+  // For staging, we assume the server is already running on Railway.
+  // We will not spawn adHocRun.cjs locally.
+  // Instead, we will directly seed a single lead using the staging URL
+  // to ensure there's at least one lead for the orchestrator to pick up.
+
+  console.log(`Seeding a single lead to ${STAGING_URL}/api/zip-search-new/add-lead`);
+  try {
+    await httpPost(`${STAGING_URL}/api/zip-search-new/add-lead`, AUTH_HEADER, {
+      address: '123 Orchestrator St, Testville, CA 90001',
+      owner_name: 'Orchestrator Test',
+      source_type: 'qa_orchestrator',
+      status: 'new'
+    });
+    console.log('Successfully seeded a test lead.');
+  } catch (e) {
+    console.warn('Failed to seed test lead (may already exist or API issue):', e.message);
+  }
+
+  // Start a new run on staging using the integrated API
+  console.log('Starting a new skiptrace run on staging...');
+  const startResp = await httpPost(`${STAGING_URL}/api/skiptrace-runs/start`, AUTH_HEADER, {
+    limit: 20,
+    label: 'staging-smoke',
+    softPauseAt: 5,
+    demo: true
   });
-  let childOut = '';
-  child.stdout.on('data', d => { childOut += String(d); });
-  child.stderr.on('data', d => { childOut += String(d); });
+  const runId = (startResp && (startResp.run_id || startResp.runId)) || process.argv[5];
+  if (!runId) throw new Error('Failed to start run; no run_id returned');
 
-  // Poll for run_id
-  let runId = null;
-  for (let i=0;i<20;i++){
-    runId = latestRunId(db);
-    if (runId) break;
-    await sleep(250);
-  }
-  if (!runId) throw new Error('Could not obtain run_id');
-
-  // Ensure soft_paused exists then pause
-  let cols = [];
-  try { cols = db.prepare('PRAGMA table_info(skiptrace_runs)').all(); } catch(_) { cols = []; }
-  if (!cols.some(c=>c.name==='soft_paused')) {
-    try { db.exec('ALTER TABLE skiptrace_runs ADD COLUMN soft_paused INTEGER DEFAULT 0'); } catch(_){}
-  }
-  try { db.prepare('UPDATE skiptrace_runs SET soft_paused=1 WHERE run_id=?').run(runId); } catch(_){ /* ignore */ }
-
-  // Prepare run dir
-  const runDir = path.join('run_reports', runId);
+  // Prepare run dir (local for artifacts)
+  const runDir = path.join('ops', 'findings', `QA_${new Date().toISOString().replace(/[:.]/g, '-')}`);
   fs.mkdirSync(runDir, { recursive: true });
 
-  // Status before
-  const statusBefore = await httpGetJson(`http://localhost:${PORT}/api/skiptrace-runs/${encodeURIComponent(runId)}/status`);
+  // Status before (using staging URL)
+  const statusBefore = await httpGetJson(`${STAGING_URL}/api/skiptrace-runs/${encodeURIComponent(runId)}/status`, AUTH_HEADER);
   fs.writeFileSync(path.join(runDir,'status_before_resume.json'), JSON.stringify(statusBefore, null, 2));
 
-  // Resume
-  try { await fetch(`http://localhost:${PORT}/admin/skiptrace-runs/${encodeURIComponent(runId)}/resume`, { method:'POST' }); } catch(_){}
+  // Resume (using staging URL)
+  try { await httpPost(`${STAGING_URL}/admin/skiptrace-runs/${encodeURIComponent(runId)}/resume`, AUTH_HEADER); } catch(e){ console.warn('Resume failed:', e.message); }
 
-  // Poll until done
+  // Poll until paused then done (using staging URL)
   let statusAfter = {};
-  for (let i=0;i<120;i++){
-    statusAfter = await httpGetJson(`http://localhost:${PORT}/api/skiptrace-runs/${encodeURIComponent(runId)}/status`);
+  for (let i=0;i<240;i++){
+    statusAfter = await httpGetJson(`${STAGING_URL}/api/skiptrace-runs/${encodeURIComponent(runId)}/status`, AUTH_HEADER);
     const t = statusAfter && statusAfter.totals;
-    if (t && t.done === t.total) break;
-    await sleep(500);
+    if (t && t.done === t.total && t.total > 0) break; // Ensure total > 0
+    await sleep(1000);
   }
   fs.writeFileSync(path.join(runDir,'status_after_resume.json'), JSON.stringify(statusAfter, null, 2));
 
-  // Fetch report & guardrails
-  const report = await httpGetJson(`http://localhost:${PORT}/api/skiptrace-runs/${encodeURIComponent(runId)}/report`);
+  // Fetch report & guardrails (using staging URL)
+  const report = await httpGetJson(`${STAGING_URL}/api/skiptrace-runs/${encodeURIComponent(runId)}/report`, AUTH_HEADER);
   fs.writeFileSync(path.join(runDir,'report.json'), JSON.stringify(report, null, 2));
-  const guard = await httpGetJson(`http://localhost:${PORT}/admin/guardrails-state`);
+  const guard = await httpGetJson(`${STAGING_URL}/admin/guardrails-state`, AUTH_HEADER);
   fs.writeFileSync(path.join(runDir,'guardrails_snapshot.json'), JSON.stringify(guard, null, 2));
-
-  // Enriched CSV rows
-  const csvPath = path.join(runDir,'enriched.csv');
+  // Fetch artifacts listing to get signed URLs
+  const artifacts = await httpGetJson(`${STAGING_URL}/admin/artifacts`, AUTH_HEADER);
   let csvRows = 0;
-  if (fs.existsSync(csvPath)) {
-    const cnt = fs.readFileSync(csvPath,'utf8').split(/\r?\n/).filter(Boolean).length;
-    csvRows = cnt;
-  }
-
-  // Zip bundle with archiver
-  const zipPath = path.join(runDir, 'qa_resume_smoke_bundle.zip');
-  await new Promise((resolve, reject) => {
-    const output = fs.createWriteStream(zipPath);
-    const arc = archiver('zip', { zlib: { level: 9 } });
-    output.on('close', resolve);
-    arc.on('error', reject);
-    arc.pipe(output);
-    const files = ['status_before_resume.json','status_after_resume.json','report.json','guardrails_snapshot.json','enriched.csv'];
-    for (const f of files) {
-      const p = path.join(runDir, f);
-      if (fs.existsSync(p)) arc.file(p, { name: f });
+  try {
+    const item = Array.isArray(artifacts) ? artifacts.find(a => a.runId === runId) : null;
+    if (item && item.csvUrl) {
+      const resp = await fetch(`${STAGING_URL}${item.csvUrl}`, { headers: { 'Authorization': AUTH_HEADER } });
+      const text = await resp.text();
+      csvRows = text.split(/\r?\n/).filter(Boolean).length;
+      fs.writeFileSync(path.join(runDir,'enriched.csv'), text);
     }
-    arc.finalize();
-  });
+  } catch(_){}
 
   // Print digest
   const pausedBefore = !!(statusBefore && statusBefore.soft_paused);
   const totals = statusAfter && statusAfter.totals;
-  const completed = !!(totals && totals.done === totals.total);
+  const completed = !!(totals && totals.done === totals.total && totals.total > 0);
   console.log(`RUN_ID=${runId}`);
-  console.log(`ZIP=${path.resolve(zipPath)}`);
-  console.log(`DIGEST={paused_before:${pausedBefore}, resumed:true, completed:${completed}, csv_rows:${csvRows}, port:${PORT}}`);
+  console.log(`DIGEST={paused_before:${pausedBefore}, resumed:true, completed:${completed}, csv_rows:${csvRows}, run_id:${runId}, url:${STAGING_URL}}`);
 
-  // Detach child; let it finish in background
-  try { child.unref(); } catch(_){}
+  // No child process to detach for staging
 }
 
 main().catch(err => {

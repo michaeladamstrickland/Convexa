@@ -17,6 +17,7 @@ import callRoutes from './routes/callRoutes';
 import dealRoutes from './routes/dealRoutes';
 import os from 'os';
 import skipTraceRoutes from './routes/skipTraceRoutes';
+import { basicAuthMiddleware } from './middleware/basicAuth';
 
 // Load environment variables
 dotenv.config();
@@ -77,10 +78,13 @@ class LeadFlowAIServer {
     this.app.use('/api/dev', devQueueRoutes); // queue dev endpoints
     this.app.use('/api/queue', devQueueRoutes); // queue dev endpoints
   this.app.use('/api/properties', publicProperties);
-  this.app.use('/api/admin', adminMetrics);
-  this.app.use('/api/admin', webhookAdmin);
-  this.app.use('/api/calls', callRoutes);
-  this.app.use('/api/deals', dealRoutes);
+    this.app.use('/api/admin', basicAuthMiddleware, adminMetrics);
+    this.app.use('/api/admin', basicAuthMiddleware, webhookAdmin);
+    this.app.use('/api/calls', callRoutes);
+    this.app.use('/api/deals', dealRoutes);
+
+    // Apply basic auth to /metrics endpoint
+    this.app.use('/metrics', basicAuthMiddleware);
 
     // Lightweight proxy to integrated ATTOM server (port 5002)
     // Allows frontend to use a single base URL (http://localhost:3001/api)
