@@ -10,6 +10,7 @@ RUN npm ci --only=production
 # Copy just what the JS server needs
 COPY backend ./backend
 COPY ops ./ops
+COPY infra ./infra
 
 ENV NODE_ENV=production
 ENV PORT=8080
