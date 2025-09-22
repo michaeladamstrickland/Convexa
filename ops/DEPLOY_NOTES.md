@@ -52,7 +52,9 @@ BASIC_AUTH_PASS=${{ secrets.STAGING_BASIC_AUTH_PASS }}
 - Managed Redis instance attached, with `REDIS_URL` automatically configured by Railway.
 
 ## Staging Base URL
-`<RAILWAY_HOST_URL>` (This will be provided by Railway after deployment)
+https://leadshepard.up.railway.app
+
+Note: Staging runs `backend/integrated-server.js`. Both the classic routes (e.g., `/leads`) and the `zip-search-new` prefixed routes (e.g., `/api/zip-search-new/search`) are supported.
 
 ## How to Restart/Redeploy
 - **Manual Redeploy:** In the Railway dashboard, navigate to your project, then to the service, and click "Deploy" -> "Redeploy".

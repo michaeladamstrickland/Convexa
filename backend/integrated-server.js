@@ -456,6 +456,91 @@ const startServer = async () => {
       res.status(500).json({ error: 'Internal server error' });
     }
   });
+
+  // Compatibility alias: GET /api/search (same behavior as /api/zip-search-new/search)
+  app.get('/api/search', (req, res) => {
+    try {
+      const {
+        query,
+        minValue,
+        maxValue,
+        city,
+        state,
+        zipCode,
+        propertyType,
+        source,
+        temperature,
+        limit = 50,
+        page = 1
+      } = req.query;
+
+      let sql = 'SELECT * FROM leads';
+      const params = [];
+      const whereClauses = [];
+
+      if (query) {
+        whereClauses.push('(address LIKE ? OR owner_name LIKE ?)');
+        params.push(`%${query}%`, `%${query}%`);
+      }
+      if (city) { whereClauses.push('address LIKE ?'); params.push(`%${city}%`); }
+      if (state) { whereClauses.push('address LIKE ?'); params.push(`%${state}%`); }
+      if (zipCode) { whereClauses.push('address LIKE ?'); params.push(`%${zipCode}%`); }
+      if (propertyType) { whereClauses.push('source_type = ?'); params.push(propertyType); }
+      if (source) { whereClauses.push('source_type = ?'); params.push(source); }
+      if (temperature) { whereClauses.push('temperature_tag = ?'); params.push(temperature); }
+      if (minValue || maxValue) {
+        if (minValue) { whereClauses.push('estimated_value >= ?'); params.push(parseFloat(minValue)); }
+        if (maxValue) { whereClauses.push('estimated_value <= ?'); params.push(parseFloat(maxValue)); }
+      }
+
+      if (whereClauses.length > 0) {
+        sql += ' WHERE ' + whereClauses.join(' AND ');
+      }
+      let countSql = 'SELECT COUNT(*) as total FROM leads';
+      if (whereClauses.length > 0) {
+        countSql += ' WHERE ' + whereClauses.join(' AND ');
+      }
+      const totalCount = db.prepare(countSql).get(...params).total;
+
+      sql += ' ORDER BY created_at DESC';
+      const skip = (parseInt(page) - 1) * parseInt(limit);
+      sql += ' LIMIT ? OFFSET ?';
+      params.push(parseInt(limit), skip);
+
+      const leads = db.prepare(sql).all(...params);
+      const formattedLeads = leads.map(lead => ({
+        id: lead.id,
+        propertyAddress: lead.address,
+        ownerName: lead.owner_name,
+        phone: lead.phone,
+        email: lead.email,
+        estimatedValue: lead.estimated_value,
+        equity: lead.equity,
+        motivationScore: lead.motivation_score,
+        temperatureTag: lead.temperature_tag || getTemperatureTag(lead.motivation_score || 0),
+        status: lead.status,
+        source: lead.source_type,
+        isProbate: Boolean(lead.is_probate),
+        isVacant: Boolean(lead.is_vacant),
+        conditionScore: lead.condition_score,
+        leadScore: lead.lead_score,
+        createdAt: new Date(lead.created_at).toISOString(),
+        updatedAt: new Date(lead.updated_at).toISOString()
+      }));
+      res.json({
+        leads: formattedLeads,
+        pagination: {
+          total: totalCount,
+          page: parseInt(page),
+          limit: parseInt(limit),
+          pages: Math.ceil(totalCount / parseInt(limit))
+        }
+      });
+    } catch (error) {
+      console.error('Error in compatibility search endpoint:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
   
   // ZIP code search endpoint
   app.post('/api/zip-search-new/search-zip', (req, res) => {
@@ -612,6 +697,95 @@ const startServer = async () => {
       });
     } catch (error) {
       console.error('Error creating lead:', error);
+      res.status(500).json({ 
+        success: false,
+        message: 'Failed to create lead',
+        error: error.message 
+      });
+    }
+  });
+
+  // Compatibility alias: POST /api/leads (same behavior as /api/zip-search-new/add-lead)
+  app.post('/api/leads', validateBody(LeadCreateZ), (req, res) => {
+    try {
+      const {
+        address,
+        owner_name,
+        phone,
+        email,
+        estimated_value,
+        equity,
+        motivation_score,
+        temperature_tag,
+        source_type,
+        is_probate,
+        is_vacant,
+        condition_score,
+        notes,
+        status,
+        attom_id
+      } = req.body;
+
+      const uuid = crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+      const now = new Date().toISOString();
+
+      const existingLead = db.prepare('SELECT id FROM leads WHERE address = ?').get(address);
+      if (existingLead) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'A lead with this address already exists',
+          existingId: existingLead.id 
+        });
+      }
+
+      let tableCols = [];
+      try { tableCols = db.prepare('PRAGMA table_info(leads)').all(); } catch (_) { tableCols = []; }
+      const colSet = new Set(Array.isArray(tableCols) ? tableCols.map(c => c.name) : []);
+
+      const safeMotivation = (typeof motivation_score === 'number' && !Number.isNaN(motivation_score)) ? motivation_score : 50;
+      const safeTemperature = temperature_tag || getTemperatureTag(safeMotivation);
+      const safeCondition = (typeof condition_score === 'number' && !Number.isNaN(condition_score)) ? condition_score : 50;
+
+      const fieldMap = {
+        id: uuid,
+        address,
+        owner_name: owner_name || null,
+        phone: phone || null,
+        email: email || null,
+        estimated_value: (typeof estimated_value === 'number' && !Number.isNaN(estimated_value)) ? estimated_value : null,
+        equity: (typeof equity === 'number' && !Number.isNaN(equity)) ? equity : null,
+        motivation_score: safeMotivation,
+        temperature_tag: safeTemperature,
+        source_type: source_type || 'attom',
+        is_probate: is_probate ? 1 : 0,
+        is_vacant: is_vacant ? 1 : 0,
+        condition_score: safeCondition,
+        notes: notes || null,
+        status: status || 'new',
+        created_at: now,
+        updated_at: now,
+        attom_id: attom_id || null
+      };
+
+      if (!colSet.has('temperature_tag')) delete fieldMap.temperature_tag;
+
+      const columns = [];
+      const values = [];
+      for (const [col, val] of Object.entries(fieldMap)) {
+        if (colSet.has(col)) { columns.push(col); values.push(val); }
+      }
+
+      if (columns.length === 0) {
+        return res.status(500).json({ success: false, message: 'Leads table has no recognized columns' });
+      }
+
+      const placeholders = columns.map(() => '?').join(', ');
+      const insertSql = `INSERT INTO leads (${columns.join(', ')}) VALUES (${placeholders})`;
+      db.prepare(insertSql).run(...values);
+
+      res.json({ success: true, message: 'Lead created successfully', leadId: uuid });
+    } catch (error) {
+      console.error('Error creating lead (alias):', error);
       res.status(500).json({ 
         success: false,
         message: 'Failed to create lead',
