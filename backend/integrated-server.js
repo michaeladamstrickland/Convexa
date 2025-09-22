@@ -1653,11 +1653,15 @@ const startServer = async () => {
           size += st.size;
           if (!createdAt || st.ctimeMs < createdAt) createdAt = st.ctimeMs;
         }
-        const rel = `${runId}/report.json`;
         const exp = Math.floor(Date.now() / 1000) + defaultTtl;
-        const sig = signUtil(rel, exp, process.env.ARTIFACT_SIGNING_SECRET || 'dev-secret');
-        const signedUrl = `/admin/artifact-download?path=${encodeURIComponent(rel)}&exp=${exp}&sig=${sig}`;
-        return { runId, createdAt: createdAt ? new Date(createdAt).toISOString() : null, size, signedUrl };
+        const relReport = `${runId}/report.json`;
+        const sigRep = signUtil(relReport, exp, process.env.ARTIFACT_SIGNING_SECRET || 'dev-secret');
+        const signedUrl = `/admin/artifact-download?path=${encodeURIComponent(relReport)}&exp=${exp}&sig=${sigRep}`; // back-compat field
+        const reportUrl = signedUrl;
+        const relCsv = `${runId}/enriched.csv`;
+        const csvAbs = path.join(ARTIFACT_ROOT, relCsv);
+        const csvUrl = fs.existsSync(csvAbs) ? `/admin/artifact-download?path=${encodeURIComponent(relCsv)}&exp=${exp}&sig=${signUtil(relCsv, exp, process.env.ARTIFACT_SIGNING_SECRET || 'dev-secret')}` : null;
+        return { runId, createdAt: createdAt ? new Date(createdAt).toISOString() : null, size, signedUrl, reportUrl, csvUrl };
       });
       res.json(items);
     } catch (e) {
@@ -1858,6 +1862,287 @@ const startServer = async () => {
   });
 
   // Resume endpoint is now mounted at POST /admin/skiptrace-runs/:runId/resume
+  
+  // === START RUN ENDPOINT (seed + optional async processor) ===
+  const StartRunZ = z.object({
+    leadIds: z.array(z.string()).optional(),
+    limit: z.number().int().min(1).max(1000).optional().default(20),
+    label: z.string().min(1).optional().default('qa-resume-smoke'),
+    softPauseAt: z.number().int().min(1).optional().default(5),
+    demo: z.boolean().optional(),
+    seedOnly: z.boolean().optional().default(false)
+  });
+
+  function ensureRunTables(dbx) {
+    try {
+      dbx.exec(`CREATE TABLE IF NOT EXISTS skiptrace_runs (
+        run_id TEXT PRIMARY KEY,
+        source_label TEXT,
+        started_at DATETIME,
+        finished_at DATETIME,
+        total INTEGER DEFAULT 0,
+        queued INTEGER DEFAULT 0,
+        in_flight INTEGER DEFAULT 0,
+        done INTEGER DEFAULT 0,
+        failed INTEGER DEFAULT 0,
+        soft_paused INTEGER DEFAULT 0
+      );`);
+    } catch (_) {}
+    try {
+      dbx.exec(`CREATE TABLE IF NOT EXISTS skiptrace_run_items (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        run_id TEXT NOT NULL,
+        lead_id TEXT NOT NULL,
+        status TEXT NOT NULL,
+        attempt INTEGER DEFAULT 0,
+        idem_key TEXT,
+        last_error TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME
+      );`);
+    } catch (_) {}
+    try {
+      const cols = dbx.prepare('PRAGMA table_info(skiptrace_run_items)').all().map(c => c.name);
+      if (!cols.includes('updated_at')) {
+        dbx.exec('ALTER TABLE skiptrace_run_items ADD COLUMN updated_at DATETIME');
+      }
+    } catch (_) {}
+  }
+
+  // Helper to write enriched.csv under ARTIFACT_ROOT
+  function writeEnrichedCsv(runId) {
+    try {
+      const dir = path.resolve(ARTIFACT_ROOT, runId);
+      fs.mkdirSync(dir, { recursive: true });
+      const csvPath = path.join(dir, 'enriched.csv');
+      const out = [];
+      out.push(['LeadID','Address','Owner','Phone1','Phone2','Phone3','Email1','Email2','Email3','PhonesCount','EmailsCount','HasDNC','Provider','Cached'].join(','));
+      // Determine identifier column available for join
+      let sriCols = [];
+      try { sriCols = db.prepare('PRAGMA table_info(skiptrace_run_items)').all(); } catch (_) { sriCols = []; }
+      const colsSet = new Set(Array.isArray(sriCols) ? sriCols.map(c => c.name) : []);
+      const sriLeadCol = colsSet.has('lead_id') ? 'lead_id' : (colsSet.has('item_id') ? 'item_id' : (colsSet.has('leadId') ? 'leadId' : null));
+      let rows = [];
+      if (sriLeadCol) {
+        const sql = `SELECT l.id as lead_id, l.address, l.owner_name FROM leads l WHERE l.id IN (SELECT ${sriLeadCol} FROM skiptrace_run_items WHERE run_id = ?)`;
+        try { rows = db.prepare(sql).all(runId); } catch(_) { rows = []; }
+      }
+      // Helpers to check optional columns
+      let leadsCols = [];
+      try { leadsCols = db.prepare('PRAGMA table_info(leads)').all(); } catch(_) { leadsCols = []; }
+      const leadsHas = (c) => Array.isArray(leadsCols) && leadsCols.some(x => x.name === c);
+      // Prepare phone/email queries
+      const hasTable = (name) => { try { return !!db.prepare("SELECT 1 FROM sqlite_master WHERE type='table' AND name=?").get(name); } catch(_) { return false; } };
+      const pnTable = hasTable('phone_numbers');
+      let pnCols = [];
+      if (pnTable) { try { pnCols = db.prepare('PRAGMA table_info(phone_numbers)').all(); } catch(_) { pnCols = []; } }
+      const pnLeadCol = pnCols.some(c => c.name === 'lead_id') ? 'lead_id' : (pnCols.some(c => c.name === 'leadId') ? 'leadId' : null);
+      const pnNumCol = pnCols.some(c => c.name === 'phone_number') ? 'phone_number' : (pnCols.some(c => c.name === 'phone') ? 'phone' : null);
+      const qPhones = pnTable && pnLeadCol && pnNumCol ? db.prepare(`SELECT ${pnNumCol} as phone_number FROM phone_numbers WHERE ${pnLeadCol} = ? ORDER BY is_primary DESC, confidence DESC LIMIT 3`) : null;
+      const emTable = hasTable('email_addresses');
+      let emCols = [];
+      if (emTable) { try { emCols = db.prepare('PRAGMA table_info(email_addresses)').all(); } catch(_) { emCols = []; } }
+      const emLeadCol = emCols.some(c => c.name === 'lead_id') ? 'lead_id' : (emCols.some(c => c.name === 'leadId') ? 'leadId' : null);
+      const emAddrCol = emCols.some(c => c.name === 'email_address') ? 'email_address' : (emCols.some(c => c.name === 'email') ? 'email' : null);
+      const qEmails = emTable && emLeadCol && emAddrCol ? db.prepare(`SELECT ${emAddrCol} as email_address FROM email_addresses WHERE ${emLeadCol} = ? ORDER BY is_primary DESC, confidence DESC LIMIT 3`) : null;
+      // Determine provider/cached from skip_trace_logs
+      let stlCols = [];
+      try { stlCols = db.prepare('PRAGMA table_info(skip_trace_logs)').all(); } catch(_) { stlCols = []; }
+      const stlHas = (c) => Array.isArray(stlCols) && stlCols.some(x => x.name === c);
+      const stlLeadCol = stlCols.some(c => c.name === 'lead_id') ? 'lead_id' : (stlCols.some(c => c.name === 'leadId') ? 'leadId' : null);
+      const qProv = stlLeadCol ? (stlHas('cached')
+        ? db.prepare(`SELECT provider, cached FROM skip_trace_logs WHERE ${stlLeadCol} = ? ORDER BY id DESC LIMIT 1`)
+        : db.prepare(`SELECT provider FROM skip_trace_logs WHERE ${stlLeadCol} = ? ORDER BY id DESC LIMIT 1`)) : null;
+      for (const r of rows) {
+        const phones = qPhones ? qPhones.all(r.lead_id).map(row => row.phone_number) : [];
+        const emails = qEmails ? qEmails.all(r.lead_id).map(row => row.email_address) : [];
+        const provRow = qProv ? (qProv.get(r.lead_id) || {}) : {};
+        const prov = { provider: provRow.provider || '', cached: stlHas('cached') ? (provRow.cached ? 1 : 0) : 0 };
+        const phonesCount = leadsHas('phones_count') ? (db.prepare('SELECT phones_count as c FROM leads WHERE id = ?').get(r.lead_id)?.c || phones.length) : phones.length;
+        const emailsCount = leadsHas('emails_count') ? (db.prepare('SELECT emails_count as c FROM leads WHERE id = ?').get(r.lead_id)?.c || emails.length) : emails.length;
+        const hasDnc = leadsHas('has_dnc') ? (db.prepare('SELECT has_dnc as d FROM leads WHERE id = ?').get(r.lead_id)?.d || 0) : 0;
+        out.push([
+          r.lead_id,
+          r.address || '',
+          r.owner_name || '',
+          phones[0] || '', phones[1] || '', phones[2] || '',
+          emails[0] || '', emails[1] || '', emails[2] || '',
+          phonesCount || 0,
+          emailsCount || 0,
+          hasDnc || 0,
+          prov.provider || '',
+          prov.cached ? 1 : 0
+        ].join(','));
+      }
+      fs.writeFileSync(csvPath, out.join('\n'));
+    } catch (e) {
+      console.warn('writeEnrichedCsv failed:', e?.message || e);
+    }
+  }
+
+  app.post('/api/skiptrace-runs/start', async (req, res) => {
+    try {
+      const parsed = StartRunZ.safeParse(req.body || {});
+      if (!parsed.success) {
+        const issue = parsed.error.issues[0];
+        const field = Array.isArray(issue?.path) ? issue.path.join('.') : undefined;
+        return sendProblem(res, 'validation_error', issue?.message || 'Invalid request body', field, 400);
+      }
+      const { leadIds, limit, label, softPauseAt, demo, seedOnly } = parsed.data;
+
+      ensureRunTables(db);
+
+      const runId = (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random().toString(36).slice(2));
+      const nowIso = new Date().toISOString();
+
+      // Resolve the lead set
+      let ids = Array.isArray(leadIds) && leadIds.length > 0 ? leadIds.slice(0, limit || 20) : [];
+      if (ids.length === 0) {
+        try {
+          const rows = db.prepare('SELECT id FROM leads ORDER BY created_at DESC LIMIT ?').all(limit || 20);
+          ids = rows.map(r => r.id);
+        } catch (_) { ids = []; }
+      }
+
+      // Insert run row (schema tolerant)
+      let runCols = [];
+      try { runCols = db.prepare('PRAGMA table_info(skiptrace_runs)').all(); } catch(_) { runCols = []; }
+      const runHas = (c) => Array.isArray(runCols) && runCols.some(x => x.name === c);
+      const runMap = { run_id: runId, source_label: label, started_at: nowIso, total: ids.length, queued: ids.length, soft_paused: 0 };
+      const rCols = []; const rVals = [];
+      for (const [k,v] of Object.entries(runMap)) { if (runHas(k)) { rCols.push(k); rVals.push(v); } }
+      if (rCols.length === 0) return res.status(500).json({ success: false, error: 'skiptrace_runs has no expected columns' });
+      const rSql = `INSERT INTO skiptrace_runs (${rCols.join(',')}) VALUES (${rCols.map(()=>'?').join(',')})`;
+      db.prepare(rSql).run(...rVals);
+
+      // Insert items
+      let sriCols = [];
+      try { sriCols = db.prepare('PRAGMA table_info(skiptrace_run_items)').all(); } catch(_) { sriCols = []; }
+      const sriHas = (c) => Array.isArray(sriCols) && sriCols.some(x => x.name === c);
+      const itemCols = ['run_id','lead_id','status'];
+      if (sriHas('attempt')) itemCols.push('attempt');
+      if (sriHas('idem_key')) itemCols.push('idem_key');
+      if (sriHas('last_error')) itemCols.push('last_error');
+      const iSql = `INSERT INTO skiptrace_run_items (${itemCols.join(',')}) VALUES (${itemCols.map(()=>'?').join(',')})`;
+      const insItem = db.prepare(iSql);
+      let countSeeded = 0;
+      for (const id of ids) {
+        const vals = [runId, id, 'queued'];
+        if (sriHas('attempt')) vals.push(0);
+        if (sriHas('idem_key')) vals.push('');
+        if (sriHas('last_error')) vals.push(null);
+        try { insItem.run(...vals); countSeeded++; } catch(_) {}
+      }
+
+      const demoMode = typeof demo === 'boolean' ? demo : (String(process.env.SKIP_TRACE_DEMO_MODE || 'true').toLowerCase() === 'true');
+
+      if (!seedOnly) {
+        (async () => {
+          try {
+            const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+            for (;;) {
+              // pause gate
+              try {
+                const paused = db.prepare('SELECT soft_paused AS s FROM skiptrace_runs WHERE run_id = ?').get(runId);
+                if (paused && paused.s) { await sleep(2000); continue; }
+              } catch (_) {}
+              const item = db.prepare(`SELECT lead_id FROM skiptrace_run_items WHERE run_id = ? AND status IN ('queued','in_flight') ORDER BY id ASC LIMIT 1`).get(runId);
+              if (!item) break;
+              const leadId = item.lead_id;
+              const now = new Date().toISOString();
+              try {
+                const sets = ["status='in_flight'"]; const vals = [];
+                if (sriHas('attempt')) sets.push('attempt=attempt+1');
+                if (sriHas('updated_at')) { sets.push('updated_at=?'); vals.push(now); }
+                const upSql = `UPDATE skiptrace_run_items SET ${sets.join(', ')} WHERE run_id=? AND lead_id=?`;
+                vals.push(runId, leadId);
+                db.prepare(upSql).run(...vals);
+              } catch (_) {}
+              let success = false; let errMsg = null;
+              try {
+                const lead = db.prepare('SELECT * FROM leads WHERE id = ?').get(leadId);
+                if (!lead) throw new Error('Lead not found');
+                if (demoMode) {
+                  const r = skipTraceService.generateDemoResult(leadId, lead);
+                  skipTraceService.saveResult(r, false, 'demo');
+                  success = true;
+                } else {
+                  const r = await skipTraceService.skipTraceLeadById(leadId, { forceRefresh: false, useFallback: false, maxRetries: 0, runId });
+                  success = !!(r && r.success);
+                  if (!success) errMsg = r && (r.error || r.message) || 'unknown';
+                }
+              } catch (e) {
+                success = false; errMsg = e?.message || String(e);
+              }
+              try {
+                if (success) {
+                  const sets = ["status='done'"]; const vals = [];
+                  if (sriHas('last_error')) { sets.push('last_error=NULL'); }
+                  if (sriHas('updated_at')) { sets.push('updated_at=?'); vals.push(new Date().toISOString()); }
+                  const sqlD = `UPDATE skiptrace_run_items SET ${sets.join(', ')} WHERE run_id=? AND lead_id=?`;
+                  vals.push(runId, leadId);
+                  db.prepare(sqlD).run(...vals);
+                  try {
+                    const runSets = [];
+                    if (runHas('done')) runSets.push('done=COALESCE(done,0)+1');
+                    if (runHas('queued')) runSets.push('queued=MAX(COALESCE(queued,0)-1,0)');
+                    if (runSets.length) db.prepare(`UPDATE skiptrace_runs SET ${runSets.join(', ')} WHERE run_id=?`).run(runId);
+                  } catch(_) {}
+                } else {
+                  const sets = ["status='failed'"]; const vals = [];
+                  if (sriHas('last_error')) { sets.push('last_error=?'); vals.push(errMsg || 'unknown'); }
+                  if (sriHas('updated_at')) { sets.push('updated_at=?'); vals.push(new Date().toISOString()); }
+                  const sqlF = `UPDATE skiptrace_run_items SET ${sets.join(', ')} WHERE run_id=? AND lead_id=?`;
+                  vals.push(runId, leadId);
+                  db.prepare(sqlF).run(...vals);
+                  try {
+                    const runSets = [];
+                    if (runHas('failed')) runSets.push('failed=COALESCE(failed,0)+1');
+                    if (runHas('queued')) runSets.push('queued=MAX(COALESCE(queued,0)-1,0)');
+                    if (runSets.length) db.prepare(`UPDATE skiptrace_runs SET ${runSets.join(', ')} WHERE run_id=?`).run(runId);
+                  } catch(_) {}
+                }
+              } catch (_) {}
+
+              // Soft pause at threshold
+              try {
+                const r = db.prepare('SELECT COALESCE(done,0) AS d, COALESCE(failed,0) AS f FROM skiptrace_runs WHERE run_id=?').get(runId) || { d:0,f:0 };
+                const processed = (r.d || 0) + (r.f || 0);
+                if (processed === softPauseAt) {
+                  try { db.prepare('UPDATE skiptrace_runs SET soft_paused=1 WHERE run_id=?').run(runId); } catch(_) {}
+                  for (;;) {
+                    const paused2 = db.prepare('SELECT soft_paused AS s FROM skiptrace_runs WHERE run_id = ?').get(runId);
+                    if (!paused2 || !paused2.s) break;
+                    await (new Promise(r => setTimeout(r, 3000)));
+                  }
+                }
+              } catch (_) {}
+            }
+            try {
+              const sets = [];
+              if (runHas('queued')) sets.push('queued=0');
+              if (runHas('finished_at')) sets.push("finished_at=datetime('now')");
+              if (sets.length) db.prepare(`UPDATE skiptrace_runs SET ${sets.join(', ')} WHERE run_id=?`).run(runId);
+            } catch (_) {}
+            // Generate artifacts under STORAGE_ROOT
+            try {
+              const rep = generateRunReport(db, runId);
+              const dir = path.resolve(ARTIFACT_ROOT, runId);
+              fs.mkdirSync(dir, { recursive: true });
+              fs.writeFileSync(path.join(dir, 'report.json'), JSON.stringify(rep, null, 2));
+            } catch (e) { console.warn('report generation failed:', e?.message || e); }
+            try { writeEnrichedCsv(runId); } catch (_) {}
+          } catch (e) {
+            console.warn('run processor error:', e?.message || e);
+          }
+        })();
+      }
+
+      return res.json({ success: true, run_id: runId, countSeeded });
+    } catch (e) {
+      return sendProblem(res, 'run_start_error', String(e?.message || e), undefined, 500);
+    }
+  });
   
   // === ATTOM API ENDPOINTS ===
   
