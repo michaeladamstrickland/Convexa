@@ -37,7 +37,7 @@ Authoritative server: `backend/integrated-server.js` (Node 20, Express, better-s
 ## Ticket tracker
 
 ### PI0-APP-1 — CSV Import + Dedupe + Audit
-- Status: [ ] Not started
+- Status: [x] In progress
 - Labels: import, ui, zod
 - Depends on: PI0-OPS-6 (secrets/gating confirmed)
 - Acceptance Criteria
@@ -47,8 +47,8 @@ Authoritative server: `backend/integrated-server.js` (Node 20, Express, better-s
   - Operator UI: `/ops/import` page (upload → preview → commit → link to audit & leads).
 - Implementation notes
   - Endpoints:
-    - POST `/admin/import/csv` multipart/form-data or `text/csv`. Query/body: `{ preview?: boolean; commit?: boolean; label?: string }`.
-    - GET `/ops/import` renders upload form + preview table + commit action.
+    - POST `/admin/import/csv?mode=preview|commit` multipart/form-data (field `file`).
+    - GET `/ops/import` renders upload form + preview table + commit action (admin-only).
   - Zod validation:
     - Row schema: `{ address: string; city?: string; state?: string; zip?: string; owner_name?: string; email?: string; phone?: string; notes?: string }` with address required and normalization step.
     - Preview returns `{ total, valid, warnings, errors, sample: [...] }`.

@@ -212,6 +212,19 @@ Legend
   - Auth: signed URL only (HMAC, ttl)
   - Errors: 403 invalid/expired signature; 404 not found
 
+- POST /admin/import/csv?mode=preview|commit
+  - File: backend/integrated-server.js
+  - Auth: admin (basic auth in staging)
+  - Upload: multipart/form-data with field `file` (CSV; max 10MB)
+  - Preview Res: { ok, preview: { rows_total, rows_valid, rows_invalid, would_create, would_merge, would_skip, sample_errors[] } }
+  - Commit Res: { ok, created, merged, skipped, artifact: { auditUrl } }
+  - Errors: 400 validation_error; 413 payload_too_large; 415 unsupported_media_type
+
+- GET /ops/import
+  - File: backend/integrated-server.js
+  - Auth: admin-only page (gated by /admin basic auth config)
+  - Description: Server-rendered UI for Import flow (upload → preview → commit)
+
 ## Proposed routes (scaffold only)
 
 - GET /admin/artifacts
