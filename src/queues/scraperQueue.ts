@@ -1,6 +1,7 @@
 import { Queue } from 'bullmq';
 import { registerQueue } from './index';
 import { parseScraperJobPayload, ScraperJobPayload } from '../../backend/src/packages/schemas';
+import { queueDepth, dlqDepth } from '../server';
 
 const connection = { 
   connection: { 
@@ -21,6 +22,23 @@ export function getScraperQueue() {
   }
   return _scraperQueue;
 }
+
+async function updateQueueMetrics() {
+  try {
+    const queue = getScraperQueue();
+    const waitingCount = await queue.getWaitingCount();
+    const failedCount = await queue.getFailedCount();
+
+    queueDepth.set({ queue_name: SCRAPER_QUEUE_NAME }, waitingCount);
+    dlqDepth.set({ queue_name: SCRAPER_QUEUE_NAME }, failedCount);
+  } catch (error) {
+    console.error('Error updating queue metrics:', error);
+  }
+}
+
+// Start updating queue metrics periodically
+setInterval(updateQueueMetrics, 15000); // Update every 15 seconds
+
 export const scraperQueue = getScraperQueue();
 
 export async function shutdownScraperQueue() {

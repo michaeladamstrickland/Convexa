@@ -1,8 +1,9 @@
-import express from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import winston from 'winston';
 import axios from 'axios';
+import client, { Counter, Gauge, register } from 'prom-client';
 // import { ObituaryDeathMiner } from './intelligence/obituaryDeathMiner';
 import { RevenueMetrics, LeadProfile, ProcessedDeal } from './types';
 import searchRoutes from './routes/searchRoutes';
@@ -18,6 +19,7 @@ import dealRoutes from './routes/dealRoutes';
 import os from 'os';
 import skipTraceRoutes from './routes/skipTraceRoutes';
 import { basicAuthMiddleware } from './middleware/basicAuth';
+import { redactPIIInObject } from './utils/piiRedactor';
 
 // Load environment variables
 dotenv.config();
@@ -40,6 +42,46 @@ const logger = winston.createLogger({
   ]
 });
 
+// Initialize Prometheus metrics
+export const httpRequestErrorsTotal = new Counter({
+  name: 'http_requests_errors_total',
+  help: 'Total number of HTTP requests that resulted in a 5xx error.',
+  labelNames: ['method', 'path', 'status'],
+});
+
+export const convexaCacheHitTotal = new Counter({
+  name: 'convexa_cache_hit_total',
+  help: 'Total number of cache hits.',
+  labelNames: ['operation', 'cache_name'],
+});
+
+export const convexaCacheTotal = new Counter({
+  name: 'convexa_cache_total',
+  help: 'Total number of cache operations (hits + misses).',
+  labelNames: ['operation', 'cache_name'],
+});
+
+export const convexaQuotaFraction = new Gauge({
+  name: 'convexa_quota_fraction',
+  help: 'Fraction of configured budget/quota currently used (0-1).',
+  labelNames: ['resource'],
+});
+
+export const queueDepth = new Gauge({
+  name: 'queue_depth',
+  help: 'Current depth of processing queues.',
+  labelNames: ['queue_name'],
+});
+
+export const dlqDepth = new Gauge({
+  name: 'dlq_depth',
+  help: 'Current depth of dead-letter queues.',
+  labelNames: ['queue_name'],
+});
+
+// Register default metrics
+client.collectDefaultMetrics();
+
 class LeadFlowAIServer {
   private app: express.Application;
   private obituaryMiner: any; // temporarily any (obituary miner disabled in test context)
@@ -59,13 +101,31 @@ class LeadFlowAIServer {
     this.app.use(express.json());
     this.app.use(express.urlencoded({ extended: true }));
     
-    // Request logging
+    // Request logging with PII redaction
     this.app.use((req, res, next) => {
-      logger.info(`${req.method} ${req.path}`, { 
-        ip: req.ip, 
-        userAgent: req.get('User-Agent') 
+      const redactedMeta = redactPIIInObject({
+        ip: req.ip,
+        userAgent: req.get('User-Agent'),
+        body: req.body, // Redact request body
+      });
+      logger.info(`${req.method} ${req.path}`, {
+        ip: redactedMeta.ip,
+        userAgent: redactedMeta.userAgent,
+        body: redactedMeta.body,
       });
       next();
+    });
+
+    // Error metrics middleware
+    this.app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+      if (res.statusCode >= 500 && res.statusCode < 600) {
+        httpRequestErrorsTotal.inc({
+          method: req.method,
+          path: req.path,
+          status: res.statusCode,
+        });
+      }
+      next(err);
     });
   }
 
@@ -85,6 +145,12 @@ class LeadFlowAIServer {
 
     // Apply basic auth to /metrics endpoint
     this.app.use('/metrics', basicAuthMiddleware);
+
+    // Prometheus metrics endpoint
+    this.app.get('/metrics', async (req, res) => {
+      res.set('Content-Type', register.contentType);
+      res.end(await register.metrics());
+    });
 
     // Lightweight proxy to integrated ATTOM server (port 5002)
     // Allows frontend to use a single base URL (http://localhost:3001/api)
@@ -138,44 +204,6 @@ class LeadFlowAIServer {
       });
     });
 
-    // Minimal Prometheus metrics exposition
-    this.app.get('/metrics', (req, res) => {
-      res.set('Content-Type', 'text/plain; version=0.0.4');
-      const now = Math.floor(Date.now() / 1000);
-      const buildVersion = '1.0.0';
-      const lines: string[] = [];
-      // Build info
-      lines.push('# HELP leadflow_build_info Build information');
-      lines.push('# TYPE leadflow_build_info gauge');
-      lines.push(`leadflow_build_info{version="${buildVersion}",host="${os.hostname()}"} 1 ${now}`);
-      lines.push('# HELP convexa_build_info Build information');
-      lines.push('# TYPE convexa_build_info gauge');
-      lines.push(`convexa_build_info{version="${buildVersion}",host="${os.hostname()}"} 1 ${now}`);
-      // Webhook replay counters
-      lines.push('# TYPE leadflow_webhook_replay_total counter');
-      lines.push('leadflow_webhook_replay_total{mode="single",status="success"} 0');
-      lines.push('leadflow_webhook_replay_total{mode="single",status="failed"} 0');
-      lines.push('leadflow_webhook_replay_total{mode="bulk",status="success"} 0');
-      // Enrichment metrics
-      lines.push('# TYPE leadflow_enrichment_processed_total counter');
-      lines.push('leadflow_enrichment_processed_total 0');
-      lines.push('# TYPE leadflow_enrichment_duration_ms histogram');
-      lines.push('leadflow_enrichment_duration_ms_bucket{le="+Inf"} 0');
-      // Properties enriched gauge
-      lines.push('# TYPE leadflow_properties_enriched_gauge gauge');
-      lines.push('leadflow_properties_enriched_gauge 0');
-      // Export counters
-      lines.push('# TYPE leadflow_export_total counter');
-      lines.push('leadflow_export_total{format="json"} 0');
-      lines.push('leadflow_export_total{format="csv"} 0');
-      // Matchmaking job counters
-      lines.push('# TYPE leadflow_matchmaking_jobs_total counter');
-      lines.push('leadflow_matchmaking_jobs_total{status="queued"} 0');
-      // Mirror to convexa_* for rebrand compatibility
-      lines.push('# TYPE convexa_matchmaking_jobs_total counter');
-      lines.push('convexa_matchmaking_jobs_total{status="queued"} 0');
-      res.send(lines.join('\n') + '\n');
-    });
 
     // Revenue dashboard
     this.app.get('/revenue', (req, res) => {

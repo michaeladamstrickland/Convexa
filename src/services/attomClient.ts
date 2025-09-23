@@ -2,6 +2,7 @@ import axios, { AxiosError, AxiosInstance } from 'axios';
 import * as dotenv from 'dotenv';
 import { normalizeAddress } from '../utils/addressNormalization';
 import { makeClient, logApiCall, retryWithBackoff } from '../utils/vendorClient';
+import { convexaCacheHitTotal, convexaCacheTotal, convexaQuotaFraction } from '../server';
 
 dotenv.config();
 
@@ -40,6 +41,7 @@ export class AttomClient {
     
     // Reset the daily spend counter if it's a new day
     this.checkDailyReset();
+    this.updateQuotaMetrics(); // Initial update
   }
 
   /**
@@ -59,6 +61,7 @@ export class AttomClient {
     const cached = this.getFromCache(cacheKey);
     if (cached) {
       console.log(`Cache hit for address: ${normalizedAddress}`);
+      convexaCacheHitTotal.inc({ operation: 'get', cache_name: 'attom_client' });
       return cached;
     }
     
@@ -116,6 +119,7 @@ export class AttomClient {
     const cached = this.getFromCache(cacheKey);
     if (cached) {
       console.log(`Cache hit for ZIP code: ${zipCode}`);
+      convexaCacheHitTotal.inc({ operation: 'get', cache_name: 'attom_client' });
       return cached;
     }
     
@@ -185,6 +189,7 @@ export class AttomClient {
     const cached = this.getFromCache(cacheKey);
     if (cached) {
       console.log(`Cache hit for ATTOM ID: ${attomId}`);
+      convexaCacheHitTotal.inc({ operation: 'get', cache_name: 'attom_client' });
       return cached;
     }
     
@@ -316,6 +321,7 @@ export class AttomClient {
     } catch (error) {
       console.error('Error tracking API usage:', error);
     }
+    this.updateQuotaMetrics(); // Update after API usage
   }
   
   /**
@@ -385,6 +391,7 @@ export class AttomClient {
    * Add item to cache
    */
   private addToCache(key: string, data: any) {
+    convexaCacheTotal.inc({ operation: 'set', cache_name: 'attom_client' });
     this.cache.set(key, {
       data,
       timestamp: Date.now()
@@ -395,6 +402,7 @@ export class AttomClient {
    * Get item from cache, return null if expired
    */
   private getFromCache(key: string) {
+    convexaCacheTotal.inc({ operation: 'get', cache_name: 'attom_client' });
     const cached = this.cache.get(key);
     if (!cached) return null;
     
@@ -405,6 +413,14 @@ export class AttomClient {
     }
     
     return cached.data;
+  }
+
+  /**
+   * Update the convexa_quota_fraction metric.
+   */
+  private updateQuotaMetrics() {
+    const quotaFraction = this.dailyCap > 0 ? this.dailySpendCents / this.dailyCap : 0;
+    convexaQuotaFraction.set({ resource: 'attom_api' }, quotaFraction);
   }
   
   /**

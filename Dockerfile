@@ -12,6 +12,10 @@ COPY backend ./backend
 COPY ops ./ops
 COPY infra ./infra
 
+# Cache-busting build arg/env to force fresh image on deploy
+ARG BUILD_REV=unknown
+ENV BUILD_REV=${BUILD_REV}
+
 ENV NODE_ENV=production
 ENV PORT=8080
 ENV SQLITE_DB_PATH=/data/convexa.db

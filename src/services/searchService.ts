@@ -1,5 +1,6 @@
 import { PrismaClient, Prisma } from '@prisma/client';
 import NodeCache from 'node-cache';
+import { convexaCacheHitTotal, convexaCacheTotal } from '../server';
 
 // Initialize Prisma client
 const prisma = new PrismaClient();
@@ -52,8 +53,10 @@ export class SearchService {
     const cacheKey = JSON.stringify(params);
     
     // Check cache first
+    convexaCacheTotal.inc({ operation: 'get', cache_name: 'search_leads' });
     const cachedResults = cache.get(cacheKey);
     if (cachedResults) {
+      convexaCacheHitTotal.inc({ operation: 'get', cache_name: 'search_leads' });
       return cachedResults;
     }
 
@@ -144,6 +147,7 @@ export class SearchService {
       };
       
       // Cache the results
+      convexaCacheTotal.inc({ operation: 'set', cache_name: 'search_leads' });
       cache.set(cacheKey, results);
       
       return results;
@@ -160,8 +164,10 @@ export class SearchService {
     const cacheKey = 'lead_analytics';
     
     // Check cache
+    convexaCacheTotal.inc({ operation: 'get', cache_name: 'lead_analytics' });
     const cachedAnalytics = cache.get(cacheKey);
     if (cachedAnalytics) {
+      convexaCacheHitTotal.inc({ operation: 'get', cache_name: 'lead_analytics' });
       return cachedAnalytics;
     }
     
@@ -215,6 +221,7 @@ export class SearchService {
       };
       
       // Cache the results
+      convexaCacheTotal.inc({ operation: 'set', cache_name: 'lead_analytics' });
       cache.set(cacheKey, analytics);
       
       return analytics;
