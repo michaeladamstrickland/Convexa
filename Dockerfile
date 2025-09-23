@@ -3,6 +3,9 @@ FROM node:20-bullseye-slim
 
 WORKDIR /app
 
+# Build cache buster: copy a small rev file early
+COPY .railway-build-rev ./build-rev.txt
+
 # Install only production deps
 COPY package*.json ./
 RUN npm ci --only=production
