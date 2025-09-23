@@ -20,9 +20,10 @@ const setupDb = () => {
   
   try {
     const database = new BetterSqlite3(rootDbPath, { readonly: false });
-    console.log(`Connected to SQLite database with ${database.prepare('SELECT COUNT(*) as count FROM Lead').get().count} leads`);
+    const leadCountRow = database.prepare('SELECT COUNT(*) as count FROM Lead').get() as { count: number };
+    console.log(`Connected to SQLite database with ${leadCountRow.count} leads`);
     return database;
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error connecting to SQLite database:', error);
     return null;
   }
@@ -135,7 +136,8 @@ router.get('/search', (req: Request, res: Response) => {
       countSql += ' WHERE ' + whereClauses.join(' AND ');
     }
     
-    const totalCount = db.prepare(countSql).get(...params).total;
+  const totalRow = db.prepare(countSql).get(...params) as { total: number };
+  const totalCount = totalRow.total;
     
     // Add ORDER BY and pagination
     sql += ' ORDER BY created_at DESC';
@@ -179,7 +181,7 @@ router.get('/search', (req: Request, res: Response) => {
         pages: Math.ceil(totalCount / parseInt(limit as string))
       }
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error in experimental search endpoint:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
@@ -215,7 +217,7 @@ router.post('/search-zip', (req: Request, res: Response) => {
         motivationScore: lead.motivation_score
       }))
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error in experimental ZIP search endpoint:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
@@ -230,7 +232,7 @@ router.get('/revenue-analytics', (req: Request, res: Response) => {
     
     // Calculate total estimated value
     const totalValueResult = db.prepare('SELECT SUM(estimated_value) as totalValue FROM Lead')
-      .get();
+      .get() as { totalValue: number | null };
     
     // Get lead counts by source
     const leadsBySource = db.prepare('SELECT source as source, COUNT(*) as count FROM Lead GROUP BY source')
@@ -244,15 +246,15 @@ router.get('/revenue-analytics', (req: Request, res: Response) => {
     // Prepare response
     res.json({
       analytics: {
-        totalLeads: db.prepare('SELECT COUNT(*) as count FROM Lead').get().count,
-        totalEstimatedValue: totalValueResult.totalValue || 0,
-        avgMotivationScore: db.prepare('SELECT AVG(motivation_score) as avg FROM Lead').get().avg || 0,
+        totalLeads: (db.prepare('SELECT COUNT(*) as count FROM Lead').get() as { count: number }).count,
+        totalEstimatedValue: (totalValueResult.totalValue || 0),
+        avgMotivationScore: (db.prepare('SELECT AVG(motivation_score) as avg FROM Lead').get() as { avg: number | null }).avg || 0,
         leadsBySource,
         temperatureDistribution,
-        potentialRevenue: totalValueResult.totalValue * 0.05 // 5% of total value
+        potentialRevenue: (totalValueResult.totalValue || 0) * 0.05 // 5% of total value
       }
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error in experimental revenue analytics endpoint:', error);
     res.status(500).json({ error: 'Internal server error' });
   }

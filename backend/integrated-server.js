@@ -1515,6 +1515,7 @@ const startServer = async () => {
   let dialAttemptsCounter = null;
   let asrLatencyHist = null;
   let webhookErrorsCounter = null;
+  let dialDispositionCounter = null;
 
   // POST /dial — queue a dial attempt (stub provider OK)
   const DialRequestZ = z.object({
@@ -1617,6 +1618,56 @@ const startServer = async () => {
       return res.json({ success: true });
     } catch (e) {
       return sendProblem(res, 'asr_store_error', String(e?.message || e), undefined, 500);
+    }
+  });
+
+  // POST /dial/:dialId/notes — append free-text note
+  const DialNoteZ = z.object({ text: z.string().min(1) });
+  app.post('/dial/:dialId/notes', (req, res) => {
+    try {
+      const parsed = DialNoteZ.safeParse(req.body || {});
+      if (!parsed.success) {
+        const issue = parsed.error.issues[0];
+        const field = Array.isArray(issue?.path) ? issue.path.join('.') : undefined;
+        return sendProblem(res, 'validation_error', issue?.message || 'Invalid payload', field, 400);
+      }
+      const { dialId } = req.params;
+      const { text } = parsed.data;
+      const notesDir = path.resolve(STORAGE_ROOT, 'artifacts', 'dialer', 'notes');
+      fs.mkdirSync(notesDir, { recursive: true });
+      const line = `- [${new Date().toISOString()}] ${text}\n`;
+      fs.appendFileSync(path.join(notesDir, `${dialId}.md`), line);
+      return res.json({ success: true });
+    } catch (e) {
+      return sendProblem(res, 'dial_note_error', String(e?.message || e), undefined, 500);
+    }
+  });
+
+  // POST /dial/:dialId/disposition — record disposition and emit metric
+  const DispositionZ = z.object({
+    type: z.enum(['no_answer','voicemail','bad_number','interested','not_interested','follow_up']),
+    notes: z.string().optional()
+  });
+  app.post('/dial/:dialId/disposition', (req, res) => {
+    try {
+      const parsed = DispositionZ.safeParse(req.body || {});
+      if (!parsed.success) {
+        const issue = parsed.error.issues[0];
+        const field = Array.isArray(issue?.path) ? issue.path.join('.') : undefined;
+        return sendProblem(res, 'validation_error', issue?.message || 'Invalid payload', field, 400);
+      }
+      const { dialId } = req.params;
+      const { type, notes } = parsed.data;
+      // persist
+      const dispDir = path.resolve(STORAGE_ROOT, 'artifacts', 'dialer', 'dispositions');
+      fs.mkdirSync(dispDir, { recursive: true });
+      const rec = { dialId, type, notes: notes || null, at: new Date().toISOString() };
+      fs.writeFileSync(path.join(dispDir, `${dialId}.json`), JSON.stringify(rec, null, 2));
+      // metric
+      try { dialDispositionCounter && dialDispositionCounter.inc({ type }); } catch {}
+      return res.json({ success: true });
+    } catch (e) {
+      return sendProblem(res, 'dial_disposition_error', String(e?.message || e), undefined, 500);
     }
   });
 
@@ -2508,6 +2559,10 @@ const startServer = async () => {
       dialAttemptsCounter = new promClient.Counter({ name: 'dial_attempts_total', help: 'Dial attempts', labelNames: ['provider', 'status'] });
       asrLatencyHist = new promClient.Histogram({ name: 'asr_latency_seconds', help: 'ASR latency seconds', buckets: [0.1,0.25,0.5,1,2,5,10] });
       webhookErrorsCounter = new promClient.Counter({ name: 'webhook_errors_total', help: 'Webhook errors', labelNames: ['type'] });
+      // Dispositions metric
+      try {
+        dialDispositionCounter = new promClient.Counter({ name: 'dial_disposition_total', help: 'Dial dispositions', labelNames: ['type'] });
+      } catch {}
     } catch (e) {
       console.warn('Metrics init error:', e?.message || e);
     }
@@ -2533,6 +2588,101 @@ const startServer = async () => {
   } else {
     console.warn('prom-client not available; /metrics disabled');
   }
+
+  // === Operator UI (server-side rendered HTML) ===
+  app.get('/ops/leads', (req, res) => {
+    try {
+      const q = String(req.query.q || '').trim();
+      const page = Math.max(1, Number(req.query.page) || 1);
+      const limit = Math.max(1, Math.min(100, Number(req.query.limit) || 10));
+      let sql = 'SELECT * FROM leads';
+      const params = [];
+      const where = [];
+      if (q) { where.push('(address LIKE ? OR owner_name LIKE ?)'); params.push(`%${q}%`,`%${q}%`); }
+      if (where.length) sql += ' WHERE ' + where.join(' AND ');
+      const countSql = where.length ? `SELECT COUNT(*) as n FROM leads WHERE ${where.join(' AND ')}` : 'SELECT COUNT(*) as n FROM leads';
+      const total = db.prepare(countSql).get(...params).n;
+      sql += ' ORDER BY created_at DESC LIMIT ? OFFSET ?';
+      const offset = (page-1)*limit;
+      const rows = db.prepare(sql).all(...params, limit, offset);
+      const pages = Math.max(1, Math.ceil(total/limit));
+      const esc = (s) => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      const htmlRows = rows.map(r => `<tr><td><a href="/ops/leads/${encodeURIComponent(r.id)}">${esc(r.id)}</a></td><td>${esc(r.address)}</td><td>${esc(r.owner_name)}</td><td>${esc(r.status||'')}</td><td>${r.motivation_score ?? ''}</td></tr>`).join('');
+      const nav = `Page ${page}/${pages}`;
+      const queryStr = q ? `&q=${encodeURIComponent(q)}` : '';
+      const prev = page>1 ? `<a href="/ops/leads?page=${page-1}&limit=${limit}${queryStr}">Prev</a>` : '';
+      const next = page<pages ? `<a href="/ops/leads?page=${page+1}&limit=${limit}${queryStr}">Next</a>` : '';
+      const html = `<!doctype html><html><head><meta charset="utf-8"><title>Leads</title><style>body{font-family:system-ui,Segoe UI,Arial;padding:16px} table{border-collapse:collapse;width:100%} th,td{border:1px solid #ddd;padding:8px} th{background:#f8f8f8;text-align:left} .toolbar{margin-bottom:12px}</style></head><body>
+      <h1>Leads</h1>
+      <div class="toolbar">
+        <form method="GET" action="/ops/leads">
+          <input name="q" placeholder="Search..." value="${esc(q)}" />
+          <input name="limit" type="number" min="1" max="100" value="${limit}" />
+          <button type="submit">Apply</button>
+        </form>
+      </div>
+      <table><thead><tr><th>ID</th><th>Address</th><th>Owner</th><th>Status</th><th>Motivation</th></tr></thead>
+      <tbody>${htmlRows || '<tr><td colspan="5">No leads</td></tr>'}</tbody></table>
+      <div class="pager">${nav} ${prev} ${next}</div>
+      <p><a href="/ops/artifacts">Artifacts</a></p>
+      </body></html>`;
+      res.set('Content-Type','text/html; charset=utf-8').send(html);
+    } catch (e) { return sendProblem(res, 'ui_leads_error', String(e?.message || e), undefined, 500); }
+  });
+
+  app.get('/ops/leads/:id', (req, res) => {
+    try {
+      const { id } = req.params;
+      const r = db.prepare('SELECT * FROM leads WHERE id = ?').get(id);
+      if (!r) return res.status(404).send('<h1>Not found</h1>');
+      const esc = (s) => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      const html = `<!doctype html><html><head><meta charset="utf-8"><title>Lead ${esc(r.id)}</title><style>body{font-family:system-ui,Segoe UI,Arial;padding:16px} dt{font-weight:bold}</style></head><body>
+      <h1>Lead Detail</h1>
+      <p><a href="/ops/leads">← Back</a></p>
+      <dl>
+        <dt>ID</dt><dd>${esc(r.id)}</dd>
+        <dt>Address</dt><dd>${esc(r.address)}</dd>
+        <dt>Owner</dt><dd>${esc(r.owner_name)}</dd>
+        <dt>Status</dt><dd>${esc(r.status)}</dd>
+        <dt>Estimated Value</dt><dd>${esc(r.estimated_value)}</dd>
+        <dt>Equity</dt><dd>${esc(r.equity)}</dd>
+        <dt>Motivation</dt><dd>${esc(r.motivation_score)}</dd>
+        <dt>Temperature</dt><dd>${esc(r.temperature_tag)}</dd>
+        <dt>Phones Count</dt><dd>${esc(r.phones_count)}</dd>
+        <dt>Emails Count</dt><dd>${esc(r.emails_count)}</dd>
+        <dt>Has DNC</dt><dd>${esc(r.has_dnc)}</dd>
+        <dt>Created</dt><dd>${esc(r.created_at)}</dd>
+        <dt>Updated</dt><dd>${esc(r.updated_at)}</dd>
+      </dl>
+      <p><a href="/ops/artifacts">Artifacts</a></p>
+      </body></html>`;
+      res.set('Content-Type','text/html; charset=utf-8').send(html);
+    } catch (e) { return sendProblem(res, 'ui_lead_error', String(e?.message || e), undefined, 500); }
+  });
+
+  app.get('/ops/artifacts', (req, res) => {
+    try {
+      if (!fs.existsSync(ARTIFACT_ROOT)) return res.set('Content-Type','text/html').send('<h1>No artifacts</h1>');
+      const runs = fs.readdirSync(ARTIFACT_ROOT).filter(name => fs.statSync(path.join(ARTIFACT_ROOT, name)).isDirectory());
+      const exp = Math.floor(Date.now() / 1000) + defaultTtl;
+      const items = runs.map(runId => {
+        const relReport = `${runId}/report.json`;
+        const relCsv = `${runId}/enriched.csv`;
+        const reportUrl = `/admin/artifact-download?path=${encodeURIComponent(relReport)}&exp=${exp}&sig=${signUtil(relReport, exp, process.env.ARTIFACT_SIGNING_SECRET || 'dev-secret')}`;
+        const csvAbs = path.join(ARTIFACT_ROOT, relCsv);
+        const csvUrl = fs.existsSync(csvAbs) ? `/admin/artifact-download?path=${encodeURIComponent(relCsv)}&exp=${exp}&sig=${signUtil(relCsv, exp, process.env.ARTIFACT_SIGNING_SECRET || 'dev-secret')}` : null;
+        return { runId, reportUrl, csvUrl };
+      });
+      const rows = items.map(it => `<tr><td>${it.runId}</td><td>${it.reportUrl ? `<a href="${it.reportUrl}">report.json</a>`:''}</td><td>${it.csvUrl ? `<a href="${it.csvUrl}">enriched.csv</a>`:''}</td></tr>`).join('');
+      const html = `<!doctype html><html><head><meta charset="utf-8"><title>Artifacts</title><style>body{font-family:system-ui,Segoe UI,Arial;padding:16px} table{border-collapse:collapse;width:100%} th,td{border:1px solid #ddd;padding:8px} th{background:#f8f8f8;text-align:left}</style></head><body>
+      <h1>Artifacts</h1>
+      <p>Downloads are served from /admin and may prompt for Basic Auth if enabled.</p>
+      <table><thead><tr><th>Run ID</th><th>Report</th><th>CSV</th></tr></thead><tbody>${rows || '<tr><td colspan="3">No runs</td></tr>'}</tbody></table>
+      <p><a href="/ops/leads">Leads</a></p>
+      </body></html>`;
+      res.set('Content-Type','text/html; charset=utf-8').send(html);
+    } catch (e) { return sendProblem(res, 'ui_artifacts_error', String(e?.message || e), undefined, 500); }
+  });
   
   // Start the server
   app.listen(PORT, () => {

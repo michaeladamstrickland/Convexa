@@ -11,3 +11,30 @@ groups:
       sum(increase(convexa_cache_events_total{op="get",result="hit"}[5m]))
       /
       sum(increase(convexa_cache_events_total{op="get"}[5m]))
+
+  - alert: HighErrorRate
+    expr: rate(http_requests_errors_total[5m]) > 0.05
+    for: 5m
+    labels:
+      severity: critical
+    annotations:
+      summary: "High HTTP error rate (5xx) detected"
+      description: "The HTTP error rate (5xx) has been above 5% for 5 minutes. Current value: {{ $value | humanizePercentage }}"
+
+  - alert: DLQHasMessages
+    expr: dlq_depth{queue_name="scraper-jobs"} > 0
+    for: 10m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Dead-letter queue has messages"
+      description: "The dead-letter queue for scraper jobs has {{ $value }} messages for 10 minutes. Investigate failed jobs."
+
+  - alert: QuotaApproachingLimit
+    expr: convexa_quota_fraction{resource="attom_api"} > 0.8
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "ATTOM API quota approaching limit"
+      description: "The ATTOM API quota usage is at {{ $value | humanizePercentage }}. Consider increasing the daily cap or investigating usage patterns."

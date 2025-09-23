@@ -54,7 +54,9 @@
     "ops:prom:check": "node scripts/ops/checkProm.mjs",
     "ops:dashboard:notes": "echo Import ops/dashboards/convexa.json in Grafana, pick Prometheus DS, set Last 30m + 10s refresh.",
     "ops:staging:smoke": "node scripts/runStagingSmoke.cjs",
-    "ops:staging:seed": "node scripts/seedStagingLeads.cjs"
+    "ops:staging:seed": "node scripts/seedStagingLeades.cjs",
+    "ops:backup": "node scripts/ops/backup.mjs",
+    "ops:generate-redaction-sample": "node scripts/ops/generateRedactionSample.mjs"
   },
   "keywords": [
     "real-estate",

@@ -19,8 +19,6 @@ This file contains regular expression patterns used to identify and redact Perso
 ### IP Addresses
 `\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b`
 
-### API Keys / Secrets (example, adjust based on your key formats)
-`(?i)(?:api_key|secret|token|password|passwd|authorization)(?:\s*[:=]\s*['"]?)([a-z0-9_.-]{16,}|[a-z0-9]{32,})['"]?`
 
 ### Names (requires context, difficult to redact generically without false positives)
 # `\b([A-Z][a-z]+(?: [A-Z][a-z]+)*)\b` - Use with extreme caution, high false positive rate
