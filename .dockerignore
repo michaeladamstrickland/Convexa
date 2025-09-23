@@ -6,3 +6,4 @@
 !ops/**
 !infra/**
 !Dockerfile
+!.railway-build-rev
