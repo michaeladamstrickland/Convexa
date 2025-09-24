@@ -1,15 +1,15 @@
 # API Surface
 
-Generated on: 2025-09-24T14:27:47.999Z
+Generated on: 2025-09-24T19:46:37.925Z
 
-Total routes: 36
+Total routes: 42
 
 ## Authentication Summary
 
-- **basic-auth**: 7 routes
-- **api-key**: 21 routes
+- **basic-auth**: 8 routes
+- **api-key**: 22 routes
 - **token-auth**: 2 routes
-- **none**: 6 routes
+- **none**: 10 routes
 
 ## Routes by Category
 
@@ -21,6 +21,7 @@ Total routes: 36
 | GET | /admin/artifact-download | basic-auth | get_admin_artifactdownload | ✅ Active |
 | GET | /admin/artifacts | basic-auth | get_admin_artifacts | ✅ Active |
 | POST | /admin/export/weekly-bundle | basic-auth | post_admin_export_weeklybundle | ✅ Active |
+| POST | /admin/grade/recompute | basic-auth | post_admin_grade_recompute | ✅ Active |
 | POST | /admin/import/csv | basic-auth | post_admin_import_csv | ✅ Active |
 
 ### ATTOM Data
@@ -35,6 +36,7 @@ Total routes: 36
 
 | Method | Path | Auth | Metrics Label | Status |
 |--------|------|------|---------------|--------|
+| GET | /api/campaigns/search | api-key | get_api_campaigns_search | ✅ Active |
 | GET | /api/db-info | api-key | get_api_dbinfo | ✅ Active |
 | GET | /api/debug/attempt-reasons-today | api-key | get_api_debug_attemptreasonstoday | ✅ Active |
 | GET | /api/debug/config | api-key | get_api_debug_config | ✅ Active |
@@ -65,6 +67,7 @@ Total routes: 36
 | Method | Path | Auth | Metrics Label | Status |
 |--------|------|------|---------------|--------|
 | POST | /dial | none | post_dial | ✅ Active |
+| GET | /followups | none | get_followups | ✅ Active |
 | GET | /leads | none | get_leads | ✅ Active |
 | POST | /twilio/recording-complete | token-auth | post_twilio_recordingcomplete | ✅ Active |
 
@@ -81,6 +84,9 @@ Total routes: 36
 | Method | Path | Auth | Metrics Label | Status |
 |--------|------|------|---------------|--------|
 | GET | /ops/artifacts | none | get_ops_artifacts | ✅ Active |
+| GET | /ops/campaigns | none | get_ops_campaigns | ✅ Active |
+| GET | /ops/followups | none | get_ops_followups | ✅ Active |
+| GET | /ops/grading | none | get_ops_grading | ✅ Active |
 | GET | /ops/import | basic-auth | get_ops_import | ✅ Active |
 | GET | /ops/leads | none | get_ops_leads | ✅ Active |
 
