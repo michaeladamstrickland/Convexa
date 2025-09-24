@@ -45,7 +45,7 @@ jobs:
         run: |
           grep -q "campaign_queries_total" ops/findings/pi1_metrics_sample.txt || { echo "campaign_queries_total not found in metrics sample!"; exit 1; }
           grep -q "lead_grades_total" ops/findings/pi1_metrics_sample.txt || { echo "lead_grades_total not found in metrics sample!"; exit 1; }
-          grep -q "dial_disposition_total" ops/findings/pi1_metrics_sample.txt || { echo "dial_disposition_total not found in metrics sample!"; exit 1; }
+          grep -q "dialer_disposition_total" ops/findings/pi1_metrics_sample.txt || { echo "dialer_disposition_total not found in metrics sample!"; exit 1; }
           grep -q "followups_created_total" ops/findings/pi1_metrics_sample.txt || { echo "followups_created_total not found in metrics sample!"; exit 1; }
           grep -q "followups_completed_total" ops/findings/pi1_metrics_sample.txt || { echo "followups_completed_total not found in metrics sample!"; exit 1; }
           grep -q "followups_due_gauge" ops/findings/pi1_metrics_sample.txt || { echo "followups_due_gauge not found in metrics sample!"; exit 1; }

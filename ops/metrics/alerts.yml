@@ -29,13 +29,13 @@ groups:
       description: "Webhook errors are increasing. Current rate: {{ $value }} errors/sec"
 
   - alert: DialDispositionStall
-    expr: (time() - max(dial_disposition_total_timestamp)) > 300
+    expr: (time() - max(dialer_disposition_total_timestamp)) > 300
     for: 5m
     labels:
       severity: critical
     annotations:
       summary: "Dial disposition metric stalled"
-      description: "The dial_disposition_total metric has not been updated for more than 5 minutes."
+      description: "The dialer_disposition_total metric has not been updated for more than 5 minutes."
 
   - alert: RedisDown
     expr: redis_up == 0
@@ -92,7 +92,7 @@ groups:
       description: "The lead_grades_total metric has not changed for 24 hours, indicating stale lead grading jobs."
 
   - alert: NoDispositionsToday
-    expr: sum(increase(dial_disposition_total[24h])) == 0
+    expr: sum(increase(dialer_disposition_total[24h])) == 0
     for: 24h
     labels:
       severity: critical

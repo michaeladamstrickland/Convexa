@@ -160,11 +160,11 @@ async function runDialOpsSmoke() {
             line.startsWith('campaign_queries_total') ||
             line.startsWith('lead_grade') ||
             line.startsWith('followups') ||
-            line.startsWith('dial_disposition') ||
+            line.startsWith('dialer_disposition') || // Changed from dial_disposition
             line.startsWith('http_requests_total') ||
-            line.startsWith('timeline_events_total') || // Added new metric
-            line.startsWith('# HELP') || // Include help lines for context
-            line.startsWith('# TYPE') // Include type lines for context
+            line.startsWith('timeline_events_total') ||
+            line.startsWith('# HELP') ||
+            line.startsWith('# TYPE')
         ).join('\n');
 
         metricsOutput += `### Metrics from ${metricsUrl}\n\n`;
