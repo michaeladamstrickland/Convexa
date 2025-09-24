@@ -30,6 +30,7 @@
     "test:contract": "vitest run tests/contract --reporter=dot",
     "test:smoke": "vitest run tests/smoke --reporter=dot",
     "test:routes": "vitest run -t routes --reporter=default",
+    "test:routes:pi1": "vitest run tests/routes/pi1-dialer.test.ts --reporter=default",
     "test:routes:import": "vitest run -t import --reporter=dot",
     "test:smoke:tiny": "node scripts/smoke/dialerTiny.mjs",
     "smoke:import": "node scripts/smoke/importCsv.mjs",

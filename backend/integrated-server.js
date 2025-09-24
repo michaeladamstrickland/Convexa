@@ -5089,15 +5089,21 @@ const startServer = async () => {
     
     // Initialize and periodically update follow-up gauges
     updateFollowupGauges();
-    setInterval(updateFollowupGauges, 5 * 60 * 1000); // Update every 5 minutes
-    console.log(`📊 Follow-up metrics gauges initialized`);
+    const metricsInterval = setInterval(updateFollowupGauges, 5 * 60 * 1000); // Update every 5 minutes
+    console.log(`📊 Follow-up metrics gauges initialized (5 minute refresh interval)`);
     
-    // Handle process termination
-    process.on('SIGINT', () => {
+    // Handle process termination gracefully
+    const gracefulShutdown = (signal) => {
+      console.log(`${signal} received: cleaning up metrics scheduler...`);
+      clearInterval(metricsInterval);
       console.log('Closing database connection...');
       db.close();
-      process.exit();
-    });
+      console.log('Graceful shutdown complete');
+      process.exit(0);
+    };
+    
+    process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+    process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
   });
   // Global error handler (final)
   app.use((err, _req, res, _next) => {

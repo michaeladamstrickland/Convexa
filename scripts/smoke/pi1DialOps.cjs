@@ -2,51 +2,51 @@ const fetch = require('node-fetch');
 const fs = require('fs');
 const path = require('path');
 
-const BASE_URL = process.env.API_BASE_URL || 'http://localhost:3000';
-const BASIC_AUTH_USER = process.env.BASIC_AUTH_USER || 'admin'; // Placeholder
-const BASIC_AUTH_PASS = process.env.BASIC_AUTH_PASS || 'admin'; // Placeholder
+const BASE_URL = process.env.API_BASE_URL || 'http://localhost:5001';
+const BASIC_AUTH_USER = process.env.BASIC_AUTH_USER || 'admin';
+const BASIC_AUTH_PASS = process.env.BASIC_AUTH_PASS || 'admin';
 
 const AUTH_HEADER = 'Basic ' + Buffer.from(BASIC_AUTH_USER + ':' + BASIC_AUTH_PASS).toString('base64');
 
-async function createLead() {
-    const createLeadUrl = `${BASE_URL}/api/leads`;
-    const leadPayload = {
-        firstName: 'Smoke',
-        lastName: 'Test',
-        email: `smoke-test-${Date.now()}@example.com`,
-        phone: `123-456-${Math.floor(Math.random() * 9000) + 1000}`
-    };
-    const response = await fetch(createLeadUrl, {
-        method: 'POST',
-        headers: {
-            'Authorization': AUTH_HEADER,
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(leadPayload)
+async function getTestLead() {
+    // Try to get an existing lead first
+    const leadsUrl = `${BASE_URL}/api/leads?limit=1`;
+    const response = await fetch(leadsUrl, {
+        headers: { 'Authorization': AUTH_HEADER }
     });
     const data = await response.json();
-    if (!response.ok) {
-        throw new Error(`Failed to create lead: ${JSON.stringify(data)}`);
+    if (response.ok && data.leads && data.leads.length > 0) {
+        return data.leads[0].id;
     }
-    return data.id; // Assuming the API returns the created lead's ID
+    
+    // If no leads exist, create a synthetic one for testing
+    const leadId = `smoke-test-${Date.now()}`;
+    console.log(`Using synthetic lead ID: ${leadId}`);
+    return leadId;
 }
 
 async function runDialOpsSmoke() {
-    let output = `# Dial Operations Smoke Test Findings\n\n`;
-    let metricsOutput = `# Metrics Sample after Dial Operations Smoke\n\n`;
+    let output = `# PI1 Dial Operations & Follow-ups Smoke Test Results\n\n`;
+    output += `Date: ${new Date().toISOString()}\n`;
+    output += `Base URL: ${BASE_URL}\n\n`;
+    
+    let metricsOutput = `# PI1 Metrics Sample after Dial Operations Smoke\n\n`;
     let leadId;
 
     try {
-        // 0. Create a lead if needed
-        output += `## Creating a new lead for smoke test\n\n`;
-        leadId = await createLead();
-        output += `### Created Lead ID: ${leadId}\n\n`;
+        // 0. Get a test lead
+        output += `## Getting test lead for smoke test\n\n`;
+        leadId = await getTestLead();
+        output += `### Using Lead ID: ${leadId}\n\n`;
 
-        // 1. POST multiple dispositions
-        const dispositionUrl = `${BASE_URL}/api/leads/${leadId}/disposition`;
+        // 1. POST dial disposition (using correct endpoint)
+        const dialId = `dial-${leadId}`;
+        const dispositionUrl = `${BASE_URL}/dial/${dialId}/disposition`;
+        
+        // Test disposition: interested
         const dispositionPayload1 = {
-            disposition: 'answered',
-            notes: 'Spoke with lead, very interested.'
+            type: 'interested',
+            notes: 'Lead showed strong interest in selling property'
         };
         const dispositionResponse1 = await fetch(dispositionUrl, {
             method: 'POST',
@@ -57,17 +57,19 @@ async function runDialOpsSmoke() {
             body: JSON.stringify(dispositionPayload1)
         });
         const dispositionData1 = await dispositionResponse1.json();
-        output += `## Post First Disposition for Lead ${leadId}\n\n`;
-        output += `### Request URL:\n\`${dispositionUrl}\`\n\n`;
+        output += `## 1. POST Dial Disposition (Interested)\n\n`;
+        output += `### Request URL: \`${dispositionUrl}\`\n\n`;
         output += `### Request Body:\n\`\`\`json\n${JSON.stringify(dispositionPayload1, null, 2)}\n\`\`\`\n\n`;
         output += `### Response Status: ${dispositionResponse1.status}\n\n`;
         output += `### Response Body:\n\`\`\`json\n${JSON.stringify(dispositionData1, null, 2)}\n\`\`\`\n\n`;
 
+        // Test disposition: voicemail
+        const dialId2 = `dial-${leadId}-2`;
         const dispositionPayload2 = {
-            disposition: 'no_answer',
-            notes: 'No answer on second attempt.'
+            type: 'voicemail',
+            notes: 'Left detailed voicemail about our services'
         };
-        const dispositionResponse2 = await fetch(dispositionUrl, {
+        const dispositionResponse2 = await fetch(`${BASE_URL}/dial/${dialId2}/disposition`, {
             method: 'POST',
             headers: {
                 'Authorization': AUTH_HEADER,
@@ -76,20 +78,20 @@ async function runDialOpsSmoke() {
             body: JSON.stringify(dispositionPayload2)
         });
         const dispositionData2 = await dispositionResponse2.json();
-        output += `## Post Second Disposition for Lead ${leadId}\n\n`;
-        output += `### Request URL:\n\`${dispositionUrl}\`\n\n`;
+        output += `## 2. POST Dial Disposition (Voicemail)\n\n`;
+        output += `### Request URL: \`${BASE_URL}/dial/${dialId2}/disposition\`\n\n`;
         output += `### Request Body:\n\`\`\`json\n${JSON.stringify(dispositionPayload2, null, 2)}\n\`\`\`\n\n`;
         output += `### Response Status: ${dispositionResponse2.status}\n\n`;
         output += `### Response Body:\n\`\`\`json\n${JSON.stringify(dispositionData2, null, 2)}\n\`\`\`\n\n`;
 
-        // 2. Create and complete a follow-up
-        const followupUrl = `${BASE_URL}/api/leads/${leadId}/followup`;
+        // 2. Create follow-up (using correct endpoint)
+        const followupUrl = `${BASE_URL}/leads/${leadId}/followups`;
+        const dueAt = new Date(Date.now() + 5 * 60 * 1000).toISOString(); // 5 minutes from now
         const followupPayload = {
-            type: 'call',
-            dueDate: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // Tomorrow
-            notes: 'Follow up call regarding property details.',
-            channel: 'phone',
-            priority: 'high'
+            dueAt,
+            channel: 'call',
+            priority: 'high',
+            notes: 'Follow up on interested lead from phone call'
         };
         const followupResponse = await fetch(followupUrl, {
             method: 'POST',
@@ -100,84 +102,181 @@ async function runDialOpsSmoke() {
             body: JSON.stringify(followupPayload)
         });
         const followupData = await followupResponse.json();
-        output += `## Add Follow-up for Lead ${leadId}\n\n`;
-        output += `### Request URL:\n\`${followupUrl}\`\n\n`;
+        output += `## 3. POST Create Follow-up\n\n`;
+        output += `### Request URL: \`${followupUrl}\`\n\n`;
         output += `### Request Body:\n\`\`\`json\n${JSON.stringify(followupPayload, null, 2)}\n\`\`\`\n\n`;
         output += `### Response Status: ${followupResponse.status}\n\n`;
         output += `### Response Body:\n\`\`\`json\n${JSON.stringify(followupData, null, 2)}\n\`\`\`\n\n`;
 
-        // Assuming followupData contains an ID for the created followup
+        // 3. Update follow-up status (if we got an ID back)
         if (followupData && followupData.id) {
-            const completeFollowupUrl = `${BASE_URL}/api/followups/${followupData.id}/complete`;
-            const completeFollowupResponse = await fetch(completeFollowupUrl, {
+            const updateFollowupUrl = `${BASE_URL}/followups/${followupData.id}`;
+            const updatePayload = {
+                status: 'done',
+                notes: 'Successfully contacted lead and scheduled appointment'
+            };
+            const updateResponse = await fetch(updateFollowupUrl, {
+                method: 'PATCH',
+                headers: {
+                    'Authorization': AUTH_HEADER,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(updatePayload)
+            });
+            const updateData = await updateResponse.json();
+            output += `## 4. PATCH Update Follow-up Status\n\n`;
+            output += `### Request URL: \`${updateFollowupUrl}\`\n\n`;
+            output += `### Request Body:\n\`\`\`json\n${JSON.stringify(updatePayload, null, 2)}\n\`\`\`\n\n`;
+            output += `### Response Status: ${updateResponse.status}\n\n`;
+            output += `### Response Body:\n\`\`\`json\n${JSON.stringify(updateData, null, 2)}\n\`\`\`\n\n`;
+
+            // Test snooze functionality
+            const followupPayload2 = {
+                dueAt: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
+                channel: 'sms',
+                priority: 'med',
+                notes: 'SMS follow-up for property inquiry'
+            };
+            const followupResponse2 = await fetch(followupUrl, {
                 method: 'POST',
                 headers: {
-                    'Authorization': AUTH_HEADER
-                }
+                    'Authorization': AUTH_HEADER,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(followupPayload2)
             });
-            const completeFollowupData = await completeFollowupResponse.json();
-            output += `## Complete Follow-up ${followupData.id} for Lead ${leadId}\n\n`;
-            output += `### Request URL:\n\`${completeFollowupUrl}\`\n\n`;
-            output += `### Response Status: ${completeFollowupResponse.status}\n\n`;
-            output += `### Response Body:\n\`\`\`json\n${JSON.stringify(completeFollowupData, null, 2)}\n\`\`\`\n\n`;
+            const followupData2 = await followupResponse2.json();
+            
+            if (followupData2 && followupData2.id) {
+                const snoozePayload = {
+                    status: 'snoozed',
+                    snoozeUntil: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(), // 2 hours
+                    notes: 'Lead requested callback later today'
+                };
+                const snoozeResponse = await fetch(`${BASE_URL}/followups/${followupData2.id}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Authorization': AUTH_HEADER,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(snoozePayload)
+                });
+                const snoozeData = await snoozeResponse.json();
+                output += `## 5. PATCH Snooze Follow-up\n\n`;
+                output += `### Request Body:\n\`\`\`json\n${JSON.stringify(snoozePayload, null, 2)}\n\`\`\`\n\n`;
+                output += `### Response Status: ${snoozeResponse.status}\n\n`;
+                output += `### Response Body:\n\`\`\`json\n${JSON.stringify(snoozeData, null, 2)}\n\`\`\`\n\n`;
+            }
         } else {
-            output += `### Warning: Could not complete follow-up as no ID was returned.\n\n`;
+            output += `### Warning: Could not update follow-up status as no ID was returned.\n\n`;
         }
 
-
-        // 3. Fetch /leads/:id/timeline
-        const timelineUrl = `${BASE_URL}/api/leads/${leadId}/timeline`;
+        // 4. Get lead timeline
+        const timelineUrl = `${BASE_URL}/leads/${leadId}/timeline`;
         const timelineResponse = await fetch(timelineUrl, {
-            headers: {
-                'Authorization': AUTH_HEADER
-            }
+            headers: { 'Authorization': AUTH_HEADER }
         });
         const timelineData = await timelineResponse.json();
-        output += `## Lead Timeline for Lead ${leadId}\n\n`;
-        output += `### Request URL:\n\`${timelineUrl}\`\n\n`;
+        output += `## 6. GET Lead Timeline\n\n`;
+        output += `### Request URL: \`${timelineUrl}\`\n\n`;
         output += `### Response Status: ${timelineResponse.status}\n\n`;
-        output += `### Response Body (excerpt):\n\`\`\`json\n${JSON.stringify(timelineData, null, 2)}\n\`\`\`\n\n`;
+        output += `### Response Body:\n\`\`\`json\n${JSON.stringify(timelineData, null, 2)}\n\`\`\`\n\n`;
 
-        // Save outputs to ops/findings/dial_followup_timeline.md
+        // 5. Get follow-ups list
+        const followupsListUrl = `${BASE_URL}/followups?status=open&limit=10`;
+        const followupsListResponse = await fetch(followupsListUrl, {
+            headers: { 'Authorization': AUTH_HEADER }
+        });
+        const followupsListData = await followupsListResponse.json();
+        output += `## 7. GET Follow-ups List\n\n`;
+        output += `### Request URL: \`${followupsListUrl}\`\n\n`;
+        output += `### Response Status: ${followupsListResponse.status}\n\n`;
+        output += `### Response Body (first 5 items):\n\`\`\`json\n${JSON.stringify({
+            ...followupsListData,
+            followups: (followupsListData.followups || []).slice(0, 5)
+        }, null, 2)}\n\`\`\`\n\n`;
+
+        // Save findings
         const findingsDir = path.join(__dirname, '../../ops/findings');
         if (!fs.existsSync(findingsDir)) {
             fs.mkdirSync(findingsDir, { recursive: true });
         }
         fs.writeFileSync(path.join(findingsDir, 'dial_followup_timeline.md'), output);
-        console.log('Dial operations smoke test findings saved to ops/findings/dial_followup_timeline.md');
+        console.log('✅ Dial operations smoke test findings saved to ops/findings/dial_followup_timeline.md');
 
-        // Scrape /metrics
+        // 6. Scrape metrics and filter for PI1 metrics
         const metricsUrl = `${BASE_URL}/metrics`;
         const metricsResponse = await fetch(metricsUrl, {
-            headers: {
-                'Authorization': AUTH_HEADER
-            }
+            headers: { 'Authorization': AUTH_HEADER }
         });
-        const metricsText = await metricsResponse.text();
+        
+        if (metricsResponse.ok) {
+            const metricsText = await metricsResponse.text();
+            
+            // Filter for PI1-related metrics
+            const filteredMetrics = metricsText.split('\n').filter(line =>
+                line.startsWith('campaign_queries_total') ||
+                line.startsWith('lead_grade') ||
+                line.startsWith('followups_') ||
+                line.startsWith('dialer_disposition_total') ||
+                line.startsWith('timeline_events_total') ||
+                line.startsWith('http_requests_total') ||
+                line.startsWith('# HELP dialer_') ||
+                line.startsWith('# TYPE dialer_') ||
+                line.startsWith('# HELP followups_') ||
+                line.startsWith('# TYPE followups_') ||
+                line.startsWith('# HELP timeline_') ||
+                line.startsWith('# TYPE timeline_')
+            ).join('\n');
 
-        // Filter metrics
-        const filteredMetrics = metricsText.split('\n').filter(line =>
-            line.startsWith('campaign_queries_total') ||
-            line.startsWith('lead_grade') ||
-            line.startsWith('followups') ||
-            line.startsWith('dialer_disposition') || // Changed from dial_disposition
-            line.startsWith('http_requests_total') ||
-            line.startsWith('timeline_events_total') ||
-            line.startsWith('# HELP') ||
-            line.startsWith('# TYPE')
-        ).join('\n');
-
-        metricsOutput += `### Metrics from ${metricsUrl}\n\n`;
-        metricsOutput += `\`\`\`\n${filteredMetrics}\n\`\`\`\n\n`;
+            metricsOutput += `## Metrics from ${metricsUrl}\n\n`;
+            metricsOutput += `Response Status: ${metricsResponse.status}\n\n`;
+            metricsOutput += `### PI1 Dialer & Follow-ups Metrics\n\n`;
+            metricsOutput += `\`\`\`prometheus\n${filteredMetrics}\n\`\`\`\n\n`;
+            
+            // Validate that we have the expected metrics
+            const expectedMetrics = [
+                'dialer_disposition_total',
+                'followups_created_total', 
+                'followups_completed_total',
+                'followups_due_gauge',
+                'followups_overdue_gauge',
+                'timeline_events_total'
+            ];
+            
+            metricsOutput += `### Metrics Validation\n\n`;
+            expectedMetrics.forEach(metric => {
+                const found = filteredMetrics.includes(metric);
+                metricsOutput += `- ${metric}: ${found ? '✅ Found' : '❌ Missing'}\n`;
+            });
+            metricsOutput += `\n`;
+        } else {
+            metricsOutput += `## Error fetching metrics\n\n`;
+            metricsOutput += `Status: ${metricsResponse.status}\n`;
+            metricsOutput += `Error: ${await metricsResponse.text()}\n\n`;
+        }
 
         fs.writeFileSync(path.join(findingsDir, 'pi1_metrics_sample.txt'), metricsOutput);
-        console.log('Metrics sample saved to ops/findings/pi1_metrics_sample.txt');
+        console.log('✅ PI1 metrics sample saved to ops/findings/pi1_metrics_sample.txt');
 
     } catch (error) {
-        console.error('Error during dial operations smoke test:', error);
-        fs.writeFileSync(path.join(__dirname, '../../ops/findings/dial_followup_timeline.md'), `Error during dial operations smoke test: ${error.message}`);
-        fs.writeFileSync(path.join(__dirname, '../../ops/findings/pi1_metrics_sample.txt'), `Error scraping metrics: ${error.message}`);
+        console.error('❌ Error during PI1 dial operations smoke test:', error);
+        const errorMsg = `# PI1 Dial Operations Smoke Test - ERROR\n\nError: ${error.message}\nStack: ${error.stack}\n`;
+        
+        const findingsDir = path.join(__dirname, '../../ops/findings');
+        if (!fs.existsSync(findingsDir)) {
+            fs.mkdirSync(findingsDir, { recursive: true });
+        }
+        fs.writeFileSync(path.join(findingsDir, 'dial_followup_timeline.md'), output + '\n\n' + errorMsg);
+        fs.writeFileSync(path.join(findingsDir, 'pi1_metrics_sample.txt'), `Error: ${error.message}`);
+        
+        process.exit(1);
     }
 }
 
-runDialOpsSmoke();
+// Only run if this script is executed directly
+if (require.main === module) {
+    runDialOpsSmoke();
+}
+
+module.exports = { runDialOpsSmoke };
