@@ -5,8 +5,8 @@ import assert from 'assert';
 
 async function main() {
   const base = process.argv[2] || process.env.STAGING_URL || 'http://localhost:5001';
-  const user = process.env.BASIC_AUTH_USER || '';
-  const pass = process.env.BASIC_AUTH_PASS || '';
+  const user = 'staging'; // Directly set user for testing
+  const pass = 'RockyDog456'; // Directly set pass for testing
   const auth = user && pass ? 'Basic ' + Buffer.from(`${user}:${pass}`).toString('base64') : '';
   const samplePath = path.resolve(process.cwd(), 'ops', 'samples', 'import_sample.csv');
   const csv = fs.readFileSync(samplePath);

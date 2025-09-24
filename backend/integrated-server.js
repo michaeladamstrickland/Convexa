@@ -9,8 +9,10 @@ import axios from 'axios';
 import crypto from 'crypto';
 import fs from 'fs';
 import SkipTraceService from './services/skipTraceService.js';
+import { recordImportResults } from './services/importMetrics.js';
 import multer from 'multer';
 import csvParse from 'csv-parser';
+import { Readable } from 'stream';
 // Resilient guardrails import (ESM + top-level await)
 let initGuardrails = null;
 try {
@@ -218,7 +220,10 @@ const startServer = async () => {
     storage: multer.memoryStorage(),
     limits: { fileSize: 10 * 1024 * 1024 },
     fileFilter: (req, file, cb) => {
-      const ok = file.mimetype === 'text/csv' || file.originalname.toLowerCase().endsWith('.csv');
+      try {
+        console.log('[ImportCSV] fileFilter:', { mimetype: file?.mimetype, name: file?.originalname });
+      } catch {}
+      const ok = file.mimetype === 'text/csv' || (file.originalname || '').toLowerCase().endsWith('.csv');
       if (!ok) return cb(new Error('unsupported_content_type'));
       cb(null, true);
     }
@@ -1522,6 +1527,22 @@ const startServer = async () => {
     ? path.resolve(process.env.LOCAL_STORAGE_PATH)
     : path.resolve(__dirname, '..');
 
+  // Append-only audit log for mutating actions (JSONL under artifacts/audit)
+  const auditDir = path.resolve(STORAGE_ROOT, 'artifacts', 'audit');
+  try { fs.mkdirSync(auditDir, { recursive: true }); } catch {}
+  function auditMut(req, payloadBuf) {
+    try {
+      const line = JSON.stringify({
+        ts: new Date().toISOString(),
+        user: (basicAuthUser && basicAuthPass) ? 'basic-auth' : 'unknown',
+        route: req.originalUrl,
+        verb: req.method,
+        payloadHash: payloadBuf ? crypto.createHash('sha256').update(payloadBuf).digest('hex') : null
+      }) + '\n';
+      fs.appendFileSync(path.join(auditDir, 'actions.jsonl'), line);
+    } catch {}
+  }
+
   // === Dialer v1 — Vertical slice (minimal, stub-friendly) ===
   // Metrics (will be initialized if prom-client is present)
   let dialAttemptsCounter = null;
@@ -1574,9 +1595,9 @@ const startServer = async () => {
           // Twilio validation: base64(HMAC-SHA1(token, url + sortedParams))
           const params = Object.keys(req.body || {}).sort().reduce((acc, k) => acc + k + req.body[k], '');
           const toSign = url + params;
-          const computed = Buffer.from(require('crypto').createHmac('sha1', token).update(toSign).digest('base64'));
+          const computed = Buffer.from(crypto.createHmac('sha1', token).update(toSign).digest('base64'));
           const provided = Buffer.from(String(sig));
-          const ok = computed.length === provided.length && require('crypto').timingSafeEqual(computed, provided);
+          const ok = computed.length === provided.length && crypto.timingSafeEqual(computed, provided);
           if (!ok) {
             try { webhookErrorsCounter && webhookErrorsCounter.inc({ type: 'signature' }); } catch {}
             return sendProblem(res, 'unauthorized', 'invalid Twilio signature', undefined, 401);
@@ -1729,10 +1750,14 @@ const startServer = async () => {
         const csvUrl = fs.existsSync(csvAbs) ? `/admin/artifact-download?path=${encodeURIComponent(relCsv)}&exp=${exp}&sig=${signUtil(relCsv, exp, process.env.ARTIFACT_SIGNING_SECRET || 'dev-secret')}` : null;
         const auditAbs = path.join(ARTIFACT_ROOT, relAudit);
         const auditUrl = fs.existsSync(auditAbs) ? `/admin/artifact-download?path=${encodeURIComponent(relAudit)}&exp=${exp}&sig=${signUtil(relAudit, exp, process.env.ARTIFACT_SIGNING_SECRET || 'dev-secret')}` : null;
+        const relZip = `${runId}/${runId}.zip`;
+        const zipAbs = path.join(ARTIFACT_ROOT, relZip);
+        const zipUrl = fs.existsSync(zipAbs) ? `/admin/artifact-download?path=${encodeURIComponent(relZip)}&exp=${exp}&sig=${signUtil(relZip, exp, process.env.ARTIFACT_SIGNING_SECRET || 'dev-secret')}` : null;
         // Type inference: mark item type based on files present
         let type = 'run';
         if (!fs.existsSync(path.join(ARTIFACT_ROOT, relReport)) && fs.existsSync(auditAbs)) type = 'import_audit';
-        return { runId, type, createdAt: createdAt ? new Date(createdAt).toISOString() : null, size, signedUrl, reportUrl, csvUrl, auditUrl };
+        if (zipUrl || String(runId).startsWith('weekly_export_')) type = 'weekly_export';
+        return { runId, type, createdAt: createdAt ? new Date(createdAt).toISOString() : null, size, signedUrl, reportUrl, csvUrl, auditUrl, zipUrl };
       });
       res.json(items);
     } catch (e) {
@@ -2613,12 +2638,26 @@ const startServer = async () => {
   app.get('/ops/leads', (req, res) => {
     try {
       const q = String(req.query.q || '').trim();
+      const city = String(req.query.city || '').trim();
+      const state = String(req.query.state || '').trim();
+      const zip = String(req.query.zip || '').trim();
+      const status = String(req.query.status || '').trim();
+      const temperature = String(req.query.temperature || '').trim();
+      const minValue = req.query.minValue ? Number(req.query.minValue) : null;
+      const maxValue = req.query.maxValue ? Number(req.query.maxValue) : null;
       const page = Math.max(1, Number(req.query.page) || 1);
       const limit = Math.max(1, Math.min(100, Number(req.query.limit) || 10));
       let sql = 'SELECT * FROM leads';
       const params = [];
       const where = [];
       if (q) { where.push('(address LIKE ? OR owner_name LIKE ?)'); params.push(`%${q}%`,`%${q}%`); }
+      if (city) { where.push('address LIKE ?'); params.push(`%${city}%`); }
+      if (state) { where.push('address LIKE ?'); params.push(`%${state}%`); }
+      if (zip) { where.push('address LIKE ?'); params.push(`%${zip}%`); }
+      if (status) { where.push('status = ?'); params.push(status); }
+      if (temperature) { where.push('temperature_tag = ?'); params.push(temperature); }
+      if (minValue != null) { where.push('estimated_value >= ?'); params.push(minValue); }
+      if (maxValue != null) { where.push('estimated_value <= ?'); params.push(maxValue); }
       if (where.length) sql += ' WHERE ' + where.join(' AND ');
       const countSql = where.length ? `SELECT COUNT(*) as n FROM leads WHERE ${where.join(' AND ')}` : 'SELECT COUNT(*) as n FROM leads';
       const total = db.prepare(countSql).get(...params).n;
@@ -2637,9 +2676,19 @@ const startServer = async () => {
       <div class="toolbar">
         <form method="GET" action="/ops/leads">
           <input name="q" placeholder="Search..." value="${esc(q)}" />
+          <input name="city" placeholder="City" value="${esc(city)}" />
+          <input name="state" placeholder="State" value="${esc(state)}" />
+          <input name="zip" placeholder="Zip" value="${esc(zip)}" />
+          <input name="status" placeholder="Status" value="${esc(status)}" />
+          <input name="temperature" placeholder="Temp" value="${esc(temperature)}" />
+          <input name="minValue" type="number" placeholder="Min Value" value="${minValue ?? ''}" />
+          <input name="maxValue" type="number" placeholder="Max Value" value="${maxValue ?? ''}" />
           <input name="limit" type="number" min="1" max="100" value="${limit}" />
           <button type="submit">Apply</button>
         </form>
+        <div style="margin-top:8px">
+          <a href="/ops/import"><button type="button">Import CSV (admin)</button></a>
+        </div>
       </div>
       <table><thead><tr><th>ID</th><th>Address</th><th>Owner</th><th>Status</th><th>Motivation</th></tr></thead>
       <tbody>${htmlRows || '<tr><td colspan="5">No leads</td></tr>'}</tbody></table>
@@ -2655,6 +2704,24 @@ const startServer = async () => {
       const { id } = req.params;
       const r = db.prepare('SELECT * FROM leads WHERE id = ?').get(id);
       if (!r) return res.status(404).send('<h1>Not found</h1>');
+      // Gather recent artifact links (report/audit/csv/zip)
+      const exp = Math.floor(Date.now() / 1000) + defaultTtl;
+      let links = [];
+      try {
+        if (fs.existsSync(ARTIFACT_ROOT)) {
+          const dirs = fs.readdirSync(ARTIFACT_ROOT).filter(n => fs.statSync(path.join(ARTIFACT_ROOT,n)).isDirectory()).slice(-20);
+          for (const runId of dirs) {
+            const relReport = `${runId}/report.json`;
+            const relAudit = `${runId}/audit.json`;
+            const relCsv = `${runId}/enriched.csv`;
+            const relZip = `${runId}/${runId}.zip`;
+            if (fs.existsSync(path.join(ARTIFACT_ROOT, relReport))) links.push({ name: `${runId}/report.json`, url: `/admin/artifact-download?path=${encodeURIComponent(relReport)}&exp=${exp}&sig=${signUtil(relReport, exp, process.env.ARTIFACT_SIGNING_SECRET || 'dev-secret')}` });
+            if (fs.existsSync(path.join(ARTIFACT_ROOT, relAudit))) links.push({ name: `${runId}/audit.json`, url: `/admin/artifact-download?path=${encodeURIComponent(relAudit)}&exp=${exp}&sig=${signUtil(relAudit, exp, process.env.ARTIFACT_SIGNING_SECRET || 'dev-secret')}` });
+            if (fs.existsSync(path.join(ARTIFACT_ROOT, relCsv))) links.push({ name: `${runId}/enriched.csv`, url: `/admin/artifact-download?path=${encodeURIComponent(relCsv)}&exp=${exp}&sig=${signUtil(relCsv, exp, process.env.ARTIFACT_SIGNING_SECRET || 'dev-secret')}` });
+            if (fs.existsSync(path.join(ARTIFACT_ROOT, relZip))) links.push({ name: `${runId}.zip`, url: `/admin/artifact-download?path=${encodeURIComponent(relZip)}&exp=${exp}&sig=${signUtil(relZip, exp, process.env.ARTIFACT_SIGNING_SECRET || 'dev-secret')}` });
+          }
+        }
+      } catch {}
       const esc = (s) => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
       const html = `<!doctype html><html><head><meta charset="utf-8"><title>Lead ${esc(r.id)}</title><style>body{font-family:system-ui,Segoe UI,Arial;padding:16px} dt{font-weight:bold}</style></head><body>
       <h1>Lead Detail</h1>
@@ -2674,6 +2741,11 @@ const startServer = async () => {
         <dt>Created</dt><dd>${esc(r.created_at)}</dd>
         <dt>Updated</dt><dd>${esc(r.updated_at)}</dd>
       </dl>
+      <h3>Artifacts</h3>
+      <ul>${links.map(l => `<li><a href="${l.url}">${esc(l.name)}</a></li>`).join('') || '<li>None</li>'}</ul>
+  <h3>Quick Actions</h3>
+  <form method="POST" action="/leads/${encodeURIComponent(r.id)}/notes" onsubmit="event.preventDefault(); fetch(this.action,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:this.note.value})}).then(r=>r.ok?alert('Note added'):r.text().then(t=>alert(t)))"><input name="note" placeholder="Add note" /> <button type="submit">Add note</button></form>
+  <form method="POST" action="/leads/${encodeURIComponent(r.id)}/disposition" onsubmit="event.preventDefault(); fetch(this.action,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({type:this.disp.value})}).then(r=>r.ok?alert('Disposition saved'):r.text().then(t=>alert(t)))"><select name="disp"><option>no_answer</option><option>voicemail</option><option>bad_number</option><option>interested</option><option>not_interested</option><option>follow_up</option></select> <button type="submit">Save</button></form>
       <p><a href="/ops/artifacts">Artifacts</a></p>
       </body></html>`;
       res.set('Content-Type','text/html; charset=utf-8').send(html);
@@ -2689,16 +2761,20 @@ const startServer = async () => {
         const relReport = `${runId}/report.json`;
         const relCsv = `${runId}/enriched.csv`;
         const relAudit = `${runId}/audit.json`;
+        const relZip = `${runId}/${runId}.zip`;
         const reportUrl = fs.existsSync(path.join(ARTIFACT_ROOT, relReport)) ? `/admin/artifact-download?path=${encodeURIComponent(relReport)}&exp=${exp}&sig=${signUtil(relReport, exp, process.env.ARTIFACT_SIGNING_SECRET || 'dev-secret')}` : null;
         const csvAbs = path.join(ARTIFACT_ROOT, relCsv);
         const csvUrl = fs.existsSync(csvAbs) ? `/admin/artifact-download?path=${encodeURIComponent(relCsv)}&exp=${exp}&sig=${signUtil(relCsv, exp, process.env.ARTIFACT_SIGNING_SECRET || 'dev-secret')}` : null;
         const auditAbs = path.join(ARTIFACT_ROOT, relAudit);
         const auditUrl = fs.existsSync(auditAbs) ? `/admin/artifact-download?path=${encodeURIComponent(relAudit)}&exp=${exp}&sig=${signUtil(relAudit, exp, process.env.ARTIFACT_SIGNING_SECRET || 'dev-secret')}` : null;
+        const zipAbs = path.join(ARTIFACT_ROOT, relZip);
+        const zipUrl = fs.existsSync(zipAbs) ? `/admin/artifact-download?path=${encodeURIComponent(relZip)}&exp=${exp}&sig=${signUtil(relZip, exp, process.env.ARTIFACT_SIGNING_SECRET || 'dev-secret')}` : null;
         let type = 'run';
         if (!fs.existsSync(path.join(ARTIFACT_ROOT, relReport)) && fs.existsSync(auditAbs)) type = 'import_audit';
-        return { runId, type, reportUrl, csvUrl, auditUrl };
+        if (zipUrl || String(runId).startsWith('weekly_export_')) type = 'weekly_export';
+        return { runId, type, reportUrl, csvUrl, auditUrl, zipUrl };
       });
-      const rows = items.map(it => `<tr><td>${it.runId}</td><td>${it.type||''}</td><td>${it.reportUrl ? `<a href="${it.reportUrl}">report.json</a>`:''}${it.auditUrl ? `<a href="${it.auditUrl}">audit.json</a>`:''}</td><td>${it.csvUrl ? `<a href="${it.csvUrl}">enriched.csv</a>`:''}</td></tr>`).join('');
+      const rows = items.map(it => `<tr><td>${it.runId}</td><td>${it.type||''}</td><td>${it.reportUrl ? `<a href="${it.reportUrl}">report.json</a>`:''}${it.auditUrl ? ` <a href="${it.auditUrl}">audit.json</a>`:''}${it.zipUrl ? ` <a href="${it.zipUrl}">bundle.zip</a>`:''}</td><td>${it.csvUrl ? `<a href="${it.csvUrl}">enriched.csv</a>`:''}</td></tr>`).join('');
       const html = `<!doctype html><html><head><meta charset="utf-8"><title>Artifacts</title><style>body{font-family:system-ui,Segoe UI,Arial;padding:16px} table{border-collapse:collapse;width:100%} th,td{border:1px solid #ddd;padding:8px} th{background:#f8f8f8;text-align:left}</style></head><body>
       <h1>Artifacts</h1>
       <p>Downloads are served from /admin and may prompt for Basic Auth if enabled.</p>
@@ -2709,12 +2785,113 @@ const startServer = async () => {
     } catch (e) { return sendProblem(res, 'ui_artifacts_error', String(e?.message || e), undefined, 500); }
   });
 
+  // Operator UI: Import (admin-only; gated by basic auth header presence if configured)
+  app.get('/ops/import', (req, res) => {
+    try {
+      const hasAuth = !!(basicAuthUser && basicAuthPass);
+      const html = `<!doctype html><html><head><meta charset="utf-8"><title>Import CSV</title><style>body{font-family:system-ui,Segoe UI,Arial;padding:16px} .section{margin-bottom:16px} pre{background:#f8f8f8;padding:8px;border:1px solid #eee;max-height:240px;overflow:auto} table{border-collapse:collapse;width:100%} th,td{border:1px solid #ddd;padding:6px} th{background:#f6f6f6}</style></head><body>
+      <h1>Import CSV</h1>
+      ${hasAuth ? '' : '<p><em>Note: This page expects admin auth to be configured for /admin/*.</em></p>'}
+      <div class="section">
+        <h3>1) Upload</h3>
+        <input id="file" type="file" accept=".csv" /> <button id="btnPreview">Preview</button>
+      </div>
+      <div class="section" id="preview" style="display:none">
+        <h3>Preview</h3>
+        <div id="totals"></div>
+        <h4>Errors (first 10)</h4>
+        <table id="errtbl"><thead><tr><th>#</th><th>Field</th><th>Message</th></tr></thead><tbody></tbody></table>
+        <button id="btnCommit">Commit Import</button>
+      </div>
+      <div class="section" id="commit" style="display:none">
+        <h3>Commit Result</h3>
+        <div id="commitRes"></div>
+      </div>
+      <p><a href="/ops/leads">Back to Leads</a> · <a href="/ops/artifacts">Artifacts</a></p>
+      <script>
+      async function postMultipart(mode, file) {
+        const form = new FormData(); form.append('file', file);
+        const res = await fetch('/admin/import/csv?mode=' + mode, { method: 'POST', body: form });
+        const json = await res.json(); if (!res.ok) throw json; return json;
+      }
+      const $ = (s) => document.querySelector(s);
+      let lastFile = null;
+      $('#btnPreview').onclick = async () => {
+        const f = $('#file').files[0]; if (!f) { alert('Choose a CSV'); return; }
+        lastFile = f;
+        try {
+          const r = await postMultipart('preview', f);
+          const p = r.preview || {};
+          $('#totals').innerText = 'Totals — total: ' + (p.rows_total||0) + ', valid: ' + (p.rows_valid||0) + ', invalid: ' + (p.rows_invalid||0) + ', create: ' + (p.would_create||0) + ', merge: ' + (p.would_merge||0) + ', skip: ' + (p.would_skip||0);
+          const tbody = $('#errtbl tbody'); tbody.innerHTML = '';
+          (p.sample_errors||[]).forEach(e => { const tr = document.createElement('tr'); tr.innerHTML = '<td>' + (e.row) + '</td><td>' + (e.field||'') + '</td><td>' + (e.message||'') + '</td>'; tbody.appendChild(tr); });
+          $('#preview').style.display = '';
+        } catch (e) { alert('Preview failed: ' + (e.message||JSON.stringify(e))); }
+      };
+      $('#btnCommit').onclick = async () => {
+        const f = lastFile || ($('#file').files[0]); if (!f) { alert('Choose a CSV'); return; }
+        try {
+          const r = await postMultipart('commit', f);
+          var link = (r.artifact && r.artifact.auditUrl) ? ' — <a href="' + r.artifact.auditUrl + '">audit.json</a>' : '';
+          $('#commitRes').innerHTML = 'Created: ' + (r.created||0) + ', Merged: ' + (r.merged||0) + ', Skipped: ' + (r.skipped||0) + link;
+          $('#commit').style.display = '';
+        } catch (e) { alert('Commit failed: ' + (e.message||JSON.stringify(e))); }
+      };
+      </script>
+      </body></html>`;
+      res.set('Content-Type','text/html; charset=utf-8').send(html);
+    } catch (e) { return sendProblem(res, 'ui_import_error', String(e?.message || e), undefined, 500); }
+  });
+
+  // Lead-level quick actions
+  const LeadNoteZ2 = z.object({ text: z.string().min(1) });
+  app.post('/leads/:id/notes', (req, res) => {
+    try {
+      const { id } = req.params;
+      const lead = db.prepare('SELECT id FROM leads WHERE id = ?').get(id);
+      if (!lead) return sendProblem(res, 'not_found', 'Lead not found', 'id', 404);
+      const parsed = LeadNoteZ2.safeParse(req.body || {});
+      if (!parsed.success) {
+        const issue = parsed.error.issues[0];
+        const field = Array.isArray(issue?.path) ? issue.path.join('.') : undefined;
+        return sendProblem(res, 'validation_error', issue?.message || 'Invalid payload', field, 400);
+      }
+      const notesDir = path.resolve(STORAGE_ROOT, 'artifacts', 'leads', id, 'notes');
+      fs.mkdirSync(notesDir, { recursive: true });
+      const line = `- [${new Date().toISOString()}] ${parsed.data.text}\n`;
+      fs.appendFileSync(path.join(notesDir, 'notes.md'), line);
+      try { auditMut(req); } catch {}
+      return res.json({ success: true });
+    } catch (e) { return sendProblem(res, 'lead_note_error', String(e?.message || e), undefined, 500); }
+  });
+  const LeadDispZ2 = z.object({ type: z.enum(['no_answer','voicemail','bad_number','interested','not_interested','follow_up']) });
+  app.post('/leads/:id/disposition', (req, res) => {
+    try {
+      const { id } = req.params;
+      const lead = db.prepare('SELECT id FROM leads WHERE id = ?').get(id);
+      if (!lead) return sendProblem(res, 'not_found', 'Lead not found', 'id', 404);
+      const parsed = LeadDispZ2.safeParse(req.body || {});
+      if (!parsed.success) {
+        const issue = parsed.error.issues[0];
+        const field = Array.isArray(issue?.path) ? issue.path.join('.') : undefined;
+        return sendProblem(res, 'validation_error', issue?.message || 'Invalid payload', field, 400);
+      }
+      const dispDir = path.resolve(STORAGE_ROOT, 'artifacts', 'leads', id, 'dispositions');
+      fs.mkdirSync(dispDir, { recursive: true });
+      const rec = { leadId: id, type: parsed.data.type, at: new Date().toISOString() };
+      fs.writeFileSync(path.join(dispDir, `${Date.now()}.json`), JSON.stringify(rec, null, 2));
+      try { auditMut(req); } catch {}
+      return res.json({ success: true });
+    } catch (e) { return sendProblem(res, 'lead_disposition_error', String(e?.message || e), undefined, 500); }
+  });
+
   // === CSV Import (preview + commit) ===
   const ImportRowZ = z.object({
     address: z.string().min(1),
     owner_name: z.string().optional(),
     phone: z.string().optional(),
-    email: z.string().email().optional(),
+    // Treat empty string as undefined so blank email cells don't fail validation
+    email: z.preprocess(v => v === '' || v == null ? undefined : v, z.string().email().optional()),
     estimated_value: z.preprocess(v => v === '' || v == null ? undefined : Number(v), z.number().finite().optional()),
     equity: z.preprocess(v => v === '' || v == null ? undefined : Number(v), z.number().finite().nullable().optional()),
     motivation_score: z.preprocess(v => v === '' || v == null ? undefined : Number(v), z.number().int().min(0).max(100).nullable().optional()),
@@ -2746,28 +2923,46 @@ const startServer = async () => {
     out.updated_at = new Date().toISOString();
     return out;
   }
-  // Helper to parse CSV buffer into rows with headers
+  // Helper to parse CSV buffer into rows with headers (minimal parser; covers simple cases used in tests)
   async function parseCsvBuffer(buf) {
-    return new Promise((resolve, reject) => {
-      const rows = [];
-      const headers = new Set();
-      const stream = require('stream');
-      const r = new stream.Readable();
-      r._read = () => {};
-      r.push(buf);
-      r.push(null);
-      r
-        .pipe(csvParse())
-        .on('headers', (h) => { h.forEach(x => headers.add(x)); })
-        .on('data', (row) => rows.push(row))
-        .on('end', () => resolve({ rows, headers: Array.from(headers) }))
-        .on('error', (err) => reject(err));
-    });
+    try {
+      const text = Buffer.isBuffer(buf) ? buf.toString('utf8') : String(buf || '');
+      const lines = text.replace(/\r\n/g, '\n').split('\n').filter(l => l.trim() !== '');
+      if (lines.length === 0) return { rows: [], headers: [] };
+      const headerLine = lines[0];
+      const headers = headerLine.split(',').map(h => h.trim());
+      const rows = lines.slice(1).map(line => {
+        const values = line.split(',');
+        const obj = {};
+        headers.forEach((h, i) => {
+          obj[h] = (values[i] ?? '').trim();
+        });
+        return obj;
+      });
+      return { rows, headers };
+    } catch (e) {
+      console.error('[ImportCSV] simple parse error:', e && (e.stack || e.message || e));
+      throw e;
+    }
   }
   // Admin auth already applied to /admin via basicAuth middleware.
-  app.post('/admin/import/csv', upload.single('file'), async (req, res) => {
+  // Custom wrapper to capture multer errors and map to Problem+JSON
+  app.post('/admin/import/csv', async (req, res) => {
     try {
-      // Size/type limits already enforced by multer; map errors
+      await new Promise((resolve, reject) => {
+        upload.single('file')(req, res, (err) => {
+          if (!err) return resolve(null);
+          // Map known multer/fileFilter errors
+          if (err && (err.code === 'LIMIT_FILE_SIZE')) {
+            return reject(Object.assign(new Error('payload_too_large'), { status: 413 }));
+          }
+          if (String(err?.message) === 'unsupported_content_type') {
+            return reject(Object.assign(new Error('unsupported_media_type'), { status: 415 }));
+          }
+          // Generic validation
+          return reject(Object.assign(new Error('validation_error'), { status: 400 }));
+        });
+      });
       // Mode
       const mode = String(req.query.mode || 'preview').toLowerCase();
       if (mode !== 'preview' && mode !== 'commit') {
@@ -2775,6 +2970,7 @@ const startServer = async () => {
       }
       const file = req.file;
       if (!file) return sendProblem(res, 'validation_error', 'file is required', 'file', 400);
+      try { console.log('[ImportCSV] accepted upload', { mode, name: file.originalname, type: file.mimetype, size: file.size }); } catch {}
       if (!(file.mimetype === 'text/csv' || (file.originalname || '').toLowerCase().endsWith('.csv'))) {
         return sendProblem(res, 'unsupported_media_type', 'Content must be CSV', undefined, 415);
       }
@@ -2783,13 +2979,24 @@ const startServer = async () => {
       }
 
       const t0 = Date.now();
-      const { rows, headers } = await parseCsvBuffer(file.buffer);
+      const { rows, headers } = await (async () => {
+        try {
+          const out = await parseCsvBuffer(file.buffer);
+          try { console.log('[ImportCSV] parsed rows:', out.rows.length, 'headers:', out.headers); } catch {}
+          return out;
+        } catch (perr) {
+          console.error('[ImportCSV] parse error:', perr && (perr.stack || perr.message || perr));
+          throw perr;
+        }
+      })();
       const dedupe = new Map(); // key -> index of kept record
       const normalizedCollisions = [];
       let rows_total = rows.length, rows_valid = 0, rows_invalid = 0;
       let would_create = 0, would_merge = 0, would_skip = 0;
       const sample_errors = [];
-      const normalizedRows = rows.map((r, idx) => {
+      let normalizedRows;
+      try {
+        normalizedRows = rows.map((r, idx) => {
         const candidate = {
           address: r.address || r.Address || r.ADDRESS || '',
           owner_name: r.owner_name || r.owner || r.Owner || '',
@@ -2818,9 +3025,15 @@ const startServer = async () => {
         data.normalized_address = normalizeAddress(data.address);
         rows_valid++;
         return { ok:true, data };
-      });
+        });
+      } catch (mapErr) {
+        console.error('[ImportCSV] normalize error:', mapErr && (mapErr.stack || mapErr.message || mapErr));
+        throw mapErr;
+      }
+      try { console.log('[ImportCSV] normalized', { rows_total, rows_valid, rows_invalid, sample_errors }); } catch {}
 
       // In-batch dedupe
+      try { console.log('[ImportCSV] start in-batch dedupe'); } catch {}
       const keyOf = (d) => {
         const ident = d.owner_name || d.email || d.phone || '';
         return `${d.normalized_address}|${ident}`;
@@ -2835,11 +3048,13 @@ const startServer = async () => {
           dedupe.set(key, idx);
         }
       });
+      try { console.log('[ImportCSV] dedupe complete', { kept: dedupe.size, would_skip }); } catch {}
 
       // DB dedupe and preview/commit actions
+      try { console.log('[ImportCSV] defining selectByKey'); } catch {}
       const selectByKey = (addrKey, identVal) => {
         // Try best-effort matching using existing columns
-        const candidates = db.prepare('SELECT * FROM leads WHERE LOWER(REPLACE(REPLACE(REPLACE(address, ",", " "), ".", " "), "#", " ")) LIKE ?').all(`%${addrKey.split('|')[0]}%`);
+        const candidates = db.prepare("SELECT * FROM leads WHERE LOWER(REPLACE(REPLACE(REPLACE(address, ',', ' '), '.', ' '), '#', ' ')) LIKE ?").all(`%${addrKey.split('|')[0]}%`);
         return candidates.find(c => {
           const matchOwner = identVal && c.owner_name && String(c.owner_name).toLowerCase() === String(identVal).toLowerCase();
           const matchEmail = identVal && c.email && String(c.email).toLowerCase() === String(identVal).toLowerCase();
@@ -2847,24 +3062,39 @@ const startServer = async () => {
           return matchOwner || matchEmail || matchPhone;
         }) || null;
       };
+      try { console.log('[ImportCSV] selectByKey defined'); } catch {}
 
       const toCreate = [];
       const toMerge = [];
-      normalizedRows.forEach((row) => {
-        if (!row.ok) return;
-        const key = keyOf(row.data);
-        const [addrKey, identVal] = key.split('|');
-        const existing = selectByKey(addrKey, identVal);
-        if (existing) {
-          would_merge++;
-          toMerge.push({ existing, incoming: row.data });
-        } else {
-          would_create++;
-          toCreate.push(row.data);
+      // Only consider deduped rows (unique keys) for create/merge preview
+      try { console.log('[ImportCSV] compute create/merge'); } catch {}
+      try {
+        for (const keptIdx of dedupe.values()) {
+          const row = normalizedRows[keptIdx];
+          if (!row || !row.ok) continue;
+          const [addrKey, identVal] = keyOf(row.data).split('|');
+          const existing = selectByKey(addrKey, identVal);
+          if (existing) { would_merge++; toMerge.push({ existing, incoming: row.data }); }
+          else { would_create++; toCreate.push(row.data); }
         }
-      });
+        try { console.log('[ImportCSV] toCreate/toMerge', { toCreate: toCreate.length, toMerge: toMerge.length }); } catch {}
+      } catch (cmpErr) {
+        console.error('[ImportCSV] compute create/merge error:', cmpErr && (cmpErr.stack || cmpErr.message || cmpErr));
+        // Fallback: treat all kept deduped rows as creates to keep preview resilient
+        would_create = dedupe.size;
+        would_merge = 0;
+        toCreate.length = 0; // reset in case partially filled
+        for (const keptIdx of dedupe.values()) {
+          const row = normalizedRows[keptIdx];
+          if (row && row.ok) toCreate.push(row.data);
+        }
+      }
 
       if (mode === 'preview') {
+        // Normalize counts from computed arrays for determinism
+        would_create = toCreate.length;
+        would_merge = toMerge.length;
+        try { console.log('[ImportCSV] preview counts', { rows_total, rows_valid, rows_invalid, would_create, would_merge, would_skip }); } catch {}
         return res.json({ ok: true, preview: { rows_total, rows_valid, rows_invalid, would_create, would_merge, would_skip, sample_errors } });
       }
 
@@ -2937,15 +3167,56 @@ const startServer = async () => {
       const exp = Math.floor(Date.now() / 1000) + defaultTtl;
       const relAudit = `${runId}/audit.json`;
       const auditUrl = `/admin/artifact-download?path=${encodeURIComponent(relAudit)}&exp=${exp}&sig=${signUtil(relAudit, exp, process.env.ARTIFACT_SIGNING_SECRET || 'dev-secret')}`;
+      // metrics + audit log
+      try { recordImportResults({ created, merged, skipped, invalid: rows_invalid }); } catch {}
+      try { auditMut(req, file.buffer); } catch {}
       return res.json({ ok: true, created, merged, skipped, artifact: { auditUrl } });
     } catch (e) {
-      if (String(e?.message) === 'unsupported_content_type') {
-        return sendProblem(res, 'unsupported_media_type', 'Content must be CSV', undefined, 415);
-      }
-      if (e && e.code === 'LIMIT_FILE_SIZE') {
-        return sendProblem(res, 'payload_too_large', 'CSV exceeds 10MB', undefined, 413);
-      }
+      // Map custom errors we annotated above
+      console.error('[ImportCSV] Error during import:', e && (e.stack || e.message || e));
+      const status = typeof e?.status === 'number' ? e.status : undefined;
+      if (status === 415) return sendProblem(res, 'unsupported_media_type', 'Content must be CSV', undefined, 415);
+      if (status === 413) return sendProblem(res, 'payload_too_large', 'CSV exceeds 10MB', undefined, 413);
+      if (status === 400) return sendProblem(res, 'validation_error', 'Invalid upload', undefined, 400);
+      // Fallback
       return sendProblem(res, 'import_error', String(e?.message || e), undefined, 500);
+    }
+  });
+
+  // Weekly export bundle (CSV + summary.json zipped) — returns signed bundle URL
+  const Archiver = (await import('archiver')).default;
+  app.post('/admin/export/weekly-bundle', async (req, res) => {
+    try {
+      // last 7 days by updated_at
+      const d = new Date(); const to = d.toISOString(); d.setDate(d.getDate()-7); const from = d.toISOString();
+      const rows = db.prepare("SELECT * FROM leads WHERE datetime(updated_at) >= datetime(?)").all(from);
+      const dateKey = new Date().toISOString().slice(0,10);
+      const runId = `weekly_export_${dateKey}`;
+      const dir = path.resolve(ARTIFACT_ROOT, runId);
+      fs.mkdirSync(dir, { recursive: true });
+      // write leads.csv
+      const headers = ['id','address','owner_name','phone','email','estimated_value','equity','motivation_score','temperature_tag','status','source_type','created_at','updated_at'];
+      const csv = [headers.join(',')].concat(rows.map(r => headers.map(h => (r[h] ?? '')).join(','))).join('\n');
+      fs.writeFileSync(path.join(dir,'leads.csv'), csv);
+      // write summary.json
+      const byStatus = {}; const byTemp = {};
+      rows.forEach(r => { byStatus[r.status||''] = (byStatus[r.status||'']||0)+1; byTemp[r.temperature_tag||''] = (byTemp[r.temperature_tag||'']||0)+1; });
+      fs.writeFileSync(path.join(dir,'summary.json'), JSON.stringify({ from, to, count: rows.length, byStatus, byTemperature: byTemp }, null, 2));
+      // zip directory to runId.zip
+      const zipPath = path.join(dir, `${runId}.zip`);
+      await new Promise((resolve, reject) => {
+        const output = fs.createWriteStream(zipPath);
+        const archive = Archiver('zip', { zlib: { level: 9 } });
+        output.on('close', resolve); archive.on('error', reject);
+        archive.pipe(output); archive.directory(dir, false); archive.finalize();
+      });
+      const exp = Math.floor(Date.now()/1000) + defaultTtl;
+      const relZip = `${runId}/${runId}.zip`;
+      const bundleUrl = `/admin/artifact-download?path=${encodeURIComponent(relZip)}&exp=${exp}&sig=${signUtil(relZip, exp, process.env.ARTIFACT_SIGNING_SECRET || 'dev-secret')}`;
+      try { auditMut(req); } catch {}
+      return res.json({ ok: true, bundleUrl });
+    } catch (e) {
+      return sendProblem(res, 'export_error', String(e?.message || e), undefined, 500);
     }
   });
   

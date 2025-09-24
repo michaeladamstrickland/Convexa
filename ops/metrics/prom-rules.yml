@@ -13,22 +13,58 @@ groups:
       sum(increase(convexa_cache_events_total{op="get"}[5m]))
 
   - alert: HighErrorRate
-    expr: rate(http_requests_errors_total[5m]) > 0.05
+    expr: sum(rate(http_requests_total{status=~"5..", job="convexa"}[5m])) / sum(rate(http_requests_total{job="convexa"}[5m])) > 0.02
     for: 5m
     labels:
       severity: critical
     annotations:
-      summary: "High HTTP error rate (5xx) detected"
-      description: "The HTTP error rate (5xx) has been above 5% for 5 minutes. Current value: {{ $value | humanizePercentage }}"
+      summary: "High HTTP 5xx error rate detected"
+      description: "The HTTP 5xx error rate has been above 2% for 5 minutes. Current value: {{ $value | humanizePercentage }}"
 
-  - alert: DLQHasMessages
-    expr: dlq_depth{queue_name="scraper-jobs"} > 0
-    for: 10m
+  - alert: HighLatency
+    expr: histogram_quantile(0.95, sum by(le, path) (rate(http_request_duration_seconds_bucket{job="convexa"}[5m]))) > 0.5
+    for: 5m
     labels:
       severity: warning
     annotations:
-      summary: "Dead-letter queue has messages"
-      description: "The dead-letter queue for scraper jobs has {{ $value }} messages for 10 minutes. Investigate failed jobs."
+      summary: "High p95 HTTP request latency detected"
+      description: "The p95 HTTP request latency has been above 500ms for 5 minutes. Current value: {{ $value }}s"
+
+  - alert: WebhookErrorsGrowth
+    expr: rate(webhook_errors_total[5m]) > 0
+    for: 5m
+    labels:
+      severity: critical
+    annotations:
+      summary: "Webhook errors are growing"
+      description: "Webhook errors are increasing. Current rate: {{ $value }} errors/sec"
+
+  - alert: DialDispositionStall
+    expr: (time() - max(dial_disposition_total_timestamp)) > 300
+    for: 5m
+    labels:
+      severity: critical
+    annotations:
+      summary: "Dial disposition metric stalled"
+      description: "The dial_disposition_total metric has not been updated for more than 5 minutes."
+
+  - alert: RedisDown
+    expr: redis_up == 0
+    for: 1m
+    labels:
+      severity: critical
+    annotations:
+      summary: "Redis is down"
+      description: "Redis instance is not reachable."
+
+  - alert: DiskUsageHigh
+    expr: node_disk_utilization > 0.8
+    for: 5m
+    labels:
+      severity: critical
+    annotations:
+      summary: "Disk usage is high"
+      description: "Disk usage is above 80%. Current value: {{ $value | humanizePercentage }}"
 
   - alert: QuotaApproachingLimit
     expr: convexa_quota_fraction{resource="attom_api"} > 0.8
@@ -38,3 +74,12 @@ groups:
     annotations:
       summary: "ATTOM API quota approaching limit"
       description: "The ATTOM API quota usage is at {{ $value | humanizePercentage }}. Consider increasing the daily cap or investigating usage patterns."
+
+  - alert: QuotaHardStop
+    expr: convexa_quota_fraction{resource="attom_api"} >= 1
+    for: 1m
+    labels:
+      severity: critical
+    annotations:
+      summary: "ATTOM API quota hard stop reached"
+      description: "The ATTOM API quota has reached 100%. Demo mode fallback should be active."

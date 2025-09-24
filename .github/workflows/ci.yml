@@ -41,9 +41,11 @@ jobs:
       - name: Upload artifacts (e.g., build output, test reports)
         uses: actions/upload-artifact@v4
         with:
-          name: build-artifacts
+          name: build-artifacts-${{ github.sha }}
           if-no-files-found: ignore
+          retention-days: 30
           path: |
             dist/ # Adjust to your build output directory
             coverage/ # Adjust to your test coverage report directory
             test-results.xml # Adjust to your test results file
+            qa/smoke_output/ # Path to smoke test outputs (JSON/logs/PNG)

@@ -832,19 +832,250 @@
       ],
       "title": "Resume Duration (p50/p95)",
       "type": "timeseries"
+    },
+    {
+      "datasource": null,
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColor": "#8E8E8E",
+            "axisLabel": "",
+            "axisWidth": 1,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": 1,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "normal"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 36
+      },
+      "id": 12,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max"
+          ],
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVizId": "timeseries",
+      "targets": [
+        {
+          "expr": "sum by(result)(increase(convexa_import_rows_total[24h]))",
+          "refId": "A"
+        }
+      ],
+      "title": "Import rows (24h)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": null,
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColor": "#8E8E8E",
+            "axisLabel": "",
+            "axisWidth": 1,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": 1,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 36
+      },
+      "id": 13,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max"
+          ],
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVizId": "timeseries",
+      "targets": [
+        {
+          "expr": "sum by(route)(rate(http_requests_total{route=~\"/ops/leads.*\"}[$__rate_interval]))",
+          "refId": "A"
+        }
+      ],
+      "title": "Operator traffic",
+      "type": "timeseries"
+    },
+    {
+      "datasource": null,
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColor": "#8E8E8E",
+            "axisLabel": "",
+            "axisWidth": 1,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": 1,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 36
+      },
+      "id": 14,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max"
+          ],
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVizId": "timeseries",
+      "targets": [
+        {
+          "expr": "sum(increase(convexa_weekly_exports_total[7d]))",
+          "refId": "A"
+        }
+      ],
+      "title": "Weekly exports (count last 7d)",
+      "type": "timeseries"
     }
   ],
   "rows": [
     {
       "cards": [],
       "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 36 },
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 44 },
       "id": 100,
       "panels": [
         {
           "datasource": null,
           "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [] },
-          "gridPos": { "h": 8, "w": 8, "x": 0, "y": 37 },
+          "gridPos": { "h": 8, "w": 8, "x": 0, "y": 45 },
           "id": 101,
           "options": {
             "legend": { "displayMode": "list", "placement": "bottom" },
@@ -860,7 +1091,7 @@
         {
           "datasource": null,
           "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [] },
-          "gridPos": { "h": 8, "w": 8, "x": 8, "y": 37 },
+          "gridPos": { "h": 8, "w": 8, "x": 8, "y": 45 },
           "id": 102,
           "options": {
             "legend": { "displayMode": "list", "placement": "bottom" },
@@ -876,7 +1107,7 @@
         {
           "datasource": null,
           "fieldConfig": { "defaults": { "unit": "req/s" }, "overrides": [] },
-          "gridPos": { "h": 8, "w": 8, "x": 16, "y": 37 },
+          "gridPos": { "h": 8, "w": 8, "x": 16, "y": 45 },
           "id": 103,
           "options": {
             "legend": { "displayMode": "list", "placement": "bottom" },
