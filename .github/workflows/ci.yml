@@ -32,6 +32,24 @@ jobs:
       - name: Install dependencies (clean)
         run: npm ci
 
+      - name: Install node-fetch for smoke tests
+        run: npm install node-fetch
+
+      - name: Run smoke tests
+        run: |
+          node scripts/smoke/pi1Campaigns.cjs
+          node scripts/smoke/pi1Grades.cjs
+          npm run smoke:pi1:dialops
+
+      - name: Check for required metrics in smoke output
+        run: |
+          grep -q "campaign_queries_total" ops/findings/pi1_metrics_sample.txt || { echo "campaign_queries_total not found in metrics sample!"; exit 1; }
+          grep -q "lead_grades_total" ops/findings/pi1_metrics_sample.txt || { echo "lead_grades_total not found in metrics sample!"; exit 1; }
+          grep -q "dial_disposition_total" ops/findings/pi1_metrics_sample.txt || { echo "dial_disposition_total not found in metrics sample!"; exit 1; }
+          grep -q "followups_created_total" ops/findings/pi1_metrics_sample.txt || { echo "followups_created_total not found in metrics sample!"; exit 1; }
+          grep -q "followups_completed_total" ops/findings/pi1_metrics_sample.txt || { echo "followups_completed_total not found in metrics sample!"; exit 1; }
+          grep -q "followups_due_gauge" ops/findings/pi1_metrics_sample.txt || { echo "followups_due_gauge not found in metrics sample!"; exit 1; }
+
       - name: Run tests (Vitest with coverage)
         run: npm run coverage
 
@@ -49,3 +67,8 @@ jobs:
             coverage/ # Adjust to your test coverage report directory
             test-results.xml # Adjust to your test results file
             qa/smoke_output/ # Path to smoke test outputs (JSON/logs/PNG)
+            ops/dashboards/convexa_pi1.json
+            ops/findings/campaigns_smoke.md
+            ops/findings/grades_recompute.md
+            ops/findings/dial_followup_timeline.md
+            ops/findings/pi1_metrics_sample.txt

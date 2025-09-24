@@ -33,6 +33,7 @@
     "test:routes:import": "vitest run -t import --reporter=dot",
     "test:smoke:tiny": "node scripts/smoke/dialerTiny.mjs",
     "smoke:import": "node scripts/smoke/importCsv.mjs",
+    "smoke:pi1:dialops": "node scripts/smoke/pi1DialOps.cjs",
     "coverage": "vitest run --coverage",
     "lint": "eslint src/**/*.ts",
     "test:prepare": "node prepare-tests.js",

@@ -11,6 +11,12 @@ groups:
       sum(increase(convexa_cache_events_total{op="get",result="hit"}[5m]))
       /
       sum(increase(convexa_cache_events_total{op="get"}[5m]))
+  - record: pi1_dispositions_15m
+    expr: sum by (type) (increase(dial_disposition_total[15m]))
+  - record: pi1_followups_due
+    expr: followups_due_gauge
+  - record: pi1_followups_overdue
+    expr: followups_overdue_gauge
 
   - alert: HighErrorRate
     expr: sum(rate(http_requests_total{status=~"5..", job="convexa"}[5m])) / sum(rate(http_requests_total{job="convexa"}[5m])) > 0.02

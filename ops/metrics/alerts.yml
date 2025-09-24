@@ -72,3 +72,48 @@ groups:
     annotations:
       summary: "ATTOM API quota hard stop reached"
       description: "The ATTOM API quota has reached 100%. Demo mode fallback should be active."
+
+  - alert: NoCampaignQueries
+    expr: sum(rate(campaign_queries_total[15m])) == 0
+    for: 15m
+    labels:
+      severity: critical
+    annotations:
+      summary: "No campaign queries observed"
+      description: "No campaign queries have been observed for 15 minutes. This might indicate an issue with campaign processing. TODO: Enhance with check for non-zero in prior 24h."
+
+  - alert: StaleLeadGrades
+    expr: changes(lead_grades_total[24h]) == 0
+    for: 24h
+    labels:
+      severity: critical
+    annotations:
+      summary: "Lead grades not changing"
+      description: "The lead_grades_total metric has not changed for 24 hours, indicating stale lead grading jobs."
+
+  - alert: NoDispositionsToday
+    expr: sum(increase(dial_disposition_total[24h])) == 0
+    for: 24h
+    labels:
+      severity: critical
+    annotations:
+      summary: "No dispositions recorded today"
+      description: "No dial dispositions have been recorded in the last 24 hours. This might indicate an issue with dialer operations."
+
+  - alert: OverdueFollowupsSpike
+    expr: pi1_followups_overdue > 10
+    for: 30m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Spike in overdue follow-ups"
+      description: "The number of overdue follow-ups has been above 10 for 30 minutes. Current count: {{ $value }}"
+
+  - alert: StaleTimeline
+    expr: sum(increase(timeline_events_total[2h])) == 0
+    for: 2h
+    labels:
+      severity: critical
+    annotations:
+      summary: "No timeline events observed"
+      description: "No timeline events have been observed in the last 2 hours. This might indicate an issue with event logging."
