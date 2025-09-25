@@ -1,22 +1,22 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const express_1 = require("express");
-const scraperQueue_1 = require("../queues/scraperQueue");
-const zod_1 = require("zod");
-const prisma_1 = require("../db/prisma");
-const scraperWorker_1 = require("../workers/scraperWorker");
-const webhookWorker_1 = require("../workers/webhookWorker");
-const enrichment_1 = require("../metrics/enrichment");
-const matchmakingWorker_1 = require("../workers/matchmakingWorker");
-const dailyScheduler_1 = require("../scheduler/dailyScheduler");
-const router = (0, express_1.Router)();
+import { Router } from 'express';
+import { enqueueScraperJob } from '../queues/scraperQueue';
+import { ZodError } from 'zod';
+import { prisma } from '../db/prisma';
+import { metrics, workerState } from '../workers/scraperWorker';
+import { webhookMetrics } from '../workers/webhookWorker';
+import { enrichmentMetrics } from '../metrics/enrichment';
+import { matchmakingMetrics } from '../workers/matchmakingWorker';
+import { triggerDailyScheduler } from '../scheduler/dailyScheduler';
+import { Queue } from 'bullmq';
+import { createHash } from 'crypto';
+const router = Router();
 router.post('/queue-job', async (req, res) => {
     try {
-        const result = await (0, scraperQueue_1.enqueueScraperJob)(req.body);
+        const result = await enqueueScraperJob(req.body);
         res.json({ success: true, job: result });
     }
     catch (e) {
-        if (e instanceof zod_1.ZodError) {
+        if (e instanceof ZodError) {
             return res.status(400).json({ success: false, error: 'validation_failed', issues: e.issues });
         }
         res.status(500).json({ success: false, error: e?.message || 'failed_to_enqueue' });
@@ -24,7 +24,7 @@ router.post('/queue-job', async (req, res) => {
 });
 router.get('/job/:id', async (req, res) => {
     try {
-        const job = await prisma_1.prisma.scraperJob.findUnique({ where: { id: req.params.id } });
+        const job = await prisma.scraperJob.findUnique({ where: { id: req.params.id } });
         if (!job)
             return res.status(404).json({ success: false, error: 'not_found' });
         // Provide meta fallbacks expected by tests without mutating DB
@@ -51,7 +51,7 @@ router.get('/job/:id', async (req, res) => {
 router.get('/jobs', async (req, res) => {
     const limit = Math.min(parseInt(req.query.limit) || 50, 200);
     try {
-        const jobs = await prisma_1.prisma.scraperJob.findMany({
+        const jobs = await prisma.scraperJob.findMany({
             orderBy: { createdAt: 'desc' },
             take: limit
         });
@@ -61,37 +61,46 @@ router.get('/jobs', async (req, res) => {
         res.status(500).json({ success: false, error: e?.message || 'jobs_query_failed' });
     }
 });
-router.get('/queue-metrics', (req, res) => {
-    const sourceBreakdown = Array.from(scraperWorker_1.metrics.perSource.entries()).reduce((acc, [k, v]) => {
+router.get('/queue-metrics', async (req, res) => {
+    const sourceBreakdown = Array.from(metrics.perSource.entries()).reduce((acc, [k, v]) => {
         acc[k] = v;
         return acc;
     }, {});
+    // Get BullMQ queue depths
+    const queueNames = ['scraper-jobs', 'webhook-deliveries', 'matchmaking', 'scraper-jobs-failed']; // Add other queue names as needed
+    const queueDepths = {};
+    for (const name of queueNames) {
+        const queue = new Queue(name, { connection: { host: 'localhost', port: 6379 } });
+        const counts = await queue.getJobCounts('waiting', 'active', 'completed', 'failed', 'delayed');
+        queueDepths[name] = counts;
+    }
     res.json({
         success: true,
-        totalProcessed: scraperWorker_1.metrics.processed,
-        successCount: scraperWorker_1.metrics.success,
-        failedCount: scraperWorker_1.metrics.failed,
-        sourceBreakdown
+        totalProcessed: metrics.processed,
+        successCount: metrics.success,
+        failedCount: metrics.failed,
+        sourceBreakdown,
+        queueDepths
     });
 });
 router.get('/worker-status', async (req, res) => {
     res.json({
         success: true,
         worker: {
-            active: scraperWorker_1.workerState.active,
-            activeJobs: scraperWorker_1.workerState.activeJobs,
-            lastJobCompletedAt: scraperWorker_1.workerState.lastJobCompletedAt,
+            active: workerState.active,
+            activeJobs: workerState.activeJobs,
+            lastJobCompletedAt: workerState.lastJobCompletedAt,
             metrics: {
-                processed: scraperWorker_1.metrics.processed,
-                success: scraperWorker_1.metrics.success,
-                failed: scraperWorker_1.metrics.failed
+                processed: metrics.processed,
+                success: metrics.success,
+                failed: metrics.failed
             }
         }
     });
 });
 router.post('/trigger-scheduler', async (req, res) => {
     try {
-        const result = await (0, dailyScheduler_1.triggerDailyScheduler)(true);
+        const result = await triggerDailyScheduler(true);
         res.json({ success: true, ...result });
     }
     catch (e) {
@@ -138,15 +147,12 @@ router.post('/enqueue-bulk', async (req, res) => {
         for (const zip of zips) {
             try {
                 // Attempt duplicate detection by same day + source + zip (zip inside inputPayload JSON)
-                const existing = await prisma_1.prisma.scraperJob.findFirst({
-                    where: {
-                        source: source,
-                        createdAt: { gte: todayStart },
-                        // Simple JSON search fallback if Prisma JSON path not supported in current version
-                    }
+                const jobId = createHash('sha1').update(JSON.stringify({ source, zip, fromDate, toDate, filters })).digest('hex');
+                const existing = await prisma.scraperJob.findUnique({
+                    where: { id: jobId }
                 });
-                if (existing && existing.inputPayload?.zip === zip) {
-                    skipped.push({ source, zip, reason: 'duplicate_same_day' });
+                if (existing) {
+                    skipped.push({ source, zip, reason: 'duplicate_job_id' });
                     continue;
                 }
                 const payload = { source, zip };
@@ -156,7 +162,7 @@ router.post('/enqueue-bulk', async (req, res) => {
                     payload.toDate = toDate;
                 if (filters)
                     payload.filters = filters;
-                const { id } = await (0, scraperQueue_1.enqueueScraperJob)(payload);
+                const { id } = await enqueueScraperJob(payload, { jobId, attempts: 6, backoff: { type: 'exponential', delay: 1000 } });
                 created.push({ id, source, zip });
             }
             catch (e) {
@@ -172,7 +178,7 @@ router.get('/metrics', async (req, res) => {
     res.set('Content-Type', 'text/plain');
     let output = '';
     try {
-        const rows = await prisma_1.prisma.scraperJob.groupBy({
+        const rows = await prisma.scraperJob.groupBy({
             by: ['source', 'status'],
             _count: { _all: true }
         });
@@ -185,7 +191,7 @@ router.get('/metrics', async (req, res) => {
     }
     // Latency histogram buckets
     const buckets = [1000, 3000, 5000, 10000, 30000];
-    const durations = scraperWorker_1.metrics.durations.slice();
+    const durations = metrics.durations.slice();
     for (const b of buckets) {
         const count = durations.filter(d => d <= b).length;
         output += `leadflow_jobs_latency_ms_bucket{le="${b}"} ${count}\n`;
@@ -196,7 +202,7 @@ router.get('/metrics', async (req, res) => {
     output += `leadflow_jobs_latency_ms_count ${durations.length}\n`;
     // Basic retry gauge approximation: failed jobs where attempt > 1 (requires extra query)
     try {
-        const failed = await prisma_1.prisma.scraperJob.findMany({ where: { status: 'failed' } });
+        const failed = await prisma.scraperJob.findMany({ where: { status: 'failed' } });
         const retryCount = failed.filter(f => f.attempt > 1).length;
         output += `leadflow_retries_total ${retryCount}\n`;
     }
@@ -205,11 +211,11 @@ router.get('/metrics', async (req, res) => {
     }
     // Append webhook metrics
     try {
-        const activeSubs = await prisma_1.prisma.webhookSubscription.count({ where: { isActive: true } });
-        const unresolvedFailures = await prisma_1.prisma.webhookDeliveryFailure.count({ where: { isResolved: false } });
-        const deliveryAggregates = await prisma_1.prisma.webhookDeliveryLog.groupBy({ by: ['status', 'eventType'], _count: { _all: true } }).catch(() => []);
-        output += `leadflow_webhooks_delivered_total ${webhookWorker_1.webhookMetrics.delivered}\n`;
-        output += `leadflow_webhooks_failed_total ${webhookWorker_1.webhookMetrics.failed}\n`;
+        const activeSubs = await prisma.webhookSubscription.count({ where: { isActive: true } });
+        const unresolvedFailures = await prisma.webhookDeliveryFailure.count({ where: { isResolved: false } });
+        const deliveryAggregates = await prisma.webhookDeliveryLog.groupBy({ by: ['status', 'eventType'], _count: { _all: true } }).catch(() => []);
+        output += `leadflow_webhooks_delivered_total ${webhookMetrics.delivered}\n`;
+        output += `leadflow_webhooks_failed_total ${webhookMetrics.failed}\n`;
         output += `leadflow_webhooks_active_subscriptions ${activeSubs}\n`;
         output += `leadflow_webhooks_unresolved_failures ${unresolvedFailures}\n`;
         const replayMetrics = global.__WEBHOOK_REPLAY_METRICS__ || { single: { success: 0, failed: 0 }, bulk: { success: 0, failed: 0 } };
@@ -227,7 +233,7 @@ router.get('/metrics', async (req, res) => {
         }
         catch { }
         const wbuckets = [50, 100, 250, 500, 1000, 2000, 5000];
-        const wdurs = webhookWorker_1.webhookMetrics.durations.slice();
+        const wdurs = webhookMetrics.durations.slice();
         for (const b of wbuckets) {
             const count = wdurs.filter(d => d <= b).length;
             output += `leadflow_webhook_delivery_duration_ms_bucket{le="${b}"} ${count}\n`;
@@ -260,13 +266,13 @@ router.get('/metrics', async (req, res) => {
             output += `leadflow_export_total{format="csv"} ${em.totalCsv}\n`;
             // Matchmaking metrics
             try {
-                const mmMap = matchmakingWorker_1.matchmakingMetrics.statusCounts;
+                const mmMap = matchmakingMetrics.statusCounts;
                 for (const [status, count] of mmMap.entries()) {
                     output += `leadflow_matchmaking_jobs_total{status="${status}"} ${count}\n`;
                 }
                 // Histogram for matchmaking durations (reuse same pattern)
                 const mbuckets = [10, 50, 100, 250, 500, 1000, 2000, 5000];
-                const mdurs = matchmakingWorker_1.matchmakingMetrics.durations.slice();
+                const mdurs = matchmakingMetrics.durations.slice();
                 for (const b of mbuckets) {
                     const c = mdurs.filter(d => d <= b).length;
                     output += `leadflow_matchmaking_duration_ms_bucket{le="${b}"} ${c}\n`;
@@ -285,7 +291,7 @@ router.get('/metrics', async (req, res) => {
         }
         // Enrichment metrics
         const ebuckets = [10, 50, 100, 250, 500, 1000, 2000];
-        const edurs = enrichment_1.enrichmentMetrics.durations.slice();
+        const edurs = enrichmentMetrics.durations.slice();
         for (const b of ebuckets) {
             const count = edurs.filter(d => d <= b).length;
             output += `leadflow_enrichment_duration_ms_bucket{le="${b}"} ${count}\n`;
@@ -294,10 +300,10 @@ router.get('/metrics', async (req, res) => {
         const esum = edurs.reduce((a, b) => a + b, 0);
         output += `leadflow_enrichment_duration_ms_sum ${esum}\n`;
         output += `leadflow_enrichment_duration_ms_count ${edurs.length}\n`;
-        output += `leadflow_enrichment_processed_total ${enrichment_1.enrichmentMetrics.processed}\n`;
+        output += `leadflow_enrichment_processed_total ${enrichmentMetrics.processed}\n`;
         // Optional: reasons distribution (Postgres-only using UNNEST)
         try {
-            const rows = await prisma_1.prisma.$queryRawUnsafe(`SELECT reason, COUNT(*)::int AS count FROM (SELECT UNNEST(reasons) AS reason FROM scraped_properties) t GROUP BY reason`);
+            const rows = await prisma.$queryRawUnsafe(`SELECT reason, COUNT(*)::int AS count FROM (SELECT UNNEST(reasons) AS reason FROM scraped_properties) t GROUP BY reason`);
             for (const r of rows) {
                 const key = String(r.reason || '').replace(/"/g, '\\"');
                 output += `leadflow_enrichment_reasons_count{reason="${key}"} ${r.count}\n`;
@@ -349,7 +355,7 @@ router.get('/metrics', async (req, res) => {
         }
         catch { }
         try { // Fallback raw SQL due to generated client missing new fields during interim dev
-            const r = await prisma_1.prisma.$queryRawUnsafe(`SELECT COUNT(*)::int AS count FROM scraped_properties WHERE investment_score IS NOT NULL OR array_length(enrichment_tags,1) > 0`);
+            const r = await prisma.$queryRawUnsafe(`SELECT COUNT(*)::int AS count FROM scraped_properties WHERE investment_score IS NOT NULL OR array_length(enrichment_tags,1) > 0`);
             const enrichedCount = Array.isArray(r) ? r[0]?.count || 0 : 0;
             output += `leadflow_properties_enriched_gauge ${enrichedCount}\n`;
         }
@@ -412,5 +418,5 @@ router.get('/metrics', async (req, res) => {
     catch { }
     res.send(output);
 });
-exports.default = router;
+export default router;
 //# sourceMappingURL=devQueueRoutes.js.map

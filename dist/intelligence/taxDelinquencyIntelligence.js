@@ -1,15 +1,10 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.TaxDelinquencyIntelligence = void 0;
-const openai_1 = __importDefault(require("openai"));
-const puppeteer_1 = __importDefault(require("puppeteer"));
-class TaxDelinquencyIntelligence {
+import OpenAI from 'openai';
+import puppeteer from 'puppeteer';
+export class TaxDelinquencyIntelligence {
+    openai;
+    taxPortals = [];
     constructor() {
-        this.taxPortals = [];
-        this.openai = new openai_1.default({
+        this.openai = new OpenAI({
             apiKey: process.env.OPENAI_API_KEY
         });
         this.initializeTaxPortals();
@@ -30,7 +25,7 @@ class TaxDelinquencyIntelligence {
     async scrapeTreasurerPortals(counties) {
         console.log('🏛️ Scraping county treasurer portals...');
         const taxRecords = [];
-        const browser = await puppeteer_1.default.launch({
+        const browser = await puppeteer.launch({
             headless: true,
             args: ['--no-sandbox', '--disable-setuid-sandbox']
         });
@@ -477,5 +472,4 @@ class TaxDelinquencyIntelligence {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
 }
-exports.TaxDelinquencyIntelligence = TaxDelinquencyIntelligence;
 //# sourceMappingURL=taxDelinquencyIntelligence.js.map

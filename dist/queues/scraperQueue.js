@@ -1,32 +1,41 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.scraperQueue = exports.SCRAPER_QUEUE_NAME = void 0;
-exports.getScraperQueue = getScraperQueue;
-exports.shutdownScraperQueue = shutdownScraperQueue;
-exports.enqueueScraperJob = enqueueScraperJob;
-const bullmq_1 = require("bullmq");
-const index_1 = require("./index");
-const schemas_1 = require("../../backend/src/packages/schemas");
+import { Queue } from 'bullmq';
+import { registerQueue } from './index';
+import { parseScraperJobPayload } from '../../backend/src/packages/schemas';
+import { queueDepth, dlqDepth } from '../server';
 const connection = {
     connection: {
         url: process.env.REDIS_URL || 'redis://localhost:6379'
     }
 };
-exports.SCRAPER_QUEUE_NAME = 'scraper-jobs';
+export const SCRAPER_QUEUE_NAME = 'scraper-jobs';
 let _scraperQueue = global.__SCRAPER_QUEUE__ || null;
-function getScraperQueue() {
+export function getScraperQueue() {
     if (!_scraperQueue) {
-        _scraperQueue = new bullmq_1.Queue(exports.SCRAPER_QUEUE_NAME, connection);
+        _scraperQueue = new Queue(SCRAPER_QUEUE_NAME, connection);
         global.__SCRAPER_QUEUE__ = _scraperQueue;
         try {
-            (0, index_1.registerQueue)(_scraperQueue);
+            registerQueue(_scraperQueue);
         }
         catch { }
     }
     return _scraperQueue;
 }
-exports.scraperQueue = getScraperQueue();
-async function shutdownScraperQueue() {
+async function updateQueueMetrics() {
+    try {
+        const queue = getScraperQueue();
+        const waitingCount = await queue.getWaitingCount();
+        const failedCount = await queue.getFailedCount();
+        queueDepth.set({ queue_name: SCRAPER_QUEUE_NAME }, waitingCount);
+        dlqDepth.set({ queue_name: SCRAPER_QUEUE_NAME }, failedCount);
+    }
+    catch (error) {
+        console.error('Error updating queue metrics:', error);
+    }
+}
+// Start updating queue metrics periodically
+setInterval(updateQueueMetrics, 15000); // Update every 15 seconds
+export const scraperQueue = getScraperQueue();
+export async function shutdownScraperQueue() {
     if (_scraperQueue) {
         try {
             await _scraperQueue.drain?.();
@@ -49,11 +58,12 @@ async function shutdownScraperQueue() {
             delete global.__SCRAPER_QUEUE__;
     }
 }
-async function enqueueScraperJob(raw) {
-    const payload = (0, schemas_1.parseScraperJobPayload)(raw);
-    const job = await exports.scraperQueue.add('scrape-job', payload, {
-        attempts: 3,
-        backoff: { type: 'exponential', delay: 5000 },
+export async function enqueueScraperJob(raw, opts) {
+    const payload = parseScraperJobPayload(raw);
+    const job = await scraperQueue.add('scrape-job', payload, {
+        jobId: opts?.jobId,
+        attempts: opts?.attempts || 3,
+        backoff: opts?.backoff || { type: 'exponential', delay: 5000 },
         removeOnComplete: 1000,
         removeOnFail: 2000
     });

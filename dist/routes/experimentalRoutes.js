@@ -1,26 +1,22 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-const express_1 = __importDefault(require("express"));
-const better_sqlite3_1 = __importDefault(require("better-sqlite3"));
-const path_1 = __importDefault(require("path"));
-const fs_1 = __importDefault(require("fs"));
+import express from 'express';
+import BetterSqlite3 from 'better-sqlite3';
+import path from 'path';
+import fs from 'fs';
 // Create router
-const router = express_1.default.Router();
+const router = express.Router();
 // Initialize database connection
 let db = null;
 // Setup database connection
 const setupDb = () => {
-    const rootDbPath = path_1.default.resolve(__dirname, '..', '..', 'prisma', 'dev.db');
-    if (!fs_1.default.existsSync(rootDbPath)) {
+    const rootDbPath = path.resolve(__dirname, '..', '..', 'prisma', 'dev.db');
+    if (!fs.existsSync(rootDbPath)) {
         console.error(`Database file not found at ${rootDbPath}`);
         return null;
     }
     try {
-        const database = new better_sqlite3_1.default(rootDbPath, { readonly: false });
-        console.log(`Connected to SQLite database with ${database.prepare('SELECT COUNT(*) as count FROM Lead').get().count} leads`);
+        const database = new BetterSqlite3(rootDbPath, { readonly: false });
+        const leadCountRow = database.prepare('SELECT COUNT(*) as count FROM Lead').get();
+        console.log(`Connected to SQLite database with ${leadCountRow.count} leads`);
         return database;
     }
     catch (error) {
@@ -109,7 +105,8 @@ router.get('/search', (req, res) => {
         if (whereClauses.length > 0) {
             countSql += ' WHERE ' + whereClauses.join(' AND ');
         }
-        const totalCount = db.prepare(countSql).get(...params).total;
+        const totalRow = db.prepare(countSql).get(...params);
+        const totalCount = totalRow.total;
         // Add ORDER BY and pagination
         sql += ' ORDER BY created_at DESC';
         const skip = (parseInt(page) - 1) * parseInt(limit);
@@ -204,11 +201,11 @@ router.get('/revenue-analytics', (req, res) => {
         res.json({
             analytics: {
                 totalLeads: db.prepare('SELECT COUNT(*) as count FROM Lead').get().count,
-                totalEstimatedValue: totalValueResult.totalValue || 0,
+                totalEstimatedValue: (totalValueResult.totalValue || 0),
                 avgMotivationScore: db.prepare('SELECT AVG(motivation_score) as avg FROM Lead').get().avg || 0,
                 leadsBySource,
                 temperatureDistribution,
-                potentialRevenue: totalValueResult.totalValue * 0.05 // 5% of total value
+                potentialRevenue: (totalValueResult.totalValue || 0) * 0.05 // 5% of total value
             }
         });
     }
@@ -224,5 +221,5 @@ process.on('exit', () => {
         db.close();
     }
 });
-exports.default = router;
+export default router;
 //# sourceMappingURL=experimentalRoutes.js.map

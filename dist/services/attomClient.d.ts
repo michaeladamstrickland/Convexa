@@ -73,6 +73,10 @@ export declare class AttomClient {
      */
     private getFromCache;
     /**
+     * Update the convexa_quota_fraction metric.
+     */
+    private updateQuotaMetrics;
+    /**
      * Check API health
      */
     checkHealth(): Promise<{

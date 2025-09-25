@@ -1,18 +1,10 @@
-"use strict";
 /**
  * Vendor API Client Utility
  *
  * Provides utilities to create consistent API clients for
  * third-party vendor integrations with cost tracking.
  */
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.makeClient = makeClient;
-exports.logApiCall = logApiCall;
-exports.retryWithBackoff = retryWithBackoff;
-const axios_1 = __importDefault(require("axios"));
+import axios from 'axios';
 /**
  * Create a configured API client for a vendor
  *
@@ -21,8 +13,8 @@ const axios_1 = __importDefault(require("axios"));
  * @param timeout - Request timeout in ms (default: 10000)
  * @returns Configured Axios instance
  */
-function makeClient(baseURL, headers, timeout = 10000) {
-    return axios_1.default.create({
+export function makeClient(baseURL, headers, timeout = 10000) {
+    return axios.create({
         baseURL,
         headers,
         timeout
@@ -37,7 +29,7 @@ function makeClient(baseURL, headers, timeout = 10000) {
  * @param startTime - Start time in milliseconds
  * @param error - Optional error object
  */
-function logApiCall(vendor, endpoint, status, startTime, error) {
+export function logApiCall(vendor, endpoint, status, startTime, error) {
     const duration = Date.now() - startTime;
     const success = status >= 200 && status < 300;
     if (success) {
@@ -70,7 +62,7 @@ function logApiCall(vendor, endpoint, status, startTime, error) {
  * @param isRetryable - Function to check if error is retryable
  * @returns Result of the function
  */
-async function retryWithBackoff(fn, maxRetries = 3, baseDelay = 250, isRetryable = (error) => true) {
+export async function retryWithBackoff(fn, maxRetries = 3, baseDelay = 250, isRetryable = (error) => true) {
     let lastError;
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
         try {

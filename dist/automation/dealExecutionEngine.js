@@ -1,14 +1,9 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.DealExecutionEngine = void 0;
-const openai_1 = __importDefault(require("openai"));
-class DealExecutionEngine {
+import OpenAI from 'openai';
+export class DealExecutionEngine {
+    openai;
+    activeExecutions = new Map();
     constructor() {
-        this.activeExecutions = new Map();
-        this.openai = new openai_1.default({
+        this.openai = new OpenAI({
             apiKey: process.env.OPENAI_API_KEY
         });
     }
@@ -588,5 +583,4 @@ class DealExecutionEngine {
         }
     }
 }
-exports.DealExecutionEngine = DealExecutionEngine;
 //# sourceMappingURL=dealExecutionEngine.js.map

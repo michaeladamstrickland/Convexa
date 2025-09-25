@@ -4,7 +4,7 @@
     "module": "ESNext", 
     "lib": ["ES2022", "DOM"],
     "outDir": "./dist",
-    "rootDir": "./src",
+    "rootDir": "./",
     "strict": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
@@ -21,11 +21,14 @@
     "allowImportingTsExtensions": false
   },
   "include": [
-    "src/**/*"
+    "src/**/*",
+    "backend/src/packages/**/*",
+    "shared/**/*"
   ],
   "exclude": [
     "node_modules",
     "dist",
-    "**/*.test.ts"
+    "**/*.test.ts",
+    "src/components/scraper/ScraperScheduler.tsx"
   ]
 }

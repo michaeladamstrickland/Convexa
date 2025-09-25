@@ -1,25 +1,20 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-const express_1 = require("express");
-const prisma_1 = require("../db/prisma");
-const crypto_1 = require("crypto");
-const webhookQueue_1 = require("../queues/webhookQueue");
-const crypto_2 = __importDefault(require("crypto"));
-const webhookWorker_1 = require("../workers/webhookWorker");
-const router = (0, express_1.Router)();
-function generateSecret() { return (0, crypto_1.randomBytes)(32).toString('hex'); }
+import { Router } from 'express';
+import { prisma } from '../db/prisma';
+import { randomBytes } from 'crypto';
+import { enqueueWebhookDelivery } from '../queues/webhookQueue';
+import crypto from 'crypto';
+import { webhookMetrics } from '../workers/webhookWorker';
+const router = Router();
+function generateSecret() { return randomBytes(32).toString('hex'); }
 router.get('/webhooks', async (_req, res) => {
-    const subs = await prisma_1.prisma.webhookSubscription.findMany({ orderBy: { createdAt: 'desc' } });
+    const subs = await prisma.webhookSubscription.findMany({ orderBy: { createdAt: 'desc' } });
     res.json({ data: subs });
 });
 router.post('/webhooks', async (req, res) => {
     const { targetUrl, eventTypes } = req.body || {};
     if (!targetUrl || !Array.isArray(eventTypes) || !eventTypes.length)
         return res.status(400).json({ error: 'invalid_payload' });
-    const sub = await prisma_1.prisma.webhookSubscription.create({ data: { targetUrl, eventTypes, signingSecret: generateSecret() } });
+    const sub = await prisma.webhookSubscription.create({ data: { targetUrl, eventTypes, signingSecret: generateSecret() } });
     res.json({ data: sub });
 });
 router.patch('/webhooks/:id', async (req, res) => {
@@ -32,14 +27,14 @@ router.patch('/webhooks/:id', async (req, res) => {
         data.isActive = isActive;
     if (Array.isArray(eventTypes))
         data.eventTypes = eventTypes;
-    const sub = await prisma_1.prisma.webhookSubscription.update({ where: { id }, data }).catch(() => null);
+    const sub = await prisma.webhookSubscription.update({ where: { id }, data }).catch(() => null);
     if (!sub)
         return res.status(404).json({ error: 'not_found' });
     res.json({ data: sub });
 });
 router.delete('/webhooks/:id', async (req, res) => {
     const { id } = req.params;
-    await prisma_1.prisma.webhookSubscription.delete({ where: { id } }).catch(() => null);
+    await prisma.webhookSubscription.delete({ where: { id } }).catch(() => null);
     res.json({ success: true });
 });
 // Manual test fire
@@ -47,7 +42,7 @@ router.post('/webhook-test', async (req, res) => {
     const { subscriptionId, eventType = 'test.event', payload = { ok: true } } = req.body || {};
     if (!subscriptionId)
         return res.status(400).json({ error: 'subscriptionId_required' });
-    const job = await (0, webhookQueue_1.enqueueWebhookDelivery)({ subscriptionId, eventType, payload });
+    const job = await enqueueWebhookDelivery({ subscriptionId, eventType, payload });
     res.json({ queued: true });
 });
 // Verification endpoint: send a challenge event to arbitrary URL without creating subscription
@@ -56,8 +51,8 @@ router.post('/webhooks/verify', async (req, res) => {
     if (!url)
         return res.status(400).json({ error: 'url_required' });
     const body = JSON.stringify({ event: eventType, data: { challenge: true, timestamp: Date.now() } });
-    const secret = crypto_2.default.randomBytes(16).toString('hex');
-    const sig = crypto_2.default.createHmac('sha256', secret).update(body).digest('hex');
+    const secret = crypto.randomBytes(16).toString('hex');
+    const sig = crypto.createHmac('sha256', secret).update(body).digest('hex');
     const started = Date.now();
     let status = 0;
     let error = null;
@@ -86,8 +81,8 @@ router.get('/webhook-failures', async (req, res) => {
     if (!includeResolved)
         where.isResolved = false;
     const [rows, total] = await Promise.all([
-        prisma_1.prisma.webhookDeliveryFailure.findMany({ where, orderBy: { createdAt: 'desc' }, take, skip }),
-        prisma_1.prisma.webhookDeliveryFailure.count({ where })
+        prisma.webhookDeliveryFailure.findMany({ where, orderBy: { createdAt: 'desc' }, take, skip }),
+        prisma.webhookDeliveryFailure.count({ where })
     ]);
     const enriched = rows.map((r) => ({
         ...r,
@@ -132,23 +127,23 @@ router.get('/webhook-deliveries', async (req, res) => {
         }
     }
     // Fail fast if model is missing (migration drift) to avoid cryptic undefined errors
-    if (!prisma_1.prisma.webhookDeliveryLog) {
+    if (!prisma.webhookDeliveryLog) {
         return res.status(500).json({ error: 'webhookDeliveryLog_model_missing', detail: 'Pending migration or schema drift detected' });
     }
     const [rows, total] = await Promise.all([
-        prisma_1.prisma.webhookDeliveryLog.findMany({ where, orderBy: { createdAt: 'desc' }, take, skip }).catch(() => []),
-        prisma_1.prisma.webhookDeliveryLog.count({ where }).catch(() => 0)
+        prisma.webhookDeliveryLog.findMany({ where, orderBy: { createdAt: 'desc' }, take, skip }).catch(() => []),
+        prisma.webhookDeliveryLog.count({ where }).catch(() => 0)
     ]);
     res.json({ data: rows, meta: { totalCount: total, filtersApplied, pagination: { limit: take, offset: skip } } });
 });
 // Retry single failure
 router.post('/webhook-failures/:id/retry', async (req, res) => {
     const { id } = req.params;
-    const failure = await prisma_1.prisma.webhookDeliveryFailure.findUnique({ where: { id } });
+    const failure = await prisma.webhookDeliveryFailure.findUnique({ where: { id } });
     if (!failure)
         return res.status(404).json({ error: 'not_found' });
     // Fire again
-    const job = await (0, webhookQueue_1.enqueueWebhookDelivery)({ subscriptionId: failure.subscriptionId, eventType: failure.eventType, payload: failure.payload, failureId: failure.id });
+    const job = await enqueueWebhookDelivery({ subscriptionId: failure.subscriptionId, eventType: failure.eventType, payload: failure.payload, failureId: failure.id });
     res.json({ retried: true, jobId: job.id });
 });
 // Bulk retry with optional filters
@@ -159,10 +154,10 @@ router.post('/webhook-failures/retry-all', async (req, res) => {
         where.subscriptionId = subscriptionId;
     if (eventType)
         where.eventType = eventType;
-    const failures = await prisma_1.prisma.webhookDeliveryFailure.findMany({ where, take: 500 });
+    const failures = await prisma.webhookDeliveryFailure.findMany({ where, take: 500 });
     const jobs = [];
     for (const f of failures) {
-        const job = await (0, webhookQueue_1.enqueueWebhookDelivery)({ subscriptionId: f.subscriptionId, eventType: f.eventType, payload: f.payload, failureId: f.id });
+        const job = await enqueueWebhookDelivery({ subscriptionId: f.subscriptionId, eventType: f.eventType, payload: f.payload, failureId: f.id });
         jobs.push(job.id);
     }
     res.json({ retried: failures.length, jobIds: jobs });
@@ -170,13 +165,13 @@ router.post('/webhook-failures/retry-all', async (req, res) => {
 // Replay single failure (manual explicit replay distinct from retry)
 router.post('/webhook-failures/:id/replay', async (req, res) => {
     const { id } = req.params;
-    const failure = await prisma_1.prisma.webhookDeliveryFailure.findUnique({ where: { id } });
+    const failure = await prisma.webhookDeliveryFailure.findUnique({ where: { id } });
     if (!failure)
         return res.status(404).json({ error: 'not_found' });
     if (failure.isResolved)
         return res.status(400).json({ error: 'already_resolved' });
     try {
-        const job = await (0, webhookQueue_1.enqueueWebhookDelivery)({ subscriptionId: failure.subscriptionId, eventType: failure.eventType, payload: failure.payload, failureId: failure.id, replayMode: 'single' });
+        const job = await enqueueWebhookDelivery({ subscriptionId: failure.subscriptionId, eventType: failure.eventType, payload: failure.payload, failureId: failure.id, replayMode: 'single' });
         // Track replay attempt (we only mark resolved on success inside worker)
         global.__WEBHOOK_REPLAY_PENDING__ = (global.__WEBHOOK_REPLAY_PENDING__ || 0) + 1;
         res.json({ jobId: job.id, replayed: true });
@@ -193,11 +188,11 @@ router.post('/webhook-failures/replay-all', async (req, res) => {
         where.subscriptionId = subscriptionId;
     if (eventType)
         where.eventType = eventType;
-    const failures = await prisma_1.prisma.webhookDeliveryFailure.findMany({ where, take: 500 });
+    const failures = await prisma.webhookDeliveryFailure.findMany({ where, take: 500 });
     const jobIds = [];
     for (const f of failures) {
         try {
-            const job = await (0, webhookQueue_1.enqueueWebhookDelivery)({ subscriptionId: f.subscriptionId, eventType: f.eventType, payload: f.payload, failureId: f.id, replayMode: 'bulk' });
+            const job = await enqueueWebhookDelivery({ subscriptionId: f.subscriptionId, eventType: f.eventType, payload: f.payload, failureId: f.id, replayMode: 'bulk' });
             jobIds.push(job.id.toString());
         }
         catch { }
@@ -207,8 +202,8 @@ router.post('/webhook-failures/replay-all', async (req, res) => {
 });
 // Simple metrics exposition specific to webhooks (to be merged into global /metrics later)
 router.get('/webhook-metrics', async (_req, res) => {
-    const activeSubs = await prisma_1.prisma.webhookSubscription.count({ where: { isActive: true } });
-    res.json({ delivered: webhookWorker_1.webhookMetrics.delivered, failed: webhookWorker_1.webhookMetrics.failed, p50: percentile(webhookWorker_1.webhookMetrics.durations, 50), p95: percentile(webhookWorker_1.webhookMetrics.durations, 95), activeSubscriptions: activeSubs });
+    const activeSubs = await prisma.webhookSubscription.count({ where: { isActive: true } });
+    res.json({ delivered: webhookMetrics.delivered, failed: webhookMetrics.failed, p50: percentile(webhookMetrics.durations, 50), p95: percentile(webhookMetrics.durations, 95), activeSubscriptions: activeSubs });
 });
 function percentile(values, p) {
     if (!values.length)
@@ -217,5 +212,5 @@ function percentile(values, p) {
     const idx = Math.floor((p / 100) * (sorted.length - 1));
     return sorted[idx];
 }
-exports.default = router;
+export default router;
 //# sourceMappingURL=webhookAdmin.js.map
