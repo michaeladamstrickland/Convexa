@@ -110,7 +110,7 @@ export class RealDataService {
               owner_name: violation.owner_name,
               source_type: 'code_violation_tracking',
               estimated_value: violation.property_value,
-              violations: [violation],
+              violations: 1, // Fixed: count of violations, not array
               motivation_score: this.calculateViolationMotivation(violation)
             });
             violationLeads.push(lead);

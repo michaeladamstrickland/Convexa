@@ -9,6 +9,10 @@ import axios from 'axios';
 import crypto from 'crypto';
 import fs from 'fs';
 import SkipTraceService from './services/skipTraceService.js';
+import { recordImportResults } from './services/importMetrics.js';
+import multer from 'multer';
+import csvParse from 'csv-parser';
+import { Readable } from 'stream';
 // Resilient guardrails import (ESM + top-level await)
 let initGuardrails = null;
 try {
@@ -197,8 +201,88 @@ const startServer = async () => {
         console.warn('⚠️ Could not add attom_id column (may already exist or DB locked):', e.message);
       }
     }
+
+    // Ensure grade columns exist for Lead Grading v1
+    const currentColumns = db.prepare("PRAGMA table_info(leads)").all().map(c => c.name);
+    const gradeColumns = [
+      { name: 'grade_score', type: 'INTEGER DEFAULT NULL' },
+      { name: 'grade_label', type: 'TEXT DEFAULT NULL' },
+      { name: 'grade_reason', type: 'TEXT DEFAULT NULL' },
+      { name: 'grade_computed_at', type: 'DATETIME DEFAULT NULL' }
+    ];
+
+    for (const col of gradeColumns) {
+      if (!currentColumns.includes(col.name)) {
+        try {
+          db.exec(`ALTER TABLE leads ADD COLUMN ${col.name} ${col.type}`);
+          console.log(`✅ Auto-added ${col.name} column to leads table`);
+        } catch (e) {
+          console.warn(`⚠️ Could not add ${col.name} column:`, e.message);
+        }
+      }
+    }
+
   } else {
     console.log('✅ Skipping leads table schema creation as database already exists and has leads table.');
+  }
+  
+  // Create dialer outcomes and follow-ups tables for PI1-APP-2 (always run)
+  try {
+    // Create dial_outcomes table
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS dial_outcomes (
+        id TEXT PRIMARY KEY,
+        dial_id TEXT,
+        lead_id TEXT,
+        type TEXT CHECK (type IN ('no_answer', 'voicemail', 'bad_number', 'interested', 'not_interested', 'follow_up')),
+        notes TEXT,
+        grade_label TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    
+    // Create indexes for dial_outcomes
+    db.exec(`CREATE INDEX IF NOT EXISTS idx_dial_outcomes_lead_id ON dial_outcomes(lead_id)`);
+    db.exec(`CREATE INDEX IF NOT EXISTS idx_dial_outcomes_dial_id ON dial_outcomes(dial_id)`);  
+    db.exec(`CREATE INDEX IF NOT EXISTS idx_dial_outcomes_type_created ON dial_outcomes(type, created_at)`);
+    
+    // Create follow_ups table
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS follow_ups (
+        id TEXT PRIMARY KEY,
+        lead_id TEXT,
+        due_at DATETIME,
+        status TEXT CHECK (status IN ('open', 'done', 'snoozed', 'canceled')) DEFAULT 'open',
+        channel TEXT CHECK (channel IN ('call', 'sms', 'email', 'task')),
+        priority TEXT CHECK (priority IN ('low', 'med', 'high')) DEFAULT 'med',
+        notes TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    
+    // Create indexes for follow_ups
+    db.exec(`CREATE INDEX IF NOT EXISTS idx_followups_lead_id ON follow_ups(lead_id)`);
+    db.exec(`CREATE INDEX IF NOT EXISTS idx_followups_status_due ON follow_ups(status, due_at)`);
+    db.exec(`CREATE INDEX IF NOT EXISTS idx_followups_due_at ON follow_ups(due_at)`);
+    
+    // Create timeline_events table
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS timeline_events (
+        id TEXT PRIMARY KEY,
+        lead_id TEXT,
+        kind TEXT CHECK (kind IN ('created', 'skiptrace', 'dial', 'disposition', 'followup_created', 'followup_done', 'note')),
+        payload_json TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    
+    // Create index for timeline_events
+    db.exec(`CREATE INDEX IF NOT EXISTS idx_timeline_events_lead_created ON timeline_events(lead_id, created_at)`);
+    
+    console.log('✅ Created dialer outcomes and follow-ups schema');
+  } catch (e) {
+    console.warn('⚠️ Could not create dialer schema:', e.message);
   }
   
   // Initialize services
@@ -211,6 +295,19 @@ const startServer = async () => {
   app.use(express.json());
   // Needed for Twilio form-encoded webhooks
   app.use(express.urlencoded({ extended: true }));
+  // Multer for CSV uploads (memory storage, 10MB limit)
+  const upload = multer({
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 10 * 1024 * 1024 },
+    fileFilter: (req, file, cb) => {
+      try {
+        console.log('[ImportCSV] fileFilter:', { mimetype: file?.mimetype, name: file?.originalname });
+      } catch {}
+      const ok = file.mimetype === 'text/csv' || (file.originalname || '').toLowerCase().endsWith('.csv');
+      if (!ok) return cb(new Error('unsupported_content_type'));
+      cb(null, true);
+    }
+  });
 
   // Optional basic auth for /metrics and /admin, gated by env
   const basicAuthUser = process.env.BASIC_AUTH_USER;
@@ -1510,6 +1607,22 @@ const startServer = async () => {
     ? path.resolve(process.env.LOCAL_STORAGE_PATH)
     : path.resolve(__dirname, '..');
 
+  // Append-only audit log for mutating actions (JSONL under artifacts/audit)
+  const auditDir = path.resolve(STORAGE_ROOT, 'artifacts', 'audit');
+  try { fs.mkdirSync(auditDir, { recursive: true }); } catch {}
+  function auditMut(req, payloadBuf) {
+    try {
+      const line = JSON.stringify({
+        ts: new Date().toISOString(),
+        user: (basicAuthUser && basicAuthPass) ? 'basic-auth' : 'unknown',
+        route: req.originalUrl,
+        verb: req.method,
+        payloadHash: payloadBuf ? crypto.createHash('sha256').update(payloadBuf).digest('hex') : null
+      }) + '\n';
+      fs.appendFileSync(path.join(auditDir, 'actions.jsonl'), line);
+    } catch {}
+  }
+
   // === Dialer v1 — Vertical slice (minimal, stub-friendly) ===
   // Metrics (will be initialized if prom-client is present)
   let dialAttemptsCounter = null;
@@ -1562,9 +1675,9 @@ const startServer = async () => {
           // Twilio validation: base64(HMAC-SHA1(token, url + sortedParams))
           const params = Object.keys(req.body || {}).sort().reduce((acc, k) => acc + k + req.body[k], '');
           const toSign = url + params;
-          const computed = Buffer.from(require('crypto').createHmac('sha1', token).update(toSign).digest('base64'));
+          const computed = Buffer.from(crypto.createHmac('sha1', token).update(toSign).digest('base64'));
           const provided = Buffer.from(String(sig));
-          const ok = computed.length === provided.length && require('crypto').timingSafeEqual(computed, provided);
+          const ok = computed.length === provided.length && crypto.timingSafeEqual(computed, provided);
           if (!ok) {
             try { webhookErrorsCounter && webhookErrorsCounter.inc({ type: 'signature' }); } catch {}
             return sendProblem(res, 'unauthorized', 'invalid Twilio signature', undefined, 401);
@@ -1706,13 +1819,25 @@ const startServer = async () => {
         }
         const exp = Math.floor(Date.now() / 1000) + defaultTtl;
         const relReport = `${runId}/report.json`;
+        const relAudit = `${runId}/audit.json`;
         const sigRep = signUtil(relReport, exp, process.env.ARTIFACT_SIGNING_SECRET || 'dev-secret');
-        const signedUrl = `/admin/artifact-download?path=${encodeURIComponent(relReport)}&exp=${exp}&sig=${sigRep}`; // back-compat field
+        const signedUrl = fs.existsSync(path.join(ARTIFACT_ROOT, relReport))
+          ? `/admin/artifact-download?path=${encodeURIComponent(relReport)}&exp=${exp}&sig=${sigRep}`
+          : null; // back-compat field
         const reportUrl = signedUrl;
         const relCsv = `${runId}/enriched.csv`;
         const csvAbs = path.join(ARTIFACT_ROOT, relCsv);
         const csvUrl = fs.existsSync(csvAbs) ? `/admin/artifact-download?path=${encodeURIComponent(relCsv)}&exp=${exp}&sig=${signUtil(relCsv, exp, process.env.ARTIFACT_SIGNING_SECRET || 'dev-secret')}` : null;
-        return { runId, createdAt: createdAt ? new Date(createdAt).toISOString() : null, size, signedUrl, reportUrl, csvUrl };
+        const auditAbs = path.join(ARTIFACT_ROOT, relAudit);
+        const auditUrl = fs.existsSync(auditAbs) ? `/admin/artifact-download?path=${encodeURIComponent(relAudit)}&exp=${exp}&sig=${signUtil(relAudit, exp, process.env.ARTIFACT_SIGNING_SECRET || 'dev-secret')}` : null;
+        const relZip = `${runId}/${runId}.zip`;
+        const zipAbs = path.join(ARTIFACT_ROOT, relZip);
+        const zipUrl = fs.existsSync(zipAbs) ? `/admin/artifact-download?path=${encodeURIComponent(relZip)}&exp=${exp}&sig=${signUtil(relZip, exp, process.env.ARTIFACT_SIGNING_SECRET || 'dev-secret')}` : null;
+        // Type inference: mark item type based on files present
+        let type = 'run';
+        if (!fs.existsSync(path.join(ARTIFACT_ROOT, relReport)) && fs.existsSync(auditAbs)) type = 'import_audit';
+        if (zipUrl || String(runId).startsWith('weekly_export_')) type = 'weekly_export';
+        return { runId, type, createdAt: createdAt ? new Date(createdAt).toISOString() : null, size, signedUrl, reportUrl, csvUrl, auditUrl, zipUrl };
       });
       res.json(items);
     } catch (e) {
@@ -2589,40 +2714,571 @@ const startServer = async () => {
     console.warn('prom-client not available; /metrics disabled');
   }
 
+  // === Campaign Property Search v0 ===
+  // Metrics for campaign queries
+  let campaignQueriesCounter = null;
+  
+  // === Lead Grading v1 ===
+  // Metrics for lead grading computations
+  let gradeComputationsCounter = null;
+  
+  // === Dialer Outcomes & Follow-ups ===
+  // Metrics for dialer outcomes and follow-ups
+  let dialDispositionTotalCounter = null;
+  let followupsCreatedCounter = null;
+  let followupsCompletedCounter = null;
+  let followupsDueGauge = null;
+  let followupsOverdueGauge = null;
+  let timelineEventsCounter = null;
+  if (promClient) {
+    try {
+      campaignQueriesCounter = new promClient.Counter({
+        name: 'campaign_queries_total',
+        help: 'Total campaign search queries',
+        labelNames: ['type']
+      });
+      
+      // Grading metrics for Lead Grading v1
+      gradeComputationsCounter = new promClient.Counter({
+        name: 'lead_grade_computations_total',
+        help: 'Total lead grade computations',
+        labelNames: ['type']
+      });
+      
+      // Dialer outcomes & follow-ups metrics
+      dialDispositionTotalCounter = new promClient.Counter({
+        name: 'dialer_disposition_total',
+        help: 'Total dial dispositions with grade labels',
+        labelNames: ['type', 'grade_label']
+      });
+      
+      followupsCreatedCounter = new promClient.Counter({
+        name: 'followups_created_total',
+        help: 'Total follow-ups created',
+        labelNames: ['channel', 'priority']
+      });
+      
+      followupsCompletedCounter = new promClient.Counter({
+        name: 'followups_completed_total',
+        help: 'Total follow-ups completed',
+        labelNames: ['status']
+      });
+      
+      followupsDueGauge = new promClient.Gauge({
+        name: 'followups_due_gauge',
+        help: 'Count of open follow-ups due now'
+      });
+      
+      followupsOverdueGauge = new promClient.Gauge({
+        name: 'followups_overdue_gauge',
+        help: 'Count of open follow-ups overdue'
+      });
+      
+      timelineEventsCounter = new promClient.Counter({
+        name: 'timeline_events_total',
+        help: 'Total timeline events created',
+        labelNames: ['kind']
+      });
+    } catch (e) {
+      console.warn('Campaign metrics init error:', e?.message || e);
+    }
+  }
+
+  // API endpoint for campaign property search
+  app.get('/api/campaigns/search', (req, res) => {
+    try {
+      const type = String(req.query.type || '').toLowerCase().trim();
+      const city = String(req.query.city || '').trim();
+      const state = String(req.query.state || '').trim();
+      const zip = String(req.query.zip || '').trim();
+      const minValue = req.query.minValue ? Number(req.query.minValue) : null;
+      const maxValue = req.query.maxValue ? Number(req.query.maxValue) : null;
+      const status = String(req.query.status || '').trim();
+      const temperature = String(req.query.temperature || '').trim();
+      const page = Math.max(1, Number(req.query.page) || 1);
+      const limit = Math.max(1, Math.min(100, Number(req.query.limit) || 25));
+
+      // Increment campaign query metrics
+      try {
+        if (campaignQueriesCounter && type) {
+          campaignQueriesCounter.inc({ type: type || 'unknown' });
+        }
+      } catch (e) {}
+
+      let sql = 'SELECT * FROM leads';
+      const params = [];
+      const where = [];
+      const criteria_used = [];
+
+      // Type-based heuristics (zero external spend)
+      if (type) {
+        switch (type) {
+          case 'probate':
+            where.push('is_probate = 1');
+            criteria_used.push('probate flag');
+            break;
+          case 'vacant':
+            where.push('is_vacant = 1');
+            criteria_used.push('vacant flag');
+            break;
+          case 'absentee':
+            // Heuristic: owner mailing address city/state != property city/state
+            // For now, we'll use a simple heuristic if we have owner info
+            where.push('(owner_name IS NOT NULL AND owner_name != "")');
+            criteria_used.push('owner presence (absentee heuristic)');
+            break;
+          case 'high_equity':
+            // Heuristic: equity >= 0.35 if field present
+            where.push('equity >= 0.35');
+            criteria_used.push('equity >= 35%');
+            break;
+          case 'distressed':
+            // Heuristic: motivation_score >= 70 OR temperature_tag in ('hot','warm')
+            where.push("(motivation_score >= 70 OR temperature_tag IN ('hot', 'warm'))");
+            criteria_used.push('high motivation or hot/warm temperature');
+            break;
+          case 'pre_foreclosure':
+          case 'divorce':
+          case 'inheritance':
+            // These require paid data sources - return empty with explanation
+            return res.json({
+              leads: [],
+              pagination: {
+                page,
+                limit,
+                total: 0,
+                pages: 0
+              },
+              criteria_used: [`${type}: not wired (requires paid data sources)`]
+            });
+          default:
+            // Fallback to general filters without specific type criteria
+            criteria_used.push(`type '${type}' not recognized - using general filters`);
+        }
+      }
+
+      // Common filters
+      if (city) {
+        where.push('address LIKE ?');
+        params.push(`%${city}%`);
+        criteria_used.push(`city: ${city}`);
+      }
+      if (state) {
+        where.push('address LIKE ?');
+        params.push(`%${state}%`);
+        criteria_used.push(`state: ${state}`);
+      }
+      if (zip) {
+        where.push('address LIKE ?');
+        params.push(`%${zip}%`);
+        criteria_used.push(`zip: ${zip}`);
+      }
+      if (minValue !== null) {
+        where.push('estimated_value >= ?');
+        params.push(minValue);
+        criteria_used.push(`min value: $${minValue.toLocaleString()}`);
+      }
+      if (maxValue !== null) {
+        where.push('estimated_value <= ?');
+        params.push(maxValue);
+        criteria_used.push(`max value: $${maxValue.toLocaleString()}`);
+      }
+      if (status) {
+        where.push('status = ?');
+        params.push(status.toUpperCase());
+        criteria_used.push(`status: ${status}`);
+      }
+      if (temperature) {
+        where.push('temperature_tag = ?');
+        params.push(temperature.toLowerCase());
+        criteria_used.push(`temperature: ${temperature}`);
+      }
+
+      // Build final query
+      if (where.length) {
+        sql += ' WHERE ' + where.join(' AND ');
+      }
+
+      // Get total count
+      const countSql = where.length ? 
+        `SELECT COUNT(*) as total FROM leads WHERE ${where.join(' AND ')}` :
+        'SELECT COUNT(*) as total FROM leads';
+      const totalCount = db.prepare(countSql).get(...params).total;
+
+      // Add pagination
+      const offset = (page - 1) * limit;
+      sql += ' ORDER BY created_at DESC LIMIT ? OFFSET ?';
+      params.push(limit, offset);
+
+      // Execute query
+      const leads = db.prepare(sql).all(...params);
+
+      // Calculate pagination
+      const pages = Math.ceil(totalCount / limit);
+
+      res.json({
+        leads: leads.map(lead => ({
+          id: lead.id,
+          address: lead.address,
+          owner_name: lead.owner_name,
+          estimated_value: lead.estimated_value,
+          equity: lead.equity,
+          motivation_score: lead.motivation_score,
+          temperature_tag: lead.temperature_tag,
+          status: lead.status,
+          is_probate: lead.is_probate,
+          is_vacant: lead.is_vacant,
+          created_at: lead.created_at,
+          updated_at: lead.updated_at
+        })),
+        pagination: {
+          page,
+          limit,
+          total: totalCount,
+          pages
+        },
+        criteria_used
+      });
+
+    } catch (error) {
+      console.error('Campaign search error:', error);
+      res.status(500).json({
+        error: 'Internal server error',
+        message: error.message,
+        type: 'problem+json'
+      });
+    }
+  });
+
+  // UI for campaign search
+  app.get('/ops/campaigns', (req, res) => {
+    try {
+      const type = String(req.query.type || '').toLowerCase().trim();
+      const city = String(req.query.city || '').trim();
+      const state = String(req.query.state || '').trim();
+      const zip = String(req.query.zip || '').trim();
+      const minValue = req.query.minValue ? Number(req.query.minValue) : null;
+      const maxValue = req.query.maxValue ? Number(req.query.maxValue) : null;
+      const status = String(req.query.status || '').trim();
+      const temperature = String(req.query.temperature || '').trim();
+      
+      // Use the same logic as the API endpoint
+      let campaigns = [];
+      let total = 0;
+      let criteria_used = [];
+
+      if (type || city || state || zip || status || temperature || minValue || maxValue) {
+        // Build query similar to API endpoint
+        let sql = 'SELECT * FROM leads';
+        const params = [];
+        const where = [];
+
+        // Type-based filtering
+        if (type) {
+          switch (type) {
+            case 'probate':
+              where.push('is_probate = 1');
+              criteria_used.push('probate');
+              break;
+            case 'vacant':
+              where.push('is_vacant = 1');
+              criteria_used.push('vacant');
+              break;
+            case 'absentee':
+              where.push('(owner_name IS NOT NULL AND owner_name != "")');
+              criteria_used.push('absentee heuristic');
+              break;
+            case 'high_equity':
+              where.push('equity >= 0.35');
+              criteria_used.push('high equity');
+              break;
+            case 'distressed':
+              where.push("(motivation_score >= 70 OR temperature_tag IN ('hot', 'warm'))");
+              criteria_used.push('distressed');
+              break;
+            default:
+              criteria_used.push(`${type} (unsupported)`);
+          }
+        }
+
+        // Common filters (same as API)
+        if (city) { where.push('address LIKE ?'); params.push(`%${city}%`); criteria_used.push(`city: ${city}`); }
+        if (state) { where.push('address LIKE ?'); params.push(`%${state}%`); criteria_used.push(`state: ${state}`); }
+        if (zip) { where.push('address LIKE ?'); params.push(`%${zip}%`); criteria_used.push(`zip: ${zip}`); }
+        if (minValue !== null) { where.push('estimated_value >= ?'); params.push(minValue); }
+        if (maxValue !== null) { where.push('estimated_value <= ?'); params.push(maxValue); }
+        if (status) { where.push('status = ?'); params.push(status.toUpperCase()); }
+        if (temperature) { where.push('temperature_tag = ?'); params.push(temperature.toLowerCase()); }
+
+        if (where.length) {
+          sql += ' WHERE ' + where.join(' AND ');
+          const countSql = `SELECT COUNT(*) as total FROM leads WHERE ${where.join(' AND ')}`;
+          total = db.prepare(countSql).get(...params).total;
+          
+          sql += ' ORDER BY created_at DESC LIMIT 50';
+          campaigns = db.prepare(sql).all(...params);
+        }
+      }
+
+      // Generate HTML response
+      const html = `<!DOCTYPE html>
+<html>
+<head>
+  <title>Campaign Property Search</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    .form-group { margin: 10px 0; }
+    .form-group label { display: inline-block; width: 120px; }
+    .form-group input, .form-group select { width: 200px; padding: 5px; }
+    table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+    th { background-color: #f2f2f2; }
+    .badge { padding: 2px 6px; border-radius: 3px; font-size: 12px; }
+    .badge-hot { background: #ff4444; color: white; }
+    .badge-warm { background: #ff8800; color: white; }
+    .badge-cold { background: #4444ff; color: white; }
+    .badge-dead { background: #999; color: white; }
+    .status-new { color: #007acc; }
+    .status-working { color: #ff8800; }
+    .status-won { color: #00aa44; }
+    .status-lost { color: #cc0000; }
+    .criteria { background: #f8f9fa; padding: 10px; margin: 10px 0; border-left: 4px solid #007acc; }
+  </style>
+</head>
+<body>
+  <h1>Campaign Property Search</h1>
+  
+  <form method="GET">
+    <div class="form-group">
+      <label>Campaign Type:</label>
+      <select name="type">
+        <option value="">-- Select Type --</option>
+        <option value="probate" ${type === 'probate' ? 'selected' : ''}>Probate</option>
+        <option value="vacant" ${type === 'vacant' ? 'selected' : ''}>Vacant</option>
+        <option value="absentee" ${type === 'absentee' ? 'selected' : ''}>Absentee Owner</option>
+        <option value="high_equity" ${type === 'high_equity' ? 'selected' : ''}>High Equity</option>
+        <option value="distressed" ${type === 'distressed' ? 'selected' : ''}>Distressed</option>
+        <option value="pre_foreclosure" ${type === 'pre_foreclosure' ? 'selected' : ''}>Pre-Foreclosure (No Data)</option>
+        <option value="divorce" ${type === 'divorce' ? 'selected' : ''}>Divorce (No Data)</option>
+        <option value="inheritance" ${type === 'inheritance' ? 'selected' : ''}>Inheritance (No Data)</option>
+      </select>
+    </div>
+    
+    <div class="form-group">
+      <label>City:</label>
+      <input type="text" name="city" value="${city}" placeholder="Enter city">
+    </div>
+    
+    <div class="form-group">
+      <label>State:</label>
+      <input type="text" name="state" value="${state}" placeholder="Enter state">
+    </div>
+    
+    <div class="form-group">
+      <label>ZIP Code:</label>
+      <input type="text" name="zip" value="${zip}" placeholder="Enter ZIP">
+    </div>
+    
+    <div class="form-group">
+      <label>Min Value:</label>
+      <input type="number" name="minValue" value="${minValue || ''}" placeholder="Min property value">
+    </div>
+    
+    <div class="form-group">
+      <label>Max Value:</label>
+      <input type="number" name="maxValue" value="${maxValue || ''}" placeholder="Max property value">
+    </div>
+    
+    <div class="form-group">
+      <label>Status:</label>
+      <select name="status">
+        <option value="">-- Any Status --</option>
+        <option value="new" ${status === 'new' ? 'selected' : ''}>New</option>
+        <option value="working" ${status === 'working' ? 'selected' : ''}>Working</option>
+        <option value="won" ${status === 'won' ? 'selected' : ''}>Won</option>
+        <option value="lost" ${status === 'lost' ? 'selected' : ''}>Lost</option>
+      </select>
+    </div>
+    
+    <div class="form-group">
+      <label>Temperature:</label>
+      <select name="temperature">
+        <option value="">-- Any Temperature --</option>
+        <option value="hot" ${temperature === 'hot' ? 'selected' : ''}>Hot</option>
+        <option value="warm" ${temperature === 'warm' ? 'selected' : ''}>Warm</option>
+        <option value="cold" ${temperature === 'cold' ? 'selected' : ''}>Cold</option>
+        <option value="dead" ${temperature === 'dead' ? 'selected' : ''}>Dead</option>
+      </select>
+    </div>
+    
+    <div class="form-group">
+      <button type="submit">Search Campaigns</button>
+      <a href="/ops/campaigns" style="margin-left: 10px;">Reset</a>
+    </div>
+  </form>
+
+  ${criteria_used.length > 0 ? `<div class="criteria"><strong>Search Criteria:</strong> ${criteria_used.join(', ')}</div>` : ''}
+  
+  <h2>Results (${total} total)</h2>
+  
+  ${campaigns.length > 0 ? `
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Address</th>
+        <th>Owner</th>
+        <th>Value</th>
+        <th>Equity</th>
+        <th>Motivation</th>
+        <th>Temperature</th>
+        <th>Status</th>
+        <th>Tags</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${campaigns.map(lead => `
+        <tr>
+          <td><a href="/ops/leads/${lead.id}">${lead.id.substring(0, 8)}...</a></td>
+          <td>${lead.address || 'N/A'}</td>
+          <td>${lead.owner_name || 'N/A'}</td>
+          <td>$${lead.estimated_value ? lead.estimated_value.toLocaleString() : 'N/A'}</td>
+          <td>${lead.equity ? (lead.equity * 100).toFixed(1) + '%' : 'N/A'}</td>
+          <td>${lead.motivation_score || 0}</td>
+          <td><span class="badge badge-${lead.temperature_tag || 'dead'}">${lead.temperature_tag || 'DEAD'}</span></td>
+          <td class="status-${(lead.status || 'new').toLowerCase()}">${lead.status || 'NEW'}</td>
+          <td>
+            ${lead.is_probate ? '<span class="badge" style="background: #8b4513; color: white;">Probate</span>' : ''}
+            ${lead.is_vacant ? '<span class="badge" style="background: #666; color: white;">Vacant</span>' : ''}
+          </td>
+          <td><a href="/ops/leads/${lead.id}">View</a></td>
+        </tr>
+      `).join('')}
+    </tbody>
+  </table>
+  ` : '<p>No campaigns found matching your criteria.</p>'}
+
+  <div style="margin-top: 20px;">
+    <a href="/ops/leads">← Back to All Leads</a> | 
+    <a href="/admin">Admin Panel</a>
+  </div>
+</body>
+</html>`;
+
+      res.send(html);
+    } catch (error) {
+      console.error('Campaign UI error:', error);
+      res.status(500).send(`Error: ${error.message}`);
+    }
+  });
+
   // === Operator UI (server-side rendered HTML) ===
   app.get('/ops/leads', (req, res) => {
     try {
       const q = String(req.query.q || '').trim();
+      const city = String(req.query.city || '').trim();
+      const state = String(req.query.state || '').trim();
+      const zip = String(req.query.zip || '').trim();
+      const status = String(req.query.status || '').trim();
+      const temperature = String(req.query.temperature || '').trim();
+      const minValue = req.query.minValue ? Number(req.query.minValue) : null;
+      const maxValue = req.query.maxValue ? Number(req.query.maxValue) : null;
       const page = Math.max(1, Number(req.query.page) || 1);
       const limit = Math.max(1, Math.min(100, Number(req.query.limit) || 10));
-      let sql = 'SELECT * FROM leads';
       const params = [];
       const where = [];
-      if (q) { where.push('(address LIKE ? OR owner_name LIKE ?)'); params.push(`%${q}%`,`%${q}%`); }
+      if (q) { where.push('(l.address LIKE ? OR l.owner_name LIKE ?)'); params.push(`%${q}%`,`%${q}%`); }
+      if (city) { where.push('l.address LIKE ?'); params.push(`%${city}%`); }
+      if (state) { where.push('l.address LIKE ?'); params.push(`%${state}%`); }
+      if (zip) { where.push('l.address LIKE ?'); params.push(`%${zip}%`); }
+      if (status) { where.push('l.status = ?'); params.push(status); }
+      if (temperature) { where.push('l.temperature_tag = ?'); params.push(temperature); }
+      if (minValue != null) { where.push('l.estimated_value >= ?'); params.push(minValue); }
+      if (maxValue != null) { where.push('l.estimated_value <= ?'); params.push(maxValue); }
+      
+      // Enhanced query to include next follow-up info
+      let sql = `
+        SELECT l.*, 
+        MIN(f.due_at) as next_followup_due,
+        COUNT(f.id) as open_followups_count
+        FROM leads l
+        LEFT JOIN follow_ups f ON l.id = f.lead_id AND f.status = 'open'
+      `;
+      
       if (where.length) sql += ' WHERE ' + where.join(' AND ');
-      const countSql = where.length ? `SELECT COUNT(*) as n FROM leads WHERE ${where.join(' AND ')}` : 'SELECT COUNT(*) as n FROM leads';
+      sql += ' GROUP BY l.id';
+      
+      const countSql = where.length ? `SELECT COUNT(DISTINCT l.id) as n FROM leads l WHERE ${where.join(' AND ')}` : 'SELECT COUNT(*) as n FROM leads';
       const total = db.prepare(countSql).get(...params).n;
-      sql += ' ORDER BY created_at DESC LIMIT ? OFFSET ?';
+      sql += ' ORDER BY l.created_at DESC LIMIT ? OFFSET ?';
       const offset = (page-1)*limit;
       const rows = db.prepare(sql).all(...params, limit, offset);
       const pages = Math.max(1, Math.ceil(total/limit));
       const esc = (s) => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-      const htmlRows = rows.map(r => `<tr><td><a href="/ops/leads/${encodeURIComponent(r.id)}">${esc(r.id)}</a></td><td>${esc(r.address)}</td><td>${esc(r.owner_name)}</td><td>${esc(r.status||'')}</td><td>${r.motivation_score ?? ''}</td></tr>`).join('');
+      
+      const htmlRows = rows.map(r => {
+        let followupInfo = '';
+        if (r.next_followup_due) {
+          const dueDate = new Date(r.next_followup_due);
+          const isOverdue = dueDate < new Date();
+          const isDueToday = dueDate < new Date(Date.now() + 24 * 60 * 60 * 1000) && !isOverdue;
+          
+          let style = '';
+          if (isOverdue) {
+            style = 'color:red;font-weight:bold';
+          } else if (isDueToday) {
+            style = 'color:orange;font-weight:bold';
+          }
+          
+          followupInfo = `<span style="${style}">${dueDate.toLocaleDateString()}</span>${r.open_followups_count > 1 ? ` (+${r.open_followups_count-1})` : ''}`;
+        }
+        
+        return `<tr><td><a href="/ops/leads/${encodeURIComponent(r.id)}">${esc(r.id)}</a></td><td>${esc(r.address)}</td><td>${esc(r.owner_name)}</td><td>${esc(r.status||'')}</td><td>${r.motivation_score ?? ''}</td><td>${r.grade_label ? `<span class="grade-${String(r.grade_label).toLowerCase().replace('+','plus')}">${esc(r.grade_label)}</span>` : ''}</td><td>${followupInfo}</td></tr>`;
+      }).join('');
       const nav = `Page ${page}/${pages}`;
       const queryStr = q ? `&q=${encodeURIComponent(q)}` : '';
       const prev = page>1 ? `<a href="/ops/leads?page=${page-1}&limit=${limit}${queryStr}">Prev</a>` : '';
       const next = page<pages ? `<a href="/ops/leads?page=${page+1}&limit=${limit}${queryStr}">Next</a>` : '';
-      const html = `<!doctype html><html><head><meta charset="utf-8"><title>Leads</title><style>body{font-family:system-ui,Segoe UI,Arial;padding:16px} table{border-collapse:collapse;width:100%} th,td{border:1px solid #ddd;padding:8px} th{background:#f8f8f8;text-align:left} .toolbar{margin-bottom:12px}</style></head><body>
+      const html = `<!doctype html><html><head><meta charset="utf-8"><title>Leads</title>
+      <style>
+        body{font-family:system-ui,Segoe UI,Arial;padding:16px} 
+        table{border-collapse:collapse;width:100%} 
+        th,td{border:1px solid #ddd;padding:8px} 
+        th{background:#f8f8f8;text-align:left} 
+        .toolbar{margin-bottom:12px}
+        .grade-a-plus,.grade-aplus{color:#008000;font-weight:bold}
+        .grade-a{color:#228B22;font-weight:bold}
+        .grade-b-plus,.grade-bplus{color:#32CD32;font-weight:bold}
+        .grade-b{color:#9ACD32;font-weight:bold}
+        .grade-c-plus,.grade-cplus{color:#FFD700;font-weight:bold}
+        .grade-c{color:#FFA500;font-weight:bold}
+        .grade-d{color:#FF6347;font-weight:bold}
+        .grade-f{color:#DC143C;font-weight:bold}
+      </style></head><body>
       <h1>Leads</h1>
       <div class="toolbar">
         <form method="GET" action="/ops/leads">
           <input name="q" placeholder="Search..." value="${esc(q)}" />
+          <input name="city" placeholder="City" value="${esc(city)}" />
+          <input name="state" placeholder="State" value="${esc(state)}" />
+          <input name="zip" placeholder="Zip" value="${esc(zip)}" />
+          <input name="status" placeholder="Status" value="${esc(status)}" />
+          <input name="temperature" placeholder="Temp" value="${esc(temperature)}" />
+          <input name="minValue" type="number" placeholder="Min Value" value="${minValue ?? ''}" />
+          <input name="maxValue" type="number" placeholder="Max Value" value="${maxValue ?? ''}" />
           <input name="limit" type="number" min="1" max="100" value="${limit}" />
           <button type="submit">Apply</button>
         </form>
+        <div style="margin-top:8px">
+          <a href="/ops/import"><button type="button">Import CSV (admin)</button></a>
+          <a href="/ops/grading"><button type="button">Lead Grading</button></a>
+          <a href="/ops/campaigns"><button type="button">Campaign Search</button></a>
+          <a href="/ops/followups"><button type="button">Follow-ups</button></a>
+        </div>
       </div>
-      <table><thead><tr><th>ID</th><th>Address</th><th>Owner</th><th>Status</th><th>Motivation</th></tr></thead>
-      <tbody>${htmlRows || '<tr><td colspan="5">No leads</td></tr>'}</tbody></table>
+      <table><thead><tr><th>ID</th><th>Address</th><th>Owner</th><th>Status</th><th>Motivation</th><th>Grade</th><th>Next Follow-up</th></tr></thead>
+      <tbody>${htmlRows || '<tr><td colspan="7">No leads</td></tr>'}</tbody></table>
       <div class="pager">${nav} ${prev} ${next}</div>
       <p><a href="/ops/artifacts">Artifacts</a></p>
       </body></html>`;
@@ -2635,27 +3291,328 @@ const startServer = async () => {
       const { id } = req.params;
       const r = db.prepare('SELECT * FROM leads WHERE id = ?').get(id);
       if (!r) return res.status(404).send('<h1>Not found</h1>');
+      
+      // Get timeline events for this lead
+      const timelineEvents = db.prepare(`
+        SELECT kind, payload_json, created_at 
+        FROM timeline_events 
+        WHERE lead_id = ?
+        ORDER BY created_at DESC
+        LIMIT 10
+      `).all(id);
+      
+      // Get open follow-ups for this lead
+      const followups = db.prepare(`
+        SELECT * FROM follow_ups 
+        WHERE lead_id = ? AND status = 'open'
+        ORDER BY due_at ASC
+      `).all(id);
+      
+      // Gather recent artifact links (report/audit/csv/zip)
+      const exp = Math.floor(Date.now() / 1000) + defaultTtl;
+      let links = [];
+      try {
+        if (fs.existsSync(ARTIFACT_ROOT)) {
+          const dirs = fs.readdirSync(ARTIFACT_ROOT).filter(n => fs.statSync(path.join(ARTIFACT_ROOT,n)).isDirectory()).slice(-20);
+          for (const runId of dirs) {
+            const relReport = `${runId}/report.json`;
+            const relAudit = `${runId}/audit.json`;
+            const relCsv = `${runId}/enriched.csv`;
+            const relZip = `${runId}/${runId}.zip`;
+            if (fs.existsSync(path.join(ARTIFACT_ROOT, relReport))) links.push({ name: `${runId}/report.json`, url: `/admin/artifact-download?path=${encodeURIComponent(relReport)}&exp=${exp}&sig=${signUtil(relReport, exp, process.env.ARTIFACT_SIGNING_SECRET || 'dev-secret')}` });
+            if (fs.existsSync(path.join(ARTIFACT_ROOT, relAudit))) links.push({ name: `${runId}/audit.json`, url: `/admin/artifact-download?path=${encodeURIComponent(relAudit)}&exp=${exp}&sig=${signUtil(relAudit, exp, process.env.ARTIFACT_SIGNING_SECRET || 'dev-secret')}` });
+            if (fs.existsSync(path.join(ARTIFACT_ROOT, relCsv))) links.push({ name: `${runId}/enriched.csv`, url: `/admin/artifact-download?path=${encodeURIComponent(relCsv)}&exp=${exp}&sig=${signUtil(relCsv, exp, process.env.ARTIFACT_SIGNING_SECRET || 'dev-secret')}` });
+            if (fs.existsSync(path.join(ARTIFACT_ROOT, relZip))) links.push({ name: `${runId}.zip`, url: `/admin/artifact-download?path=${encodeURIComponent(relZip)}&exp=${exp}&sig=${signUtil(relZip, exp, process.env.ARTIFACT_SIGNING_SECRET || 'dev-secret')}` });
+          }
+        }
+      } catch {}
+      
       const esc = (s) => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-      const html = `<!doctype html><html><head><meta charset="utf-8"><title>Lead ${esc(r.id)}</title><style>body{font-family:system-ui,Segoe UI,Arial;padding:16px} dt{font-weight:bold}</style></head><body>
+      
+      // Format timeline events for display
+      const timelineHtml = timelineEvents.map(event => {
+        let payload = {};
+        try {
+          payload = JSON.parse(event.payload_json || '{}');
+        } catch (e) {
+          payload = {};
+        }
+        
+        let summary = '';
+        let icon = '📋';
+        switch (event.kind) {
+          case 'created':
+            summary = 'Lead created';
+            icon = '✨';
+            break;
+          case 'skiptrace':
+            summary = 'Skip trace completed';
+            icon = '🔍';
+            break;
+          case 'dial':
+            summary = 'Dial attempt made';
+            icon = '📞';
+            break;
+          case 'disposition':
+            summary = `Disposition: ${payload.type || 'unknown'}`;
+            icon = '📝';
+            break;
+          case 'followup_created':
+            summary = `Follow-up created: ${payload.channel} (${payload.priority} priority)`;
+            icon = '📅';
+            break;
+          case 'followup_done':
+            summary = `Follow-up completed: ${payload.channel}`;
+            icon = '✅';
+            break;
+          case 'note':
+            summary = 'Note added';
+            icon = '💭';
+            break;
+          default:
+            summary = `${event.kind} event`;
+        }
+        
+        const timeAgo = new Date(event.created_at).toLocaleString();
+        return `<li style="margin:8px 0;padding:8px;border-left:3px solid #ddd;background:#f9f9f9">
+          <div style="font-weight:bold">${icon} ${esc(summary)}</div>
+          <div style="font-size:0.9em;color:#666">${timeAgo}</div>
+          ${payload.notes ? `<div style="font-size:0.9em;margin-top:4px">${esc(payload.notes)}</div>` : ''}
+        </li>`;
+      }).join('');
+      
+      // Format follow-ups for display
+      const followupsHtml = followups.map(f => {
+        const dueDate = new Date(f.due_at);
+        const isOverdue = dueDate < new Date();
+        const dueDateStr = dueDate.toLocaleString();
+        const overdueStyle = isOverdue ? 'color:red;font-weight:bold' : '';
+        
+        return `<li style="margin:8px 0;padding:8px;border:1px solid #ddd;border-radius:4px;background:${isOverdue ? '#ffebee' : '#f0f8ff'}">
+          <div style="font-weight:bold;${overdueStyle}">${esc(f.channel.toUpperCase())} - ${esc(f.priority.toUpperCase())} priority</div>
+          <div style="font-size:0.9em;${overdueStyle}">Due: ${dueDateStr}</div>
+          ${f.notes ? `<div style="font-size:0.9em;margin-top:4px">${esc(f.notes)}</div>` : ''}
+          <div style="margin-top:8px">
+            <button onclick="completeFollowup('${f.id}')" style="background:#4CAF50;color:white;border:none;padding:4px 8px;margin-right:4px;cursor:pointer">Done</button>
+            <button onclick="snoozeFollowup('${f.id}')" style="background:#FF9800;color:white;border:none;padding:4px 8px;cursor:pointer">Snooze 24h</button>
+          </div>
+        </li>`;
+      }).join('');
+      
+      const html = `<!doctype html><html><head><meta charset="utf-8"><title>Lead ${esc(r.id)}</title>
+      <style>
+        body{font-family:system-ui,Segoe UI,Arial;padding:16px} 
+        dt{font-weight:bold}
+        .grade-a-plus,.grade-aplus{color:#008000;font-weight:bold}
+        .grade-a{color:#228B22;font-weight:bold}
+        .grade-b-plus,.grade-bplus{color:#32CD32;font-weight:bold}
+        .grade-b{color:#9ACD32;font-weight:bold}
+        .grade-c-plus,.grade-cplus{color:#FFD700;font-weight:bold}
+        .grade-c{color:#FFA500;font-weight:bold}
+        .grade-d{color:#FF6347;font-weight:bold}
+        .grade-f{color:#DC143C;font-weight:bold}
+        .disposition-btn{margin:4px;padding:8px 12px;border:1px solid #ccc;background:white;cursor:pointer;border-radius:4px}
+        .disposition-btn:hover{background:#f0f0f0}
+        .section{margin:20px 0;padding:16px;border:1px solid #ddd;border-radius:8px;background:#fafafa}
+        .timeline{list-style:none;padding:0;margin:0}
+        input,select,textarea{margin:4px;padding:8px;border:1px solid #ccc;border-radius:4px}
+        button{padding:8px 16px;margin:4px;border:1px solid #ccc;background:white;cursor:pointer;border-radius:4px}
+        button:hover{background:#f0f0f0}
+        .btn-primary{background:#007bff;color:white;border-color:#007bff}
+        .btn-primary:hover{background:#0056b3}
+      </style></head><body>
       <h1>Lead Detail</h1>
-      <p><a href="/ops/leads">← Back</a></p>
-      <dl>
-        <dt>ID</dt><dd>${esc(r.id)}</dd>
-        <dt>Address</dt><dd>${esc(r.address)}</dd>
-        <dt>Owner</dt><dd>${esc(r.owner_name)}</dd>
-        <dt>Status</dt><dd>${esc(r.status)}</dd>
-        <dt>Estimated Value</dt><dd>${esc(r.estimated_value)}</dd>
-        <dt>Equity</dt><dd>${esc(r.equity)}</dd>
-        <dt>Motivation</dt><dd>${esc(r.motivation_score)}</dd>
-        <dt>Temperature</dt><dd>${esc(r.temperature_tag)}</dd>
-        <dt>Phones Count</dt><dd>${esc(r.phones_count)}</dd>
-        <dt>Emails Count</dt><dd>${esc(r.emails_count)}</dd>
-        <dt>Has DNC</dt><dd>${esc(r.has_dnc)}</dd>
-        <dt>Created</dt><dd>${esc(r.created_at)}</dd>
-        <dt>Updated</dt><dd>${esc(r.updated_at)}</dd>
-      </dl>
-      <p><a href="/ops/artifacts">Artifacts</a></p>
+      <p><a href="/ops/leads">← Back to Leads</a> | <a href="/ops/followups">Follow-ups</a></p>
+      
+      <div class="section">
+        <h3>Lead Information</h3>
+        <dl>
+          <dt>ID</dt><dd>${esc(r.id)}</dd>
+          <dt>Address</dt><dd>${esc(r.address)}</dd>
+          <dt>Owner</dt><dd>${esc(r.owner_name)}</dd>
+          <dt>Status</dt><dd>${esc(r.status)}</dd>
+          <dt>Estimated Value</dt><dd>${esc(r.estimated_value)}</dd>
+          <dt>Equity</dt><dd>${esc(r.equity)}</dd>
+          <dt>Motivation</dt><dd>${esc(r.motivation_score)}</dd>
+          <dt>Temperature</dt><dd>${esc(r.temperature_tag)}</dd>
+          <dt>Grade</dt><dd>${r.grade_label ? `<span class="grade-${String(r.grade_label).toLowerCase().replace('+','plus')}">${esc(r.grade_label)}</span> (${r.grade_score}/100)` : 'Not graded'}</dd>
+          ${r.grade_reason ? `<dt>Grade Reason</dt><dd style="font-size:0.9em;color:#666">${esc(r.grade_reason)}</dd>` : ''}
+          <dt>Phones Count</dt><dd>${esc(r.phones_count)}</dd>
+          <dt>Emails Count</dt><dd>${esc(r.emails_count)}</dd>
+          <dt>Has DNC</dt><dd>${esc(r.has_dnc)}</dd>
+          <dt>Created</dt><dd>${esc(r.created_at)}</dd>
+          <dt>Updated</dt><dd>${esc(r.updated_at)}</dd>
+        </dl>
+      </div>
+
+      <div class="section">
+        <h3>Quick Dispositions</h3>
+        <div>
+          <button class="disposition-btn" onclick="addDisposition('no_answer')">No Answer</button>
+          <button class="disposition-btn" onclick="addDisposition('voicemail')">Voicemail</button>
+          <button class="disposition-btn" onclick="addDisposition('bad_number')">Bad Number</button>
+          <button class="disposition-btn" onclick="addDisposition('interested')">Interested</button>
+          <button class="disposition-btn" onclick="addDisposition('not_interested')">Not Interested</button>
+          <button class="disposition-btn" onclick="addDisposition('follow_up')">Follow Up</button>
+        </div>
+        <div style="margin-top:12px">
+          <textarea id="dispositionNotes" placeholder="Add notes (optional)" style="width:300px;height:60px"></textarea>
+        </div>
+      </div>
+
+      <div class="section">
+        <h3>Create Follow-up</h3>
+        <form id="followupForm">
+          <div style="margin:8px 0">
+            <label>Due Date:</label>
+            <input type="datetime-local" id="dueAt" required style="width:200px">
+          </div>
+          <div style="margin:8px 0">
+            <label>Channel:</label>
+            <select id="channel" required>
+              <option value="call">Call</option>
+              <option value="sms">SMS</option>
+              <option value="email">Email</option>
+              <option value="task">Task</option>
+            </select>
+            <label>Priority:</label>
+            <select id="priority">
+              <option value="low">Low</option>
+              <option value="med" selected>Medium</option>
+              <option value="high">High</option>
+            </select>
+          </div>
+          <div style="margin:8px 0">
+            <textarea id="followupNotes" placeholder="Notes (optional)" style="width:400px;height:60px"></textarea>
+          </div>
+          <button type="submit" class="btn-primary">Create Follow-up</button>
+        </form>
+      </div>
+
+      <div class="section">
+        <h3>Open Follow-ups (${followups.length})</h3>
+        ${followups.length ? `<ul class="timeline">${followupsHtml}</ul>` : '<p>No open follow-ups</p>'}
+      </div>
+
+      <div class="section">
+        <h3>Timeline</h3>
+        ${timelineEvents.length ? `<ul class="timeline">${timelineHtml}</ul>` : '<p>No timeline events</p>'}
+        <p><a href="/leads/${encodeURIComponent(r.id)}/timeline" target="_blank">View full timeline (JSON)</a></p>
+      </div>
+
+      <div class="section">
+        <h3>Artifacts</h3>
+        <ul>${links.map(l => `<li><a href="${l.url}">${esc(l.name)}</a></li>`).join('') || '<li>None</li>'}</ul>
+      </div>
+
+      <script>
+        async function addDisposition(type) {
+          const notes = document.getElementById('dispositionNotes').value;
+          try {
+            const response = await fetch('/dial/${encodeURIComponent(r.id)}/disposition', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ type, notes })
+            });
+            
+            const result = await response.json();
+            if (result.ok) {
+              alert('Disposition added successfully');
+              document.getElementById('dispositionNotes').value = '';
+              location.reload();
+            } else {
+              alert('Error: ' + (result.message || 'Failed to add disposition'));
+            }
+          } catch (e) {
+            alert('Error: ' + e.message);
+          }
+        }
+
+        async function completeFollowup(id) {
+          try {
+            const response = await fetch('/followups/' + id, {
+              method: 'PATCH',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ status: 'done' })
+            });
+            
+            const result = await response.json();
+            if (result.ok) {
+              alert('Follow-up marked as done');
+              location.reload();
+            } else {
+              alert('Error: ' + (result.message || 'Failed to complete follow-up'));
+            }
+          } catch (e) {
+            alert('Error: ' + e.message);
+          }
+        }
+
+        async function snoozeFollowup(id) {
+          const snoozeUntil = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+          try {
+            const response = await fetch('/followups/' + id, {
+              method: 'PATCH',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ status: 'snoozed', snoozeUntil })
+            });
+            
+            const result = await response.json();
+            if (result.ok) {
+              alert('Follow-up snoozed for 24 hours');
+              location.reload();
+            } else {
+              alert('Error: ' + (result.message || 'Failed to snooze follow-up'));
+            }
+          } catch (e) {
+            alert('Error: ' + e.message);
+          }
+        }
+
+        document.getElementById('followupForm').addEventListener('submit', async (e) => {
+          e.preventDefault();
+          
+          const dueAt = document.getElementById('dueAt').value;
+          const channel = document.getElementById('channel').value;
+          const priority = document.getElementById('priority').value;
+          const notes = document.getElementById('followupNotes').value;
+          
+          if (!dueAt) {
+            alert('Due date is required');
+            return;
+          }
+          
+          try {
+            const response = await fetch('/leads/${encodeURIComponent(r.id)}/followups', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ 
+                dueAt: new Date(dueAt).toISOString(), 
+                channel, 
+                priority, 
+                notes 
+              })
+            });
+            
+            const result = await response.json();
+            if (result.ok) {
+              alert('Follow-up created successfully');
+              document.getElementById('followupForm').reset();
+              location.reload();
+            } else {
+              alert('Error: ' + (result.message || 'Failed to create follow-up'));
+            }
+          } catch (e) {
+            alert('Error: ' + e.message);
+          }
+        });
+
+        // Set default due date to 1 hour from now
+        const defaultDue = new Date(Date.now() + 60 * 60 * 1000);
+        document.getElementById('dueAt').value = defaultDue.toISOString().slice(0, 16);
+      </script>
       </body></html>`;
+      
       res.set('Content-Type','text/html; charset=utf-8').send(html);
     } catch (e) { return sendProblem(res, 'ui_lead_error', String(e?.message || e), undefined, 500); }
   });
@@ -2668,20 +3625,1455 @@ const startServer = async () => {
       const items = runs.map(runId => {
         const relReport = `${runId}/report.json`;
         const relCsv = `${runId}/enriched.csv`;
-        const reportUrl = `/admin/artifact-download?path=${encodeURIComponent(relReport)}&exp=${exp}&sig=${signUtil(relReport, exp, process.env.ARTIFACT_SIGNING_SECRET || 'dev-secret')}`;
+        const relAudit = `${runId}/audit.json`;
+        const relZip = `${runId}/${runId}.zip`;
+        const reportUrl = fs.existsSync(path.join(ARTIFACT_ROOT, relReport)) ? `/admin/artifact-download?path=${encodeURIComponent(relReport)}&exp=${exp}&sig=${signUtil(relReport, exp, process.env.ARTIFACT_SIGNING_SECRET || 'dev-secret')}` : null;
         const csvAbs = path.join(ARTIFACT_ROOT, relCsv);
         const csvUrl = fs.existsSync(csvAbs) ? `/admin/artifact-download?path=${encodeURIComponent(relCsv)}&exp=${exp}&sig=${signUtil(relCsv, exp, process.env.ARTIFACT_SIGNING_SECRET || 'dev-secret')}` : null;
-        return { runId, reportUrl, csvUrl };
+        const auditAbs = path.join(ARTIFACT_ROOT, relAudit);
+        const auditUrl = fs.existsSync(auditAbs) ? `/admin/artifact-download?path=${encodeURIComponent(relAudit)}&exp=${exp}&sig=${signUtil(relAudit, exp, process.env.ARTIFACT_SIGNING_SECRET || 'dev-secret')}` : null;
+        const zipAbs = path.join(ARTIFACT_ROOT, relZip);
+        const zipUrl = fs.existsSync(zipAbs) ? `/admin/artifact-download?path=${encodeURIComponent(relZip)}&exp=${exp}&sig=${signUtil(relZip, exp, process.env.ARTIFACT_SIGNING_SECRET || 'dev-secret')}` : null;
+        let type = 'run';
+        if (!fs.existsSync(path.join(ARTIFACT_ROOT, relReport)) && fs.existsSync(auditAbs)) type = 'import_audit';
+        if (zipUrl || String(runId).startsWith('weekly_export_')) type = 'weekly_export';
+        return { runId, type, reportUrl, csvUrl, auditUrl, zipUrl };
       });
-      const rows = items.map(it => `<tr><td>${it.runId}</td><td>${it.reportUrl ? `<a href="${it.reportUrl}">report.json</a>`:''}</td><td>${it.csvUrl ? `<a href="${it.csvUrl}">enriched.csv</a>`:''}</td></tr>`).join('');
+      const rows = items.map(it => `<tr><td>${it.runId}</td><td>${it.type||''}</td><td>${it.reportUrl ? `<a href="${it.reportUrl}">report.json</a>`:''}${it.auditUrl ? ` <a href="${it.auditUrl}">audit.json</a>`:''}${it.zipUrl ? ` <a href="${it.zipUrl}">bundle.zip</a>`:''}</td><td>${it.csvUrl ? `<a href="${it.csvUrl}">enriched.csv</a>`:''}</td></tr>`).join('');
       const html = `<!doctype html><html><head><meta charset="utf-8"><title>Artifacts</title><style>body{font-family:system-ui,Segoe UI,Arial;padding:16px} table{border-collapse:collapse;width:100%} th,td{border:1px solid #ddd;padding:8px} th{background:#f8f8f8;text-align:left}</style></head><body>
       <h1>Artifacts</h1>
       <p>Downloads are served from /admin and may prompt for Basic Auth if enabled.</p>
-      <table><thead><tr><th>Run ID</th><th>Report</th><th>CSV</th></tr></thead><tbody>${rows || '<tr><td colspan="3">No runs</td></tr>'}</tbody></table>
+      <table><thead><tr><th>ID</th><th>Type</th><th>Reports</th><th>CSV</th></tr></thead><tbody>${rows || '<tr><td colspan="4">No runs</td></tr>'}</tbody></table>
       <p><a href="/ops/leads">Leads</a></p>
       </body></html>`;
       res.set('Content-Type','text/html; charset=utf-8').send(html);
     } catch (e) { return sendProblem(res, 'ui_artifacts_error', String(e?.message || e), undefined, 500); }
+  });
+
+  // Follow-ups management page
+  app.get('/ops/followups', async (req, res) => {
+    try {
+      const { status = 'open', page = 1, limit = 20 } = req.query;
+      
+      const pageNum = Math.max(1, parseInt(page) || 1);
+      const limitNum = Math.min(50, Math.max(1, parseInt(limit) || 20));
+      const offset = (pageNum - 1) * limitNum;
+      
+      let whereConditions = [];
+      let params = [];
+      
+      const now = new Date().toISOString();
+      const startOfToday = new Date();
+      startOfToday.setHours(0, 0, 0, 0);
+      
+      if (status === 'due') {
+        whereConditions.push("f.status = 'open' AND f.due_at <= ?");
+        params.push(now);
+      } else if (status === 'overdue') {
+        whereConditions.push("f.status = 'open' AND f.due_at < ?");
+        params.push(startOfToday.toISOString());
+      } else {
+        whereConditions.push("f.status = ?");
+        params.push(status);
+      }
+      
+      const whereClause = whereConditions.length ? `WHERE ${whereConditions.join(' AND ')}` : '';
+      
+      // Get stats
+      const stats = {
+        open: db.prepare("SELECT COUNT(*) as count FROM follow_ups WHERE status = 'open'").get().count,
+        due: db.prepare("SELECT COUNT(*) as count FROM follow_ups WHERE status = 'open' AND due_at <= ?").get(now).count,
+        overdue: db.prepare("SELECT COUNT(*) as count FROM follow_ups WHERE status = 'open' AND due_at < ?").get(startOfToday.toISOString()).count,
+        done: db.prepare("SELECT COUNT(*) as count FROM follow_ups WHERE status = 'done'").get().count
+      };
+      
+      // Get total count for pagination
+      const countSql = `SELECT COUNT(*) as count FROM follow_ups f JOIN leads l ON f.lead_id = l.id ${whereClause}`;
+      const total = db.prepare(countSql).get(...params).count;
+      
+      // Get follow-ups with lead details
+      const sql = `
+        SELECT f.*, l.address, l.owner_name 
+        FROM follow_ups f
+        JOIN leads l ON f.lead_id = l.id
+        ${whereClause}
+        ORDER BY f.due_at ASC, f.created_at DESC
+        LIMIT ? OFFSET ?
+      `;
+      
+      const followups = db.prepare(sql).all(...params, limitNum, offset);
+      const pages = Math.max(1, Math.ceil(total / limitNum));
+      
+      const esc = (s) => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      
+      // Format follow-ups for display
+      const followupsHtml = followups.map(f => {
+        const dueDate = new Date(f.due_at);
+        const isOverdue = dueDate < new Date();
+        const isDueToday = dueDate < new Date(Date.now() + 24 * 60 * 60 * 1000) && !isOverdue;
+        const dueDateStr = dueDate.toLocaleString();
+        
+        let statusBadge = '';
+        let rowStyle = '';
+        if (isOverdue) {
+          statusBadge = '<span style="background:#f44336;color:white;padding:2px 6px;border-radius:3px;font-size:0.8em">OVERDUE</span>';
+          rowStyle = 'background:#ffebee';
+        } else if (isDueToday) {
+          statusBadge = '<span style="background:#ff9800;color:white;padding:2px 6px;border-radius:3px;font-size:0.8em">DUE TODAY</span>';
+          rowStyle = 'background:#fff3e0';
+        }
+        
+        const priorityColor = f.priority === 'high' ? '#f44336' : f.priority === 'med' ? '#ff9800' : '#4caf50';
+        
+        return `<tr style="${rowStyle}">
+          <td><a href="/ops/leads/${encodeURIComponent(f.lead_id)}">${esc(f.address || 'N/A')}</a></td>
+          <td>${esc(f.owner_name || 'N/A')}</td>
+          <td><span style="color:${priorityColor};font-weight:bold">${esc(f.channel.toUpperCase())}</span></td>
+          <td><span style="color:${priorityColor}">${esc(f.priority.toUpperCase())}</span></td>
+          <td>${dueDateStr} ${statusBadge}</td>
+          <td>${esc(f.notes || '')}</td>
+          <td>
+            ${f.status === 'open' ? `
+              <button onclick="completeFollowup('${f.id}')" style="background:#4CAF50;color:white;border:none;padding:4px 8px;margin:2px;cursor:pointer;border-radius:3px">Done</button>
+              <button onclick="snoozeFollowup('${f.id}', 24)" style="background:#FF9800;color:white;border:none;padding:4px 8px;margin:2px;cursor:pointer;border-radius:3px">24h</button>
+              <button onclick="snoozeFollowup('${f.id}', 72)" style="background:#FF9800;color:white;border:none;padding:4px 8px;margin:2px;cursor:pointer;border-radius:3px">72h</button>
+              <button onclick="cancelFollowup('${f.id}')" style="background:#f44336;color:white;border:none;padding:4px 8px;margin:2px;cursor:pointer;border-radius:3px">Cancel</button>
+            ` : `<span style="color:#666">${esc(f.status)}</span>`}
+          </td>
+        </tr>`;
+      }).join('');
+      
+      // Navigation
+      const nav = `Page ${pageNum}/${pages} (${total} total)`;
+      const prev = pageNum > 1 ? `<a href="/ops/followups?status=${status}&page=${pageNum-1}&limit=${limitNum}">Prev</a>` : '';
+      const next = pageNum < pages ? `<a href="/ops/followups?status=${status}&page=${pageNum+1}&limit=${limitNum}">Next</a>` : '';
+      
+      const html = `<!doctype html><html><head><meta charset="utf-8"><title>Follow-ups Management</title>
+      <style>
+        body{font-family:system-ui,Segoe UI,Arial;padding:16px}
+        table{border-collapse:collapse;width:100%;margin:16px 0}
+        th,td{border:1px solid #ddd;padding:8px;text-align:left}
+        th{background:#f8f8f8}
+        .tabs{margin:16px 0;padding:0;border-bottom:2px solid #ddd}
+        .tab{display:inline-block;padding:12px 20px;margin:0 4px 0 0;background:#f0f0f0;border:1px solid #ddd;border-bottom:none;cursor:pointer;text-decoration:none;color:#333}
+        .tab.active{background:white;border-bottom:2px solid white;margin-bottom:-2px;font-weight:bold}
+        .tab:hover{background:#e0e0e0}
+        .stats{display:flex;gap:20px;margin:16px 0}
+        .stat{padding:12px;background:white;border:1px solid #ddd;border-radius:4px;text-align:center}
+        .stat-value{font-size:24px;font-weight:bold;color:#333}
+        .stat-label{font-size:12px;color:#666;margin-top:4px}
+        .toolbar{margin:16px 0;padding:12px;background:#f0f0f0;border-radius:4px}
+        button{padding:6px 12px;margin:2px;border:1px solid #ccc;background:white;cursor:pointer;border-radius:3px}
+        button:hover{background:#f0f0f0}
+      </style></head><body>
+      <h1>Follow-ups Management</h1>
+      <p><a href="/ops/leads">← Back to Leads</a> | <a href="/ops/grading">Lead Grading</a></p>
+      
+      <div class="stats">
+        <div class="stat">
+          <div class="stat-value">${stats.open}</div>
+          <div class="stat-label">Open</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value" style="color:#ff9800">${stats.due}</div>
+          <div class="stat-label">Due Now</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value" style="color:#f44336">${stats.overdue}</div>
+          <div class="stat-label">Overdue</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value" style="color:#4caf50">${stats.done}</div>
+          <div class="stat-label">Completed</div>
+        </div>
+      </div>
+      
+      <div class="tabs">
+        <a href="/ops/followups?status=open" class="tab${status === 'open' ? ' active' : ''}">Open (${stats.open})</a>
+        <a href="/ops/followups?status=due" class="tab${status === 'due' ? ' active' : ''}">Due Today (${stats.due})</a>
+        <a href="/ops/followups?status=overdue" class="tab${status === 'overdue' ? ' active' : ''}">Overdue (${stats.overdue})</a>
+        <a href="/ops/followups?status=done" class="tab${status === 'done' ? ' active' : ''}">Done (${stats.done})</a>
+      </div>
+      
+      <table>
+        <thead>
+          <tr>
+            <th>Address</th>
+            <th>Owner</th>
+            <th>Channel</th>
+            <th>Priority</th>
+            <th>Due Date</th>
+            <th>Notes</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${followupsHtml || '<tr><td colspan="7">No follow-ups found</td></tr>'}
+        </tbody>
+      </table>
+      
+      <div class="toolbar">
+        ${nav} | ${prev} ${next}
+      </div>
+
+      <script>
+        async function completeFollowup(id) {
+          if (!confirm('Mark this follow-up as done?')) return;
+          
+          try {
+            const response = await fetch('/followups/' + id, {
+              method: 'PATCH',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ status: 'done' })
+            });
+            
+            const result = await response.json();
+            if (result.ok) {
+              location.reload();
+            } else {
+              alert('Error: ' + (result.message || 'Failed to complete follow-up'));
+            }
+          } catch (e) {
+            alert('Error: ' + e.message);
+          }
+        }
+
+        async function snoozeFollowup(id, hours) {
+          const snoozeUntil = new Date(Date.now() + hours * 60 * 60 * 1000).toISOString();
+          
+          try {
+            const response = await fetch('/followups/' + id, {
+              method: 'PATCH',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ status: 'snoozed', snoozeUntil })
+            });
+            
+            const result = await response.json();
+            if (result.ok) {
+              location.reload();
+            } else {
+              alert('Error: ' + (result.message || 'Failed to snooze follow-up'));
+            }
+          } catch (e) {
+            alert('Error: ' + e.message);
+          }
+        }
+
+        async function cancelFollowup(id) {
+          if (!confirm('Cancel this follow-up?')) return;
+          
+          try {
+            const response = await fetch('/followups/' + id, {
+              method: 'PATCH',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ status: 'canceled' })
+            });
+            
+            const result = await response.json();
+            if (result.ok) {
+              location.reload();
+            } else {
+              alert('Error: ' + (result.message || 'Failed to cancel follow-up'));
+            }
+          } catch (e) {
+            alert('Error: ' + e.message);
+          }
+        }
+      </script>
+      </body></html>`;
+      
+      res.set('Content-Type', 'text/html; charset=utf-8').send(html);
+    } catch (e) {
+      console.error('[Follow-ups] UI error:', e);
+      return sendProblem(res, 'followups_ui_error', String(e?.message || e), undefined, 500);
+    }
+  });
+
+  // Operator UI: Import (admin-only; gated by basic auth header presence if configured)
+  app.get('/ops/import', (req, res) => {
+    try {
+      const hasAuth = !!(basicAuthUser && basicAuthPass);
+      const html = `<!doctype html><html><head><meta charset="utf-8"><title>Import CSV</title><style>body{font-family:system-ui,Segoe UI,Arial;padding:16px} .section{margin-bottom:16px} pre{background:#f8f8f8;padding:8px;border:1px solid #eee;max-height:240px;overflow:auto} table{border-collapse:collapse;width:100%} th,td{border:1px solid #ddd;padding:6px} th{background:#f6f6f6}</style></head><body>
+      <h1>Import CSV</h1>
+      ${hasAuth ? '' : '<p><em>Note: This page expects admin auth to be configured for /admin/*.</em></p>'}
+      <div class="section">
+        <h3>1) Upload</h3>
+        <input id="file" type="file" accept=".csv" /> <button id="btnPreview">Preview</button>
+      </div>
+      <div class="section" id="preview" style="display:none">
+        <h3>Preview</h3>
+        <div id="totals"></div>
+        <h4>Errors (first 10)</h4>
+        <table id="errtbl"><thead><tr><th>#</th><th>Field</th><th>Message</th></tr></thead><tbody></tbody></table>
+        <button id="btnCommit">Commit Import</button>
+      </div>
+      <div class="section" id="commit" style="display:none">
+        <h3>Commit Result</h3>
+        <div id="commitRes"></div>
+      </div>
+      <p><a href="/ops/leads">Back to Leads</a> · <a href="/ops/artifacts">Artifacts</a></p>
+      <script>
+      async function postMultipart(mode, file) {
+        const form = new FormData(); form.append('file', file);
+        const res = await fetch('/admin/import/csv?mode=' + mode, { method: 'POST', body: form });
+        const json = await res.json(); if (!res.ok) throw json; return json;
+      }
+      const $ = (s) => document.querySelector(s);
+      let lastFile = null;
+      $('#btnPreview').onclick = async () => {
+        const f = $('#file').files[0]; if (!f) { alert('Choose a CSV'); return; }
+        lastFile = f;
+        try {
+          const r = await postMultipart('preview', f);
+          const p = r.preview || {};
+          $('#totals').innerText = 'Totals — total: ' + (p.rows_total||0) + ', valid: ' + (p.rows_valid||0) + ', invalid: ' + (p.rows_invalid||0) + ', create: ' + (p.would_create||0) + ', merge: ' + (p.would_merge||0) + ', skip: ' + (p.would_skip||0);
+          const tbody = $('#errtbl tbody'); tbody.innerHTML = '';
+          (p.sample_errors||[]).forEach(e => { const tr = document.createElement('tr'); tr.innerHTML = '<td>' + (e.row) + '</td><td>' + (e.field||'') + '</td><td>' + (e.message||'') + '</td>'; tbody.appendChild(tr); });
+          $('#preview').style.display = '';
+        } catch (e) { alert('Preview failed: ' + (e.message||JSON.stringify(e))); }
+      };
+      $('#btnCommit').onclick = async () => {
+        const f = lastFile || ($('#file').files[0]); if (!f) { alert('Choose a CSV'); return; }
+        try {
+          const r = await postMultipart('commit', f);
+          var link = (r.artifact && r.artifact.auditUrl) ? ' — <a href="' + r.artifact.auditUrl + '">audit.json</a>' : '';
+          $('#commitRes').innerHTML = 'Created: ' + (r.created||0) + ', Merged: ' + (r.merged||0) + ', Skipped: ' + (r.skipped||0) + link;
+          $('#commit').style.display = '';
+        } catch (e) { alert('Commit failed: ' + (e.message||JSON.stringify(e))); }
+      };
+      </script>
+      </body></html>`;
+      res.set('Content-Type','text/html; charset=utf-8').send(html);
+    } catch (e) { return sendProblem(res, 'ui_import_error', String(e?.message || e), undefined, 500); }
+  });
+
+  // Lead-level quick actions
+  const LeadNoteZ2 = z.object({ text: z.string().min(1) });
+  app.post('/leads/:id/notes', (req, res) => {
+    try {
+      const { id } = req.params;
+      const lead = db.prepare('SELECT id FROM leads WHERE id = ?').get(id);
+      if (!lead) return sendProblem(res, 'not_found', 'Lead not found', 'id', 404);
+      const parsed = LeadNoteZ2.safeParse(req.body || {});
+      if (!parsed.success) {
+        const issue = parsed.error.issues[0];
+        const field = Array.isArray(issue?.path) ? issue.path.join('.') : undefined;
+        return sendProblem(res, 'validation_error', issue?.message || 'Invalid payload', field, 400);
+      }
+      const notesDir = path.resolve(STORAGE_ROOT, 'artifacts', 'leads', id, 'notes');
+      fs.mkdirSync(notesDir, { recursive: true });
+      const line = `- [${new Date().toISOString()}] ${parsed.data.text}\n`;
+      fs.appendFileSync(path.join(notesDir, 'notes.md'), line);
+      try { auditMut(req); } catch {}
+      return res.json({ success: true });
+    } catch (e) { return sendProblem(res, 'lead_note_error', String(e?.message || e), undefined, 500); }
+  });
+  const LeadDispZ2 = z.object({ type: z.enum(['no_answer','voicemail','bad_number','interested','not_interested','follow_up']) });
+  app.post('/leads/:id/disposition', (req, res) => {
+    try {
+      const { id } = req.params;
+      const lead = db.prepare('SELECT id FROM leads WHERE id = ?').get(id);
+      if (!lead) return sendProblem(res, 'not_found', 'Lead not found', 'id', 404);
+      const parsed = LeadDispZ2.safeParse(req.body || {});
+      if (!parsed.success) {
+        const issue = parsed.error.issues[0];
+        const field = Array.isArray(issue?.path) ? issue.path.join('.') : undefined;
+        return sendProblem(res, 'validation_error', issue?.message || 'Invalid payload', field, 400);
+      }
+      const dispDir = path.resolve(STORAGE_ROOT, 'artifacts', 'leads', id, 'dispositions');
+      fs.mkdirSync(dispDir, { recursive: true });
+      const rec = { leadId: id, type: parsed.data.type, at: new Date().toISOString() };
+      fs.writeFileSync(path.join(dispDir, `${Date.now()}.json`), JSON.stringify(rec, null, 2));
+      try { auditMut(req); } catch {}
+      return res.json({ success: true });
+    } catch (e) { return sendProblem(res, 'lead_disposition_error', String(e?.message || e), undefined, 500); }
+  });
+
+  // === CSV Import (preview + commit) ===
+  const ImportRowZ = z.object({
+    address: z.string().min(1),
+    owner_name: z.string().optional(),
+    phone: z.string().optional(),
+    // Treat empty string as undefined so blank email cells don't fail validation
+    email: z.preprocess(v => v === '' || v == null ? undefined : v, z.string().email().optional()),
+    estimated_value: z.preprocess(v => v === '' || v == null ? undefined : Number(v), z.number().finite().optional()),
+    equity: z.preprocess(v => v === '' || v == null ? undefined : Number(v), z.number().finite().nullable().optional()),
+    motivation_score: z.preprocess(v => v === '' || v == null ? undefined : Number(v), z.number().int().min(0).max(100).nullable().optional()),
+    temperature_tag: z.preprocess(v => (v===''||v==null?undefined:String(v).toLowerCase()), z.enum(['cold','warm','hot']).nullable().optional()),
+    source_type: z.string().optional(),
+    status: z.string().optional(),
+    notes: z.string().optional(),
+    city: z.string().optional(),
+    state: z.string().optional(),
+    zip: z.string().optional(),
+  });
+  function normalizeAddress(addr) {
+    return String(addr || '')
+      .toLowerCase()
+      .replace(/[\.,#]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+  function mergeLeadRecord(existing, incoming) {
+    const out = { ...existing };
+    const keys = ['owner_name','phone','email','estimated_value','equity','motivation_score','temperature_tag','source_type','status','notes'];
+    for (const k of keys) {
+      const inc = incoming[k];
+      if (inc != null && inc !== '') {
+        if (existing[k] == null || existing[k] === '') out[k] = inc;
+      }
+    }
+    // keep updated_at
+    out.updated_at = new Date().toISOString();
+    return out;
+  }
+  // Helper to parse CSV buffer into rows with headers (minimal parser; covers simple cases used in tests)
+  async function parseCsvBuffer(buf) {
+    try {
+      const text = Buffer.isBuffer(buf) ? buf.toString('utf8') : String(buf || '');
+      const lines = text.replace(/\r\n/g, '\n').split('\n').filter(l => l.trim() !== '');
+      if (lines.length === 0) return { rows: [], headers: [] };
+      const headerLine = lines[0];
+      const headers = headerLine.split(',').map(h => h.trim());
+      const rows = lines.slice(1).map(line => {
+        const values = line.split(',');
+        const obj = {};
+        headers.forEach((h, i) => {
+          obj[h] = (values[i] ?? '').trim();
+        });
+        return obj;
+      });
+      return { rows, headers };
+    } catch (e) {
+      console.error('[ImportCSV] simple parse error:', e && (e.stack || e.message || e));
+      throw e;
+    }
+  }
+  // Admin auth already applied to /admin via basicAuth middleware.
+  // Custom wrapper to capture multer errors and map to Problem+JSON
+  app.post('/admin/import/csv', async (req, res) => {
+    try {
+      await new Promise((resolve, reject) => {
+        upload.single('file')(req, res, (err) => {
+          if (!err) return resolve(null);
+          // Map known multer/fileFilter errors
+          if (err && (err.code === 'LIMIT_FILE_SIZE')) {
+            return reject(Object.assign(new Error('payload_too_large'), { status: 413 }));
+          }
+          if (String(err?.message) === 'unsupported_content_type') {
+            return reject(Object.assign(new Error('unsupported_media_type'), { status: 415 }));
+          }
+          // Generic validation
+          return reject(Object.assign(new Error('validation_error'), { status: 400 }));
+        });
+      });
+      // Mode
+      const mode = String(req.query.mode || 'preview').toLowerCase();
+      if (mode !== 'preview' && mode !== 'commit') {
+        return sendProblem(res, 'validation_error', 'mode must be preview or commit', 'mode', 400);
+      }
+      const file = req.file;
+      if (!file) return sendProblem(res, 'validation_error', 'file is required', 'file', 400);
+      try { console.log('[ImportCSV] accepted upload', { mode, name: file.originalname, type: file.mimetype, size: file.size }); } catch {}
+      if (!(file.mimetype === 'text/csv' || (file.originalname || '').toLowerCase().endsWith('.csv'))) {
+        return sendProblem(res, 'unsupported_media_type', 'Content must be CSV', undefined, 415);
+      }
+      if (file.size > 10 * 1024 * 1024) {
+        return sendProblem(res, 'payload_too_large', 'CSV exceeds 10MB', undefined, 413);
+      }
+
+      const t0 = Date.now();
+      const { rows, headers } = await (async () => {
+        try {
+          const out = await parseCsvBuffer(file.buffer);
+          try { console.log('[ImportCSV] parsed rows:', out.rows.length, 'headers:', out.headers); } catch {}
+          return out;
+        } catch (perr) {
+          console.error('[ImportCSV] parse error:', perr && (perr.stack || perr.message || perr));
+          throw perr;
+        }
+      })();
+      const dedupe = new Map(); // key -> index of kept record
+      const normalizedCollisions = [];
+      let rows_total = rows.length, rows_valid = 0, rows_invalid = 0;
+      let would_create = 0, would_merge = 0, would_skip = 0;
+      const sample_errors = [];
+      let normalizedRows;
+      try {
+        normalizedRows = rows.map((r, idx) => {
+        const candidate = {
+          address: r.address || r.Address || r.ADDRESS || '',
+          owner_name: r.owner_name || r.owner || r.Owner || '',
+          phone: r.phone || r.Phone || '',
+          email: r.email || r.Email || '',
+          estimated_value: r.estimated_value || r.value || r.estimatedValue || '',
+          equity: r.equity || '',
+          motivation_score: r.motivation_score || r.motivation || '',
+          temperature_tag: r.temperature_tag || r.temperature || '',
+          source_type: r.source_type || r.source || '',
+          status: r.status || '',
+          notes: r.notes || '',
+          city: r.city || '',
+          state: r.state || '',
+          zip: r.zip || r.zipcode || '',
+        };
+        const parsed = ImportRowZ.safeParse(candidate);
+        if (!parsed.success) {
+          rows_invalid++;
+          const issue = parsed.error.issues[0];
+          const field = Array.isArray(issue?.path) ? issue.path.join('.') : undefined;
+          if (sample_errors.length < 10) sample_errors.push({ row: idx+1, field, message: issue?.message || 'invalid' });
+          return { ok:false, raw: r };
+        }
+        const data = parsed.data;
+        data.normalized_address = normalizeAddress(data.address);
+        rows_valid++;
+        return { ok:true, data };
+        });
+      } catch (mapErr) {
+        console.error('[ImportCSV] normalize error:', mapErr && (mapErr.stack || mapErr.message || mapErr));
+        throw mapErr;
+      }
+      try { console.log('[ImportCSV] normalized', { rows_total, rows_valid, rows_invalid, sample_errors }); } catch {}
+
+      // In-batch dedupe
+      try { console.log('[ImportCSV] start in-batch dedupe'); } catch {}
+      const keyOf = (d) => {
+        const ident = d.owner_name || d.email || d.phone || '';
+        return `${d.normalized_address}|${ident}`;
+      };
+      normalizedRows.forEach((row, idx) => {
+        if (!row.ok) return;
+        const key = keyOf(row.data);
+        if (dedupe.has(key)) {
+          would_skip++;
+          normalizedCollisions.push({ row: idx+1, reason: 'duplicate_in_batch', key });
+        } else {
+          dedupe.set(key, idx);
+        }
+      });
+      try { console.log('[ImportCSV] dedupe complete', { kept: dedupe.size, would_skip }); } catch {}
+
+      // DB dedupe and preview/commit actions
+      try { console.log('[ImportCSV] defining selectByKey'); } catch {}
+      const selectByKey = (addrKey, identVal) => {
+        // Try best-effort matching using existing columns
+        const candidates = db.prepare("SELECT * FROM leads WHERE LOWER(REPLACE(REPLACE(REPLACE(address, ',', ' '), '.', ' '), '#', ' ')) LIKE ?").all(`%${addrKey.split('|')[0]}%`);
+        return candidates.find(c => {
+          const matchOwner = identVal && c.owner_name && String(c.owner_name).toLowerCase() === String(identVal).toLowerCase();
+          const matchEmail = identVal && c.email && String(c.email).toLowerCase() === String(identVal).toLowerCase();
+          const matchPhone = identVal && c.phone && String(c.phone) === String(identVal);
+          return matchOwner || matchEmail || matchPhone;
+        }) || null;
+      };
+      try { console.log('[ImportCSV] selectByKey defined'); } catch {}
+
+      const toCreate = [];
+      const toMerge = [];
+      // Only consider deduped rows (unique keys) for create/merge preview
+      try { console.log('[ImportCSV] compute create/merge'); } catch {}
+      try {
+        for (const keptIdx of dedupe.values()) {
+          const row = normalizedRows[keptIdx];
+          if (!row || !row.ok) continue;
+          const [addrKey, identVal] = keyOf(row.data).split('|');
+          const existing = selectByKey(addrKey, identVal);
+          if (existing) { would_merge++; toMerge.push({ existing, incoming: row.data }); }
+          else { would_create++; toCreate.push(row.data); }
+        }
+        try { console.log('[ImportCSV] toCreate/toMerge', { toCreate: toCreate.length, toMerge: toMerge.length }); } catch {}
+      } catch (cmpErr) {
+        console.error('[ImportCSV] compute create/merge error:', cmpErr && (cmpErr.stack || cmpErr.message || cmpErr));
+        // Fallback: treat all kept deduped rows as creates to keep preview resilient
+        would_create = dedupe.size;
+        would_merge = 0;
+        toCreate.length = 0; // reset in case partially filled
+        for (const keptIdx of dedupe.values()) {
+          const row = normalizedRows[keptIdx];
+          if (row && row.ok) toCreate.push(row.data);
+        }
+      }
+
+      if (mode === 'preview') {
+        // Normalize counts from computed arrays for determinism
+        would_create = toCreate.length;
+        would_merge = toMerge.length;
+        try { console.log('[ImportCSV] preview counts', { rows_total, rows_valid, rows_invalid, would_create, would_merge, would_skip }); } catch {}
+        return res.json({ ok: true, preview: { rows_total, rows_valid, rows_invalid, would_create, would_merge, would_skip, sample_errors } });
+      }
+
+      // commit mode: perform upserts/merges
+      let created = 0, merged = 0, skipped = would_skip;
+      const nowIso = new Date().toISOString();
+      // Discover existing table columns
+      let tableCols = [];
+      try { tableCols = db.prepare('PRAGMA table_info(leads)').all(); } catch(_) { tableCols = []; }
+      const colSet = new Set(Array.isArray(tableCols) ? tableCols.map(c => c.name) : []);
+      const insertLead = (data) => {
+        const uuid = crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random().toString(36).slice(2);
+        const safe = {
+          id: uuid,
+          address: data.address,
+          owner_name: data.owner_name || null,
+          phone: data.phone || null,
+          email: data.email || null,
+          estimated_value: typeof data.estimated_value === 'number' ? data.estimated_value : null,
+          equity: typeof data.equity === 'number' ? data.equity : null,
+          motivation_score: typeof data.motivation_score === 'number' ? data.motivation_score : 50,
+          temperature_tag: data.temperature_tag || getTemperatureTag(typeof data.motivation_score === 'number' ? data.motivation_score : 50),
+          source_type: data.source_type || 'manual',
+          status: data.status || 'new',
+          notes: data.notes || null,
+          created_at: nowIso,
+          updated_at: nowIso,
+        };
+        if (!colSet.has('temperature_tag')) delete safe.temperature_tag;
+        const columns = []; const values = [];
+        for (const [k,v] of Object.entries(safe)) { if (colSet.has(k)) { columns.push(k); values.push(v); } }
+        const placeholders = columns.map(() => '?').join(',');
+        const sql = `INSERT INTO leads (${columns.join(',')}) VALUES (${placeholders})`;
+        db.prepare(sql).run(...values);
+        created++;
+      };
+      const updateLead = (existing, incoming) => {
+        const mergedObj = mergeLeadRecord(existing, incoming);
+        // Build dynamic update
+        const allowed = ['owner_name','phone','email','estimated_value','equity','motivation_score','temperature_tag','source_type','status','notes','updated_at'];
+        const sets = []; const values = [];
+        for (const k of allowed) {
+          if (!colSet.has(k)) continue;
+          sets.push(`${k} = ?`);
+          values.push(mergedObj[k] ?? null);
+        }
+        values.push(existing.id);
+        const sql = `UPDATE leads SET ${sets.join(', ')} WHERE id = ?`;
+        db.prepare(sql).run(...values);
+        merged++;
+      };
+      toCreate.forEach(insertLead);
+      toMerge.forEach(({ existing, incoming }) => updateLead(existing, incoming));
+
+      // Write audit artifact
+      const ts = new Date().toISOString().replace(/[:.]/g,'-');
+      const runId = `import_${ts}`;
+      const dir = path.resolve(ARTIFACT_ROOT, runId);
+      fs.mkdirSync(dir, { recursive: true });
+      const audit = {
+        input_filename: file.originalname,
+        headers_detected: headers,
+        dedupe_key: 'normalized_address|owner_name|email|phone',
+        rows_total, rows_valid, rows_invalid,
+        created, merged, skipped,
+        warnings: normalizedCollisions,
+        duration_ms: Date.now() - t0
+      };
+      fs.writeFileSync(path.join(dir, 'audit.json'), JSON.stringify(audit, null, 2));
+      const exp = Math.floor(Date.now() / 1000) + defaultTtl;
+      const relAudit = `${runId}/audit.json`;
+      const auditUrl = `/admin/artifact-download?path=${encodeURIComponent(relAudit)}&exp=${exp}&sig=${signUtil(relAudit, exp, process.env.ARTIFACT_SIGNING_SECRET || 'dev-secret')}`;
+      // metrics + audit log
+      try { recordImportResults({ created, merged, skipped, invalid: rows_invalid }); } catch {}
+      try { auditMut(req, file.buffer); } catch {}
+      return res.json({ ok: true, created, merged, skipped, artifact: { auditUrl } });
+    } catch (e) {
+      // Map custom errors we annotated above
+      console.error('[ImportCSV] Error during import:', e && (e.stack || e.message || e));
+      const status = typeof e?.status === 'number' ? e.status : undefined;
+      if (status === 415) return sendProblem(res, 'unsupported_media_type', 'Content must be CSV', undefined, 415);
+      if (status === 413) return sendProblem(res, 'payload_too_large', 'CSV exceeds 10MB', undefined, 413);
+      if (status === 400) return sendProblem(res, 'validation_error', 'Invalid upload', undefined, 400);
+      // Fallback
+      return sendProblem(res, 'import_error', String(e?.message || e), undefined, 500);
+    }
+  });
+
+  // Weekly export bundle (CSV + summary.json zipped) — returns signed bundle URL
+  const Archiver = (await import('archiver')).default;
+  app.post('/admin/export/weekly-bundle', async (req, res) => {
+    try {
+      // last 7 days by updated_at
+      const d = new Date(); const to = d.toISOString(); d.setDate(d.getDate()-7); const from = d.toISOString();
+      const rows = db.prepare("SELECT * FROM leads WHERE datetime(updated_at) >= datetime(?)").all(from);
+      const dateKey = new Date().toISOString().slice(0,10);
+      const runId = `weekly_export_${dateKey}`;
+      const dir = path.resolve(ARTIFACT_ROOT, runId);
+      fs.mkdirSync(dir, { recursive: true });
+      // write leads.csv
+      const headers = ['id','address','owner_name','phone','email','estimated_value','equity','motivation_score','temperature_tag','status','source_type','created_at','updated_at'];
+      const csv = [headers.join(',')].concat(rows.map(r => headers.map(h => (r[h] ?? '')).join(','))).join('\n');
+      fs.writeFileSync(path.join(dir,'leads.csv'), csv);
+      // write summary.json
+      const byStatus = {}; const byTemp = {};
+      rows.forEach(r => { byStatus[r.status||''] = (byStatus[r.status||'']||0)+1; byTemp[r.temperature_tag||''] = (byTemp[r.temperature_tag||'']||0)+1; });
+      fs.writeFileSync(path.join(dir,'summary.json'), JSON.stringify({ from, to, count: rows.length, byStatus, byTemperature: byTemp }, null, 2));
+      // zip directory to runId.zip
+      const zipPath = path.join(dir, `${runId}.zip`);
+      await new Promise((resolve, reject) => {
+        const output = fs.createWriteStream(zipPath);
+        const archive = Archiver('zip', { zlib: { level: 9 } });
+        output.on('close', resolve); archive.on('error', reject);
+        archive.pipe(output); archive.directory(dir, false); archive.finalize();
+      });
+      const exp = Math.floor(Date.now()/1000) + defaultTtl;
+      const relZip = `${runId}/${runId}.zip`;
+      const bundleUrl = `/admin/artifact-download?path=${encodeURIComponent(relZip)}&exp=${exp}&sig=${signUtil(relZip, exp, process.env.ARTIFACT_SIGNING_SECRET || 'dev-secret')}`;
+      try { auditMut(req); } catch {}
+      return res.json({ ok: true, bundleUrl });
+    } catch (e) {
+      return sendProblem(res, 'export_error', String(e?.message || e), undefined, 500);
+    }
+  });
+
+  // === Lead Grading v1 ===
+  
+  // === Dialer Outcomes & Follow-ups Helper Functions ===
+  
+  // Generate UUID for database IDs
+  function generateId() {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+      const r = Math.random() * 16 | 0;
+      const v = c == 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
+  }
+  
+  // Add timeline event
+  function addTimelineEvent(leadId, kind, payload = {}) {
+    try {
+      const id = generateId();
+      const payloadJson = JSON.stringify(payload);
+      
+      db.prepare(`
+        INSERT INTO timeline_events (id, lead_id, kind, payload_json, created_at)
+        VALUES (?, ?, ?, ?, ?)
+      `).run(id, leadId, kind, payloadJson, new Date().toISOString());
+      
+      // Increment metrics
+      if (timelineEventsCounter) {
+        timelineEventsCounter.inc({ kind });
+      }
+      
+      return id;
+    } catch (e) {
+      console.warn('[Timeline] Error adding event:', e.message);
+      return null;
+    }
+  }
+  
+  // Update follow-up gauges
+  function updateFollowupGauges() {
+    try {
+      const now = new Date().toISOString();
+      const startOfToday = new Date();
+      startOfToday.setHours(0, 0, 0, 0);
+      
+      // Count due follow-ups (open and due_at <= now)
+      const dueCount = db.prepare(`
+        SELECT COUNT(*) as count FROM follow_ups 
+        WHERE status = 'open' AND due_at <= ?
+      `).get(now).count;
+      
+      // Count overdue follow-ups (open and due_at < today)
+      const overdueCount = db.prepare(`
+        SELECT COUNT(*) as count FROM follow_ups 
+        WHERE status = 'open' AND due_at < ?
+      `).get(startOfToday.toISOString()).count;
+      
+      if (followupsDueGauge) {
+        followupsDueGauge.set(dueCount);
+      }
+      
+      if (followupsOverdueGauge) {
+        followupsOverdueGauge.set(overdueCount);
+      }
+    } catch (e) {
+      console.warn('[Metrics] Error updating follow-up gauges:', e.message);
+    }
+  }
+  
+  // Lead grading computation function
+  function computeLeadGrade(lead) {
+    let score = 0;
+    const reasons = [];
+    
+    // Equity percentage (0-40 points)
+    if (lead.equity !== null && lead.equity !== undefined && lead.estimated_value > 0) {
+      const equityPct = lead.equity * 100; // Convert to percentage
+      if (equityPct >= 50) {
+        score += 40;
+        reasons.push(`High equity (${equityPct.toFixed(1)}%)`);
+      } else if (equityPct >= 35) {
+        score += 30;
+        reasons.push(`Good equity (${equityPct.toFixed(1)}%)`);
+      } else if (equityPct >= 20) {
+        score += 20;
+        reasons.push(`Moderate equity (${equityPct.toFixed(1)}%)`);
+      } else if (equityPct > 0) {
+        score += 10;
+        reasons.push(`Low equity (${equityPct.toFixed(1)}%)`);
+      }
+    } else {
+      reasons.push('No equity data');
+    }
+    
+    // Motivation score (0-25 points)
+    if (lead.motivation_score >= 80) {
+      score += 25;
+      reasons.push(`Very high motivation (${lead.motivation_score})`);
+    } else if (lead.motivation_score >= 60) {
+      score += 20;
+      reasons.push(`High motivation (${lead.motivation_score})`);
+    } else if (lead.motivation_score >= 40) {
+      score += 15;
+      reasons.push(`Moderate motivation (${lead.motivation_score})`);
+    } else if (lead.motivation_score >= 20) {
+      score += 10;
+      reasons.push(`Low motivation (${lead.motivation_score})`);
+    } else {
+      reasons.push(`Very low motivation (${lead.motivation_score})`);
+    }
+    
+    // Temperature tag (0-15 points)
+    if (lead.temperature_tag === 'hot') {
+      score += 15;
+      reasons.push('Hot temperature');
+    } else if (lead.temperature_tag === 'warm') {
+      score += 10;
+      reasons.push('Warm temperature');
+    } else if (lead.temperature_tag === 'cold') {
+      score += 5;
+      reasons.push('Cold temperature');
+    } else {
+      reasons.push(`${lead.temperature_tag} temperature`);
+    }
+    
+    // Skip trace presence (0-10 points)
+    if (lead.skip_traced_at) {
+      if (lead.phones_count > 0) {
+        score += 10;
+        reasons.push(`Skip traced with ${lead.phones_count} phone(s)`);
+      } else {
+        score += 5;
+        reasons.push('Skip traced but no phones found');
+      }
+    } else {
+      reasons.push('Not skip traced');
+    }
+    
+    // Property characteristics bonus (0-10 points)
+    let propBonus = 0;
+    if (lead.is_probate) {
+      propBonus += 5;
+      reasons.push('Probate property');
+    }
+    if (lead.is_vacant) {
+      propBonus += 5;
+      reasons.push('Vacant property');
+    }
+    score += Math.min(propBonus, 10);
+    
+    // Determine grade label
+    let label;
+    if (score >= 85) {
+      label = 'A+';
+    } else if (score >= 75) {
+      label = 'A';
+    } else if (score >= 65) {
+      label = 'B+';
+    } else if (score >= 55) {
+      label = 'B';
+    } else if (score >= 45) {
+      label = 'C+';
+    } else if (score >= 35) {
+      label = 'C';
+    } else if (score >= 25) {
+      label = 'D';
+    } else {
+      label = 'F';
+    }
+    
+    return {
+      score: Math.min(score, 100), // Cap at 100
+      label,
+      reason: reasons.join('; ')
+    };
+  }
+
+  // API endpoint to recompute grades for all leads
+  app.post('/admin/grade/recompute', async (req, res) => {
+    try {
+      const { force = false } = req.body;
+      
+      // Get leads to grade (either all if force=true, or only ungraded)
+      const whereClause = force ? '' : 'WHERE grade_score IS NULL OR grade_computed_at IS NULL';
+      const leads = db.prepare(`SELECT * FROM leads ${whereClause}`).all();
+      
+      let processed = 0;
+      let updated = 0;
+      
+      for (const lead of leads) {
+        processed++;
+        const grade = computeLeadGrade(lead);
+        
+        // Update the lead with computed grade
+        const result = db.prepare(`
+          UPDATE leads 
+          SET grade_score = ?, grade_label = ?, grade_reason = ?, grade_computed_at = ?
+          WHERE id = ?
+        `).run(grade.score, grade.label, grade.reason, new Date().toISOString(), lead.id);
+        
+        if (result.changes > 0) {
+          updated++;
+        }
+      }
+      
+      // Record metrics
+      if (gradeComputationsCounter) {
+        gradeComputationsCounter.inc({ type: force ? 'recompute_all' : 'compute_missing' }, processed);
+      }
+      
+      return res.json({
+        ok: true,
+        processed,
+        updated,
+        message: `Processed ${processed} leads, updated ${updated} grades`
+      });
+      
+    } catch (e) {
+      console.error('[Grading] Error during grade computation:', e);
+      return sendProblem(res, 'grade_computation_error', String(e?.message || e), undefined, 500);
+    }
+  });
+
+  // API endpoint to get individual lead grade
+  app.get('/api/leads/:id/grade', (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      const lead = db.prepare(`
+        SELECT grade_score, grade_label, grade_reason, grade_computed_at
+        FROM leads WHERE id = ?
+      `).get(id);
+      
+      if (!lead) {
+        return res.status(404).json({ error: 'Lead not found' });
+      }
+      
+      return res.json({
+        grade_score: lead.grade_score,
+        grade_label: lead.grade_label,
+        grade_reason: lead.grade_reason,
+        grade_computed_at: lead.grade_computed_at
+      });
+      
+    } catch (e) {
+      console.error('[Grading] Error fetching grade:', e);
+      return sendProblem(res, 'grade_fetch_error', String(e?.message || e), undefined, 500);
+    }
+  });
+
+  // UI endpoint for grading management
+  app.get('/ops/grading', (req, res) => {
+    try {
+      // Get grade distribution stats
+      const gradeStats = db.prepare(`
+        SELECT 
+          grade_label,
+          COUNT(*) as count,
+          AVG(grade_score) as avg_score
+        FROM leads 
+        WHERE grade_label IS NOT NULL
+        GROUP BY grade_label
+        ORDER BY grade_label
+      `).all();
+      
+      const totalGraded = db.prepare('SELECT COUNT(*) as count FROM leads WHERE grade_score IS NOT NULL').get().count;
+      const totalLeads = db.prepare('SELECT COUNT(*) as count FROM leads').get().count;
+      const ungradedCount = totalLeads - totalGraded;
+      
+      // Recent high-grade leads for preview
+      const highGradeLeads = db.prepare(`
+        SELECT id, address, owner_name, grade_score, grade_label, grade_reason
+        FROM leads 
+        WHERE grade_score >= 70
+        ORDER BY grade_score DESC, grade_computed_at DESC
+        LIMIT 10
+      `).all();
+      
+      const esc = (s) => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      
+      const gradeStatsRows = gradeStats.map(g => 
+        `<tr><td>${esc(g.grade_label)}</td><td>${g.count}</td><td>${g.avg_score ? g.avg_score.toFixed(1) : 'N/A'}</td></tr>`
+      ).join('');
+      
+      const highGradeRows = highGradeLeads.map(r =>
+        `<tr><td><a href="/ops/leads/${encodeURIComponent(r.id)}">${esc(r.id.slice(0,8))}...</a></td><td>${esc(r.address)}</td><td>${esc(r.owner_name)}</td><td><span class="grade-${r.grade_label?.toLowerCase()?.replace('+','plus')}">${esc(r.grade_label)}</span></td><td>${r.grade_score}</td><td title="${esc(r.grade_reason)}">${esc(r.grade_reason?.substring(0,50))}...</td></tr>`
+      ).join('');
+      
+      const html = `<!doctype html><html><head><meta charset="utf-8"><title>Lead Grading</title>
+      <style>
+        body{font-family:system-ui,Segoe UI,Arial;padding:16px}
+        table{border-collapse:collapse;width:100%;margin:16px 0}
+        th,td{border:1px solid #ddd;padding:8px;text-align:left}
+        th{background:#f8f8f8}
+        .toolbar{margin-bottom:16px;padding:12px;background:#f0f0f0;border-radius:4px}
+        .stats{display:flex;gap:20px;margin:16px 0}
+        .stat{padding:12px;background:white;border:1px solid #ddd;border-radius:4px;text-align:center}
+        .stat-value{font-size:24px;font-weight:bold;color:#333}
+        .stat-label{font-size:12px;color:#666;margin-top:4px}
+        .grade-a-plus,.grade-aplus{color:#008000;font-weight:bold}
+        .grade-a{color:#228B22;font-weight:bold}
+        .grade-b-plus,.grade-bplus{color:#32CD32}
+        .grade-b{color:#9ACD32}
+        .grade-c-plus,.grade-cplus{color:#FFD700}
+        .grade-c{color:#FFA500}
+        .grade-d{color:#FF6347}
+        .grade-f{color:#DC143C;font-weight:bold}
+        button{padding:8px 16px;margin:4px;border:1px solid #ccc;background:white;cursor:pointer}
+        button:hover{background:#f0f0f0}
+        .btn-primary{background:#007bff;color:white;border-color:#007bff}
+        .btn-primary:hover{background:#0056b3}
+      </style></head><body>
+      <h1>Lead Grading Dashboard</h1>
+      <div class="stats">
+        <div class="stat">
+          <div class="stat-value">${totalLeads}</div>
+          <div class="stat-label">Total Leads</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value">${totalGraded}</div>
+          <div class="stat-label">Graded</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value">${ungradedCount}</div>
+          <div class="stat-label">Ungraded</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value">${totalGraded > 0 ? Math.round((totalGraded/totalLeads)*100) : 0}%</div>
+          <div class="stat-label">Coverage</div>
+        </div>
+      </div>
+      
+      <div class="toolbar">
+        <button class="btn-primary" onclick="recomputeGrades(false)">Grade Ungraded Leads</button>
+        <button onclick="recomputeGrades(true)">Regrade All Leads</button>
+        <span style="margin-left:16px">
+          <a href="/ops/leads">View All Leads</a> | 
+          <a href="/ops/campaigns">Campaign Search</a>
+        </span>
+      </div>
+
+      <h3>Grade Distribution</h3>
+      <table>
+        <thead><tr><th>Grade</th><th>Count</th><th>Avg Score</th></tr></thead>
+        <tbody>${gradeStatsRows || '<tr><td colspan="3">No graded leads</td></tr>'}</tbody>
+      </table>
+
+      <h3>Top Graded Leads</h3>
+      <table>
+        <thead><tr><th>ID</th><th>Address</th><th>Owner</th><th>Grade</th><th>Score</th><th>Reasoning</th></tr></thead>
+        <tbody>${highGradeRows || '<tr><td colspan="6">No high-grade leads</td></tr>'}</tbody>
+      </table>
+
+      <script>
+        async function recomputeGrades(force) {
+          const btn = event.target;
+          btn.disabled = true;
+          btn.textContent = 'Processing...';
+          
+          try {
+            const response = await fetch('/admin/grade/recompute', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ force })
+            });
+            
+            const result = await response.json();
+            if (result.ok) {
+              alert(\`Success: \${result.message}\`);
+              location.reload();
+            } else {
+              alert('Error: ' + result.message);
+            }
+          } catch (e) {
+            alert('Error: ' + e.message);
+          } finally {
+            btn.disabled = false;
+            btn.textContent = force ? 'Regrade All Leads' : 'Grade Ungraded Leads';
+          }
+        }
+      </script>
+      </body></html>`;
+      
+      res.set('Content-Type', 'text/html; charset=utf-8').send(html);
+    } catch (e) {
+      console.error('[Grading] UI error:', e);
+      return sendProblem(res, 'grading_ui_error', String(e?.message || e), undefined, 500);
+    }
+  });
+
+  // === Dialer Outcomes & Follow-ups ===
+  
+  // POST /dial/:dialId/disposition - Record disposition for a dial attempt
+  app.post('/dial/:dialId/disposition', async (req, res) => {
+    try {
+      const { dialId } = req.params;
+      const { type, notes = '' } = req.body;
+      
+      // Validate disposition type
+      const validTypes = ['no_answer', 'voicemail', 'bad_number', 'interested', 'not_interested', 'follow_up'];
+      if (!validTypes.includes(type)) {
+        return sendProblem(res, 'invalid_disposition_type', `Type must be one of: ${validTypes.join(', ')}`, 'type', 400);
+      }
+      
+      // For this implementation, we'll need to find the lead_id from existing dial records or create a synthetic one
+      // Since we don't have a dial attempts table, we'll use the dialId as a reference
+      const leadId = dialId; // Simplified: assuming dialId maps to leadId
+      
+      // Get lead's current grade for metrics
+      const lead = db.prepare('SELECT grade_label FROM leads WHERE id = ?').get(leadId);
+      const gradeLabel = lead?.grade_label || 'ungraded';
+      
+      // Generate disposition ID and create record
+      const dispositionId = generateId();
+      
+      db.prepare(`
+        INSERT INTO dial_outcomes (id, dial_id, lead_id, type, notes, grade_label, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+      `).run(dispositionId, dialId, leadId, type, notes, gradeLabel, new Date().toISOString());
+      
+      // Add timeline event
+      addTimelineEvent(leadId, 'disposition', { type, notes, dialId });
+      
+      // Create artifact file
+      try {
+        const artifactDir = path.resolve(ARTIFACT_ROOT, 'dialer', 'dispositions');
+        fs.mkdirSync(artifactDir, { recursive: true });
+        const artifactPath = path.join(artifactDir, `${dialId}.json`);
+        
+        const dispositionData = {
+          id: dispositionId,
+          dialId,
+          leadId,
+          type,
+          notes,
+          gradeLabel,
+          createdAt: new Date().toISOString()
+        };
+        
+        // Append to existing file or create new one
+        let dispositions = [];
+        if (fs.existsSync(artifactPath)) {
+          try {
+            dispositions = JSON.parse(fs.readFileSync(artifactPath, 'utf8'));
+          } catch (e) {
+            dispositions = [];
+          }
+        }
+        dispositions.push(dispositionData);
+        fs.writeFileSync(artifactPath, JSON.stringify(dispositions, null, 2));
+      } catch (e) {
+        console.warn('[Disposition] Error writing artifact:', e.message);
+      }
+      
+      // Update metrics
+      if (dialDispositionTotalCounter) {
+        dialDispositionTotalCounter.inc({ type, grade_label: gradeLabel });
+      }
+      
+      return res.json({ ok: true, id: dispositionId });
+      
+    } catch (e) {
+      console.error('[Disposition] Error:', e);
+      return sendProblem(res, 'disposition_error', String(e?.message || e), undefined, 500);
+    }
+  });
+  
+  // POST /leads/:id/followups - Create follow-up (admin-gated)
+  app.post('/leads/:id/followups', async (req, res) => {
+    try {
+      const { id: leadId } = req.params;
+      const { dueAt, channel, priority = 'med', notes = '' } = req.body;
+      
+      // Validate inputs
+      if (!dueAt) {
+        return sendProblem(res, 'missing_due_at', 'dueAt is required', 'dueAt', 400);
+      }
+      
+      const validChannels = ['call', 'sms', 'email', 'task'];
+      if (!validChannels.includes(channel)) {
+        return sendProblem(res, 'invalid_channel', `Channel must be one of: ${validChannels.join(', ')}`, 'channel', 400);
+      }
+      
+      const validPriorities = ['low', 'med', 'high'];
+      if (!validPriorities.includes(priority)) {
+        return sendProblem(res, 'invalid_priority', `Priority must be one of: ${validPriorities.join(', ')}`, 'priority', 400);
+      }
+      
+      // Check if lead exists
+      const lead = db.prepare('SELECT id FROM leads WHERE id = ?').get(leadId);
+      if (!lead) {
+        return sendProblem(res, 'lead_not_found', 'Lead not found', 'id', 404);
+      }
+      
+      // Validate dueAt is a valid ISO date
+      let dueAtDate;
+      try {
+        dueAtDate = new Date(dueAt);
+        if (isNaN(dueAtDate.getTime())) {
+          throw new Error('Invalid date');
+        }
+      } catch (e) {
+        return sendProblem(res, 'invalid_due_at', 'dueAt must be a valid ISO date', 'dueAt', 400);
+      }
+      
+      // Create follow-up
+      const followupId = generateId();
+      const now = new Date().toISOString();
+      
+      db.prepare(`
+        INSERT INTO follow_ups (id, lead_id, due_at, status, channel, priority, notes, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `).run(followupId, leadId, dueAt, 'open', channel, priority, notes, now, now);
+      
+      // Add timeline event
+      addTimelineEvent(leadId, 'followup_created', { channel, priority, dueAt, notes });
+      
+      // Update metrics
+      if (followupsCreatedCounter) {
+        followupsCreatedCounter.inc({ channel, priority });
+      }
+      
+      // Update gauges
+      updateFollowupGauges();
+      
+      return res.json({ ok: true, id: followupId });
+      
+    } catch (e) {
+      console.error('[Follow-up] Creation error:', e);
+      return sendProblem(res, 'followup_creation_error', String(e?.message || e), undefined, 500);
+    }
+  });
+  
+  // PATCH /followups/:id - Update follow-up status (admin-gated)
+  app.patch('/followups/:id', async (req, res) => {
+    try {
+      const { id: followupId } = req.params;
+      const { status, notes = '', snoozeUntil } = req.body;
+      
+      // Validate status
+      const validStatuses = ['done', 'snoozed', 'canceled'];
+      if (!validStatuses.includes(status)) {
+        return sendProblem(res, 'invalid_status', `Status must be one of: ${validStatuses.join(', ')}`, 'status', 400);
+      }
+      
+      // Get existing follow-up
+      const existing = db.prepare('SELECT * FROM follow_ups WHERE id = ?').get(followupId);
+      if (!existing) {
+        return sendProblem(res, 'followup_not_found', 'Follow-up not found', 'id', 404);
+      }
+      
+      const now = new Date().toISOString();
+      let updateFields = ['status', 'updated_at'];
+      let updateValues = [status, now];
+      
+      // Handle snooze logic
+      if (status === 'snoozed') {
+        if (snoozeUntil) {
+          try {
+            const snoozeDate = new Date(snoozeUntil);
+            if (isNaN(snoozeDate.getTime())) {
+              throw new Error('Invalid date');
+            }
+            updateFields.push('due_at');
+            updateValues.push(snoozeUntil);
+          } catch (e) {
+            return sendProblem(res, 'invalid_snooze_until', 'snoozeUntil must be a valid ISO date', 'snoozeUntil', 400);
+          }
+        } else {
+          // Default snooze: 24 hours from now
+          const snoozeDate = new Date(Date.now() + 24 * 60 * 60 * 1000);
+          updateFields.push('due_at');
+          updateValues.push(snoozeDate.toISOString());
+        }
+        // Reset status to open when snoozing
+        updateValues[0] = 'open';
+      }
+      
+      if (notes) {
+        updateFields.push('notes');
+        updateValues.push(notes);
+      }
+      
+      // Build dynamic UPDATE query
+      const setClause = updateFields.map(field => `${field} = ?`).join(', ');
+      updateValues.push(followupId); // WHERE clause parameter
+      
+      db.prepare(`UPDATE follow_ups SET ${setClause} WHERE id = ?`).run(...updateValues);
+      
+      // Add timeline event for completion
+      if (status === 'done') {
+        addTimelineEvent(existing.lead_id, 'followup_done', { 
+          followupId, 
+          channel: existing.channel, 
+          notes 
+        });
+      }
+      
+      // Update metrics
+      if (followupsCompletedCounter) {
+        followupsCompletedCounter.inc({ status });
+      }
+      
+      // Update gauges
+      updateFollowupGauges();
+      
+      return res.json({ ok: true });
+      
+    } catch (e) {
+      console.error('[Follow-up] Update error:', e);
+      return sendProblem(res, 'followup_update_error', String(e?.message || e), undefined, 500);
+    }
+  });
+  
+  // GET /leads/:id/timeline - Get timeline events for a lead
+  app.get('/leads/:id/timeline', async (req, res) => {
+    try {
+      const { id: leadId } = req.params;
+      
+      // Check if lead exists
+      const lead = db.prepare('SELECT id FROM leads WHERE id = ?').get(leadId);
+      if (!lead) {
+        return sendProblem(res, 'lead_not_found', 'Lead not found', 'id', 404);
+      }
+      
+      // Get timeline events from database
+      const timelineEvents = db.prepare(`
+        SELECT kind, payload_json, created_at 
+        FROM timeline_events 
+        WHERE lead_id = ?
+        ORDER BY created_at DESC
+        LIMIT 50
+      `).all(leadId);
+      
+      // Transform events for display
+      const events = timelineEvents.map(event => {
+        let payload = {};
+        try {
+          payload = JSON.parse(event.payload_json || '{}');
+        } catch (e) {
+          payload = {};
+        }
+        
+        let summary = '';
+        switch (event.kind) {
+          case 'created':
+            summary = 'Lead created';
+            break;
+          case 'skiptrace':
+            summary = 'Skip trace completed';
+            break;
+          case 'dial':
+            summary = 'Dial attempt made';
+            break;
+          case 'disposition':
+            summary = `Disposition: ${payload.type || 'unknown'}`;
+            break;
+          case 'followup_created':
+            summary = `Follow-up created: ${payload.channel} (${payload.priority} priority)`;
+            break;
+          case 'followup_done':
+            summary = `Follow-up completed: ${payload.channel}`;
+            break;
+          case 'note':
+            summary = 'Note added';
+            break;
+          default:
+            summary = `${event.kind} event`;
+        }
+        
+        return {
+          kind: event.kind,
+          at: event.created_at,
+          summary,
+          data: payload
+        };
+      });
+      
+      return res.json({ events });
+      
+    } catch (e) {
+      console.error('[Timeline] Error:', e);
+      return sendProblem(res, 'timeline_error', String(e?.message || e), undefined, 500);
+    }
+  });
+  
+  // GET /followups - List follow-ups with filters
+  app.get('/followups', async (req, res) => {
+    try {
+      const { 
+        status = 'open',
+        assignee,
+        limit = 50,
+        page = 1
+      } = req.query;
+      
+      const pageNum = Math.max(1, parseInt(page) || 1);
+      const limitNum = Math.min(100, Math.max(1, parseInt(limit) || 50));
+      const offset = (pageNum - 1) * limitNum;
+      
+      let whereConditions = [];
+      let params = [];
+      
+      if (status === 'due') {
+        whereConditions.push("status = 'open' AND due_at <= ?");
+        params.push(new Date().toISOString());
+      } else if (status === 'overdue') {
+        const startOfToday = new Date();
+        startOfToday.setHours(0, 0, 0, 0);
+        whereConditions.push("status = 'open' AND due_at < ?");
+        params.push(startOfToday.toISOString());
+      } else {
+        whereConditions.push("status = ?");
+        params.push(status);
+      }
+      
+      // Note: assignee filtering would require user/assignment system - skip for now
+      
+      const whereClause = whereConditions.length ? `WHERE ${whereConditions.join(' AND ')}` : '';
+      
+      // Get total count
+      const countSql = `SELECT COUNT(*) as count FROM follow_ups ${whereClause}`;
+      const total = db.prepare(countSql).get(...params).count;
+      
+      // Get records with lead details
+      const sql = `
+        SELECT f.*, l.address, l.owner_name 
+        FROM follow_ups f
+        JOIN leads l ON f.lead_id = l.id
+        ${whereClause}
+        ORDER BY f.due_at ASC, f.created_at DESC
+        LIMIT ? OFFSET ?
+      `;
+      
+      const followups = db.prepare(sql).all(...params, limitNum, offset);
+      
+      const pages = Math.max(1, Math.ceil(total / limitNum));
+      
+      return res.json({
+        followups,
+        pagination: {
+          page: pageNum,
+          limit: limitNum,
+          total,
+          pages
+        }
+      });
+      
+    } catch (e) {
+      console.error('[Follow-ups] List error:', e);
+      return sendProblem(res, 'followups_list_error', String(e?.message || e), undefined, 500);
+    }
   });
   
   // Start the server
@@ -2695,12 +5087,23 @@ const startServer = async () => {
     console.log(`  - Analytics: http://localhost:${PORT}/api/zip-search-new/revenue-analytics`);
     console.log(`  - ATTOM Property Lookup: http://localhost:${PORT}/api/attom/property/address?address=123+Main+St&city=Beverly+Hills&state=CA&zip=90210`);
     
-    // Handle process termination
-    process.on('SIGINT', () => {
+    // Initialize and periodically update follow-up gauges
+    updateFollowupGauges();
+    const metricsInterval = setInterval(updateFollowupGauges, 5 * 60 * 1000); // Update every 5 minutes
+    console.log(`📊 Follow-up metrics gauges initialized (5 minute refresh interval)`);
+    
+    // Handle process termination gracefully
+    const gracefulShutdown = (signal) => {
+      console.log(`${signal} received: cleaning up metrics scheduler...`);
+      clearInterval(metricsInterval);
       console.log('Closing database connection...');
       db.close();
-      process.exit();
-    });
+      console.log('Graceful shutdown complete');
+      process.exit(0);
+    };
+    
+    process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+    process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
   });
   // Global error handler (final)
   app.use((err, _req, res, _next) => {

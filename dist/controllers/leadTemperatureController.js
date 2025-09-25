@@ -1,17 +1,13 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.handleLeadFeedback = handleLeadFeedback;
-exports.handleLeadScoring = handleLeadScoring;
-const client_1 = require("@prisma/client");
-const temperatureUtils_1 = require("../utils/temperatureUtils");
+import { PrismaClient } from '@prisma/client';
+import { mapScoreToTemperature, calculateHeuristicScore } from '../utils/temperatureUtils';
 // Initialize Prisma client
-const prisma = new client_1.PrismaClient();
+const prisma = new PrismaClient();
 // Need to generate the client again to include our new fields
 // For now, let's cast to any where needed
 /**
  * Controller for lead feedback
  */
-async function handleLeadFeedback(req, res) {
+export async function handleLeadFeedback(req, res) {
     const { id } = req.params;
     const { label } = req.body;
     if (!id) {
@@ -51,7 +47,7 @@ async function handleLeadFeedback(req, res) {
 /**
  * Controller for scoring a lead
  */
-async function handleLeadScoring(req, res) {
+export async function handleLeadScoring(req, res) {
     const { id } = req.params;
     if (!id) {
         return res.status(400).json({ error: 'Lead ID is required' });
@@ -86,15 +82,15 @@ async function handleLeadScoring(req, res) {
             catch (error) {
                 console.error('Error calculating AI score with OpenAI:', error);
                 // Fallback to heuristic if OpenAI fails
-                aiScore = (0, temperatureUtils_1.calculateHeuristicScore)(scoringData);
+                aiScore = calculateHeuristicScore(scoringData);
             }
         }
         else {
             // Use heuristic fallback
-            aiScore = (0, temperatureUtils_1.calculateHeuristicScore)(scoringData);
+            aiScore = calculateHeuristicScore(scoringData);
         }
         // Map score to temperature
-        const temperature = (0, temperatureUtils_1.mapScoreToTemperature)(aiScore);
+        const temperature = mapScoreToTemperature(aiScore);
         // Update lead with score and temperature
         const updatedLead = await prisma.lead.update({
             where: { id },
@@ -120,6 +116,6 @@ async function handleLeadScoring(req, res) {
 async function calculateAiScore(lead) {
     // This would be replaced with actual OpenAI API call
     // For now, return the heuristic score
-    return (0, temperatureUtils_1.calculateHeuristicScore)(lead);
+    return calculateHeuristicScore(lead);
 }
 //# sourceMappingURL=leadTemperatureController.js.map

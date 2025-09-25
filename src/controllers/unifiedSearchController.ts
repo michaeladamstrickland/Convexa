@@ -38,7 +38,7 @@ export class UnifiedSearchController {
       // Check if property already exists in our database
       let lead = await prisma.lead.findFirst({
         where: {
-          normalizedAddress
+          address: normalizedAddress
         }
       });
       
@@ -58,24 +58,9 @@ export class UnifiedSearchController {
           lead = await prisma.lead.create({
             data: {
               source: 'attom:property-detail',
-              propertyAddress: propertyData.propertyAddress,
-              city: propertyData.city,
-              state: propertyData.state,
-              zipCode: propertyData.zipCode,
-              normalizedAddress,
-              propertyType: propertyData.propertyType || undefined,
-              bedrooms: propertyData.bedrooms || undefined,
-              bathrooms: propertyData.bathrooms || undefined,
-              squareFootage: propertyData.squareFootage || undefined,
-              lotSize: propertyData.lotSize || undefined,
-              yearBuilt: propertyData.yearBuilt || undefined,
-              marketValue: propertyData.marketValue || undefined,
-              taxAssessedValue: propertyData.taxAssessedValue || undefined,
-              lastSalePrice: propertyData.lastSalePrice || undefined,
-              lastSaleDate: propertyData.lastSaleDate || undefined,
-              isAbsenteeOwner: propertyData.isAbsenteeOwner || false,
-              estimatedValue: propertyData.estimatedValue || undefined,
-              equity: propertyData.equity || undefined
+              address: propertyData.propertyAddress,
+              source_type: 'attom',
+              status: 'NEW'
             }
           });
         }
@@ -86,7 +71,7 @@ export class UnifiedSearchController {
       // Skip trace the property if requested and we have a lead
       if (skipTrace === true && lead) {
         // Check if we already have skip trace data
-        const needsSkipTrace = !lead.ownerPhone;
+        const needsSkipTrace = !lead.phone;
         
         if (needsSkipTrace) {
           const skipTraceResult = await batchSkipTraceService.skipTraceByAddress({
@@ -104,16 +89,15 @@ export class UnifiedSearchController {
             await prisma.lead.update({
               where: { id: lead.id },
               data: {
-                ownerName: skipTraceResult.ownerName,
-                ownerPhone: skipTraceResult.ownerPhone,
-                ownerEmail: skipTraceResult.ownerEmail,
-                ownerAddress: skipTraceResult.ownerAddress,
-                phonesJson: skipTraceResult.phonesJson,
-                emailsJson: skipTraceResult.emailsJson,
-                dncFlag: skipTraceResult.dncFlag,
-                skipTraceProvider: 'batchdata',
-                skipTraceCostCents: skipTraceResult.cost,
-                skipTracedAt: new Date()
+                owner_name: skipTraceResult.ownerName,
+                phone: skipTraceResult.ownerPhone,
+                email: skipTraceResult.ownerEmail,
+                phones: skipTraceResult.phonesJson || "[]",
+                emails: skipTraceResult.emailsJson || "[]",
+                dnc_flag: skipTraceResult.dncFlag ? 1 : 0,
+                skip_trace_provider: 'batchdata',
+                skip_trace_cost_cents: skipTraceResult.cost,
+                skip_traced_at: new Date()
               }
             });
             
@@ -176,7 +160,7 @@ export class UnifiedSearchController {
         // Check if property already exists in our database
         let existingLead = await prisma.lead.findFirst({
           where: {
-            normalizedAddress
+            address: normalizedAddress
           }
         });
         
@@ -185,23 +169,9 @@ export class UnifiedSearchController {
           existingLead = await prisma.lead.create({
             data: {
               source: 'attom:zip-search',
-              propertyAddress: property.propertyAddress,
-              city: property.city,
-              state: property.state,
-              zipCode: property.zipCode,
-              normalizedAddress,
-              propertyType: property.propertyType || undefined,
-              bedrooms: property.bedrooms || undefined,
-              bathrooms: property.bathrooms || undefined,
-              squareFootage: property.squareFootage || undefined,
-              lotSize: property.lotSize || undefined,
-              yearBuilt: property.yearBuilt || undefined,
-              marketValue: property.marketValue || undefined,
-              taxAssessedValue: property.taxAssessedValue || undefined,
-              lastSalePrice: property.lastSalePrice || undefined,
-              lastSaleDate: property.lastSaleDate || undefined,
-              isAbsenteeOwner: property.isAbsenteeOwner || false,
-              estimatedValue: property.estimatedValue || undefined,
+              address: normalizedAddress,
+              source_type: 'api',
+              estimated_value: property.estimatedValue || undefined,
               equity: property.equity || undefined
             }
           });
@@ -213,14 +183,14 @@ export class UnifiedSearchController {
       // Skip trace properties if requested
       if (skipTrace === true && leads.length > 0) {
         // Skip trace up to 10 properties to manage costs
-        const leadsToSkipTrace = leads.slice(0, 10).filter(lead => !lead.ownerPhone);
+        const leadsToSkipTrace = leads.slice(0, 10).filter(lead => !lead.phone);
         
         if (leadsToSkipTrace.length > 0) {
           const skipTraceRequests = leadsToSkipTrace.map(lead => ({
-            address: lead.propertyAddress,
-            city: lead.city,
-            state: lead.state,
-            zipCode: lead.zipCode
+            address: lead.address,
+            city: '', // City info not stored separately in our schema
+            state: '',
+            zipCode: ''
           }));
           
           const skipTraceResults = await batchSkipTraceService.batchSkipTrace(skipTraceRequests);
@@ -234,16 +204,15 @@ export class UnifiedSearchController {
               await prisma.lead.update({
                 where: { id: lead.id },
                 data: {
-                  ownerName: result.ownerName,
-                  ownerPhone: result.ownerPhone,
-                  ownerEmail: result.ownerEmail,
-                  ownerAddress: result.ownerAddress,
-                  phonesJson: result.phonesJson,
-                  emailsJson: result.emailsJson,
-                  dncFlag: result.dncFlag,
-                  skipTraceProvider: 'batchdata',
-                  skipTraceCostCents: result.cost,
-                  skipTracedAt: new Date()
+                  owner_name: result.ownerName,
+                  phone: result.ownerPhone,
+                  email: result.ownerEmail,
+                  phones: result.phonesJson || '[]',
+                  emails: result.emailsJson || '[]',
+                  dnc_flag: result.dncFlag ? 1 : 0,
+                  skip_trace_provider: 'batchdata',
+                  skip_trace_cost_cents: result.cost || 0,
+                  skip_traced_at: new Date()
                 }
               });
             }
@@ -305,7 +274,7 @@ export class UnifiedSearchController {
       }
       
       // Check if we already have skip trace data
-      const needsSkipTrace = !lead.ownerPhone;
+      const needsSkipTrace = !lead.phone;
       
       if (!needsSkipTrace) {
         return res.json({
@@ -317,10 +286,10 @@ export class UnifiedSearchController {
       
       // Skip trace the lead
       const skipTraceResult = await batchSkipTraceService.skipTraceByAddress({
-        address: lead.propertyAddress,
-        city: lead.city,
-        state: lead.state,
-        zipCode: lead.zipCode
+        address: lead.address,
+        city: '', // City info not stored separately
+        state: '',
+        zipCode: ''
       });
       
       if (!skipTraceResult.success) {
@@ -335,16 +304,15 @@ export class UnifiedSearchController {
       const updatedLead = await prisma.lead.update({
         where: { id: lead.id },
         data: {
-          ownerName: skipTraceResult.ownerName,
-          ownerPhone: skipTraceResult.ownerPhone,
-          ownerEmail: skipTraceResult.ownerEmail,
-          ownerAddress: skipTraceResult.ownerAddress,
-          phonesJson: skipTraceResult.phonesJson,
-          emailsJson: skipTraceResult.emailsJson,
-          dncFlag: skipTraceResult.dncFlag,
-          skipTraceProvider: 'batchdata',
-          skipTraceCostCents: skipTraceResult.cost,
-          skipTracedAt: new Date()
+          owner_name: skipTraceResult.ownerName,
+          phone: skipTraceResult.ownerPhone,
+          email: skipTraceResult.ownerEmail,
+          phones: skipTraceResult.phonesJson || '[]',
+          emails: skipTraceResult.emailsJson || '[]',
+          dnc_flag: skipTraceResult.dncFlag ? 1 : 0,
+          skip_trace_provider: 'batchdata',
+          skip_trace_cost_cents: skipTraceResult.cost || 0,
+          skip_traced_at: new Date()
         }
       });
       

@@ -1,17 +1,11 @@
-"use strict";
 /**
  * ROI Calculator Service
  * Handles various investment scenario calculations
  */
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.calculateMonthlyMortgagePayment = calculateMonthlyMortgagePayment;
-exports.calculateFinancingCosts = calculateFinancingCosts;
-exports.createROIScenarios = createROIScenarios;
-exports.estimateARV = estimateARV;
 /**
  * Calculate monthly mortgage payment
  */
-function calculateMonthlyMortgagePayment(loanAmount, interestRate, termYears) {
+export function calculateMonthlyMortgagePayment(loanAmount, interestRate, termYears) {
     const monthlyRate = interestRate / 100 / 12;
     const payments = termYears * 12;
     return loanAmount * (monthlyRate * Math.pow(1 + monthlyRate, payments)) / (Math.pow(1 + monthlyRate, payments) - 1);
@@ -19,7 +13,7 @@ function calculateMonthlyMortgagePayment(loanAmount, interestRate, termYears) {
 /**
  * Calculate financing costs for a property
  */
-function calculateFinancingCosts(purchasePrice, financingDetails) {
+export function calculateFinancingCosts(purchasePrice, financingDetails) {
     const { downPaymentPercent, interestRate, loanTermYears, loanPoints = 0, originationFeePercent = 1 } = financingDetails;
     // Calculate loan details
     const downPayment = purchasePrice * (downPaymentPercent / 100);
@@ -43,7 +37,7 @@ function calculateFinancingCosts(purchasePrice, financingDetails) {
 /**
  * Create different ROI scenarios for comparison
  */
-function createROIScenarios(baseData) {
+export function createROIScenarios(baseData) {
     const { purchasePrice, renovationCost, projectedARV, zipCode } = baseData;
     // Base ROI calculation for cash purchase
     const cashScenario = {
@@ -249,7 +243,7 @@ function calculateROIPercent(purchasePrice, renovationCost, projectedARV, holdin
 /**
  * Calculate after repair value based on property data and renovation scope
  */
-function estimateARV(propertyData, renovationData) {
+export function estimateARV(propertyData, renovationData) {
     // This is a simplified ARV calculator
     // In a real application, this would use comp data and more sophisticated algorithms
     const { purchasePrice, squareFootage } = propertyData;

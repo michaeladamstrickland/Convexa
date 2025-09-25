@@ -1,14 +1,8 @@
-"use strict";
 /**
  * Deal Analysis Engine
  * Core service for property investment analysis
  */
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.renovationCostModel = void 0;
-exports.calculateRenovationCosts = calculateRenovationCosts;
-exports.calculateROI = calculateROI;
-exports.findComparableProperties = findComparableProperties;
-const attomService_1 = require("./attomService");
+import { getAttomClient } from './attomService';
 // Default cost models
 const DEFAULT_RENOVATION_COST_MODEL = {
     baseSquareFootCost: 25, // $25 per sq ft for basic renovation
@@ -79,7 +73,7 @@ async function getRegionFromZip(zipCode) {
 /**
  * Calculate renovation costs based on property attributes and selected renovations
  */
-async function calculateRenovationCosts(propertyData, renovationSelections) {
+export async function calculateRenovationCosts(propertyData, renovationSelections) {
     try {
         const { zipCode, squareFootage, bedrooms, bathrooms } = propertyData;
         const { kitchen, bathroom, bedroom, livingSpace, extraFeatures, isDIY, contingencyPercent = 10 } = renovationSelections;
@@ -147,7 +141,7 @@ async function calculateRenovationCosts(propertyData, renovationSelections) {
 /**
  * Calculate ROI based on purchase price, renovation costs, and projected ARV
  */
-function calculateROI(investmentData) {
+export function calculateROI(investmentData) {
     try {
         const { purchasePrice, closingCostPercent = 3, renovationCost, holdingPeriodMonths = 6, monthlyHoldingCost = (purchasePrice * 0.005), // Default 0.5% of purchase price
         projectedARV, sellingCostPercent = 8, downPaymentPercent } = investmentData;
@@ -203,12 +197,12 @@ function calculateROI(investmentData) {
 /**
  * Find comparable properties and calculate ARV using the ATTOM API
  */
-async function findComparableProperties(propertyData, options = {}) {
+export async function findComparableProperties(propertyData, options = {}) {
     try {
         const { zipCode, bedrooms, bathrooms, squareFootage, latitude, longitude } = propertyData;
         const { maxDistance = 0.5, maxResults = 5, monthsBack = 6 } = options;
         // Get ATTOM client
-        const attomClient = await (0, attomService_1.getAttomClient)();
+        const attomClient = await getAttomClient();
         if (!attomClient) {
             throw new Error('ATTOM API client is not available');
         }
@@ -420,5 +414,5 @@ function generateAdjustmentExplanations(comparables) {
     return explanations;
 }
 // Export default cost model for external reference
-exports.renovationCostModel = DEFAULT_RENOVATION_COST_MODEL;
+export const renovationCostModel = DEFAULT_RENOVATION_COST_MODEL;
 //# sourceMappingURL=dealAnalysisService.js.map

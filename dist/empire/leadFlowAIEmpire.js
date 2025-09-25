@@ -1,28 +1,36 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.LeadFlowAIEmpire = void 0;
 // Intelligence Systems
-const obituaryDeathMiner_1 = require("../intelligence/obituaryDeathMiner");
-const probateCourtTracker_1 = require("../intelligence/probateCourtTracker");
-const codeViolationExtractor_1 = require("../intelligence/codeViolationExtractor");
-const vacancyDetectionSystem_1 = require("../intelligence/vacancyDetectionSystem");
-const taxDelinquencyIntelligence_1 = require("../intelligence/taxDelinquencyIntelligence");
-const motivationPredictor_1 = require("../intelligence/motivationPredictor");
+import { ObituaryDeathMiner } from '../intelligence/obituaryDeathMiner';
+import { ProbateCourtTracker } from '../intelligence/probateCourtTracker';
+import { CodeViolationExtractor } from '../intelligence/codeViolationExtractor';
+import { VacancyDetectionSystem } from '../intelligence/vacancyDetectionSystem';
+import { TaxDelinquencyIntelligence } from '../intelligence/taxDelinquencyIntelligence';
+import { MotivationPredictor } from '../intelligence/motivationPredictor';
 // Automation Systems
-const automatedLeadScoring_1 = require("../automation/automatedLeadScoring");
-const dealExecutionEngine_1 = require("../automation/dealExecutionEngine");
-const intelligentCampaignAutomation_1 = require("../automation/intelligentCampaignAutomation");
-const openai_1 = __importDefault(require("openai"));
-class LeadFlowAIEmpire {
+import { AutomatedLeadScoring } from '../automation/automatedLeadScoring';
+import { DealExecutionEngine } from '../automation/dealExecutionEngine';
+import { IntelligentCampaignAutomation } from '../automation/intelligentCampaignAutomation';
+import OpenAI from 'openai';
+export class LeadFlowAIEmpire {
+    openai;
+    config;
+    metrics;
+    // Intelligence Systems
+    deathMiner;
+    probateTracker;
+    violationExtractor;
+    vacancyDetector;
+    taxIntelligence;
+    motivationPredictor;
+    // Automation Systems
+    leadScoring;
+    dealEngine;
+    campaignAutomation;
+    // Data Storage
+    leadDatabase = new Map();
+    processedDeals = new Map();
+    activeIntelligenceOperations = new Set();
     constructor(config) {
-        // Data Storage
-        this.leadDatabase = new Map();
-        this.processedDeals = new Map();
-        this.activeIntelligenceOperations = new Set();
-        this.openai = new openai_1.default({
+        this.openai = new OpenAI({
             apiKey: process.env.OPENAI_API_KEY
         });
         // Initialize configuration
@@ -55,16 +63,16 @@ class LeadFlowAIEmpire {
             time_to_close_average: 0
         };
         // Initialize intelligence systems
-        this.deathMiner = new obituaryDeathMiner_1.ObituaryDeathMiner();
-        this.probateTracker = new probateCourtTracker_1.ProbateCourtTracker();
-        this.violationExtractor = new codeViolationExtractor_1.CodeViolationExtractor();
-        this.vacancyDetector = new vacancyDetectionSystem_1.VacancyDetectionSystem();
-        this.taxIntelligence = new taxDelinquencyIntelligence_1.TaxDelinquencyIntelligence();
-        this.motivationPredictor = new motivationPredictor_1.MotivationPredictor();
+        this.deathMiner = new ObituaryDeathMiner();
+        this.probateTracker = new ProbateCourtTracker();
+        this.violationExtractor = new CodeViolationExtractor();
+        this.vacancyDetector = new VacancyDetectionSystem();
+        this.taxIntelligence = new TaxDelinquencyIntelligence();
+        this.motivationPredictor = new MotivationPredictor();
         // Initialize automation systems
-        this.leadScoring = new automatedLeadScoring_1.AutomatedLeadScoring();
-        this.dealEngine = new dealExecutionEngine_1.DealExecutionEngine();
-        this.campaignAutomation = new intelligentCampaignAutomation_1.IntelligentCampaignAutomation();
+        this.leadScoring = new AutomatedLeadScoring();
+        this.dealEngine = new DealExecutionEngine();
+        this.campaignAutomation = new IntelligentCampaignAutomation();
         console.log(`🏰 Convexa AI Empire initialized!`);
         console.log(`📈 Daily Target: ${this.config.daily_lead_target} leads`);
         console.log(`💰 Monthly Goal: $${this.config.monthly_revenue_goal.toLocaleString()}`);
@@ -455,5 +463,4 @@ class LeadFlowAIEmpire {
         };
     }
 }
-exports.LeadFlowAIEmpire = LeadFlowAIEmpire;
 //# sourceMappingURL=leadFlowAIEmpire.js.map

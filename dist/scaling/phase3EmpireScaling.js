@@ -1,29 +1,32 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.Phase3EmpireScaling = void 0;
-const leadFlowAIEmpire_1 = require("../empire/leadFlowAIEmpire");
-const advancedAnalyticsDashboard_1 = require("../analytics/advancedAnalyticsDashboard");
-const machineLearningOptimization_1 = require("../ml/machineLearningOptimization");
-const revenueDiversificationEngine_1 = require("../revenue/revenueDiversificationEngine");
-const geographicExpansionEngine_1 = require("../expansion/geographicExpansionEngine");
-const strategicPartnershipEngine_1 = require("../partnerships/strategicPartnershipEngine");
-const openai_1 = __importDefault(require("openai"));
-class Phase3EmpireScaling {
+import { LeadFlowAIEmpire } from '../empire/leadFlowAIEmpire';
+import { AdvancedAnalyticsDashboard } from '../analytics/advancedAnalyticsDashboard';
+import { MachineLearningOptimization } from '../ml/machineLearningOptimization';
+import { RevenueDiversificationEngine } from '../revenue/revenueDiversificationEngine';
+import { GeographicExpansionEngine } from '../expansion/geographicExpansionEngine';
+import { StrategicPartnershipEngine } from '../partnerships/strategicPartnershipEngine';
+import OpenAI from 'openai';
+export class Phase3EmpireScaling {
+    openai;
+    empire;
+    analytics;
+    mlOptimization;
+    revenueDiversification;
+    geographicExpansion;
+    strategicPartnerships;
+    phase3Metrics;
+    phase3Status;
+    scalingTargets = [];
     constructor() {
-        this.scalingTargets = [];
-        this.openai = new openai_1.default({
+        this.openai = new OpenAI({
             apiKey: process.env.OPENAI_API_KEY
         });
         // Initialize all subsystems
-        this.empire = new leadFlowAIEmpire_1.LeadFlowAIEmpire();
-        this.analytics = new advancedAnalyticsDashboard_1.AdvancedAnalyticsDashboard(this.empire);
-        this.mlOptimization = new machineLearningOptimization_1.MachineLearningOptimization();
-        this.revenueDiversification = new revenueDiversificationEngine_1.RevenueDiversificationEngine();
-        this.geographicExpansion = new geographicExpansionEngine_1.GeographicExpansionEngine();
-        this.strategicPartnerships = new strategicPartnershipEngine_1.StrategicPartnershipEngine();
+        this.empire = new LeadFlowAIEmpire();
+        this.analytics = new AdvancedAnalyticsDashboard(this.empire);
+        this.mlOptimization = new MachineLearningOptimization();
+        this.revenueDiversification = new RevenueDiversificationEngine();
+        this.geographicExpansion = new GeographicExpansionEngine();
+        this.strategicPartnerships = new StrategicPartnershipEngine();
         this.phase3Metrics = this.initializePhase3Metrics();
         this.phase3Status = this.initializePhase3Status();
     }
@@ -482,5 +485,4 @@ The empire is positioned for autonomous operation and continued scaling through 
         return this.scalingTargets.find(target => target.target_name === targetName);
     }
 }
-exports.Phase3EmpireScaling = Phase3EmpireScaling;
 //# sourceMappingURL=phase3EmpireScaling.js.map

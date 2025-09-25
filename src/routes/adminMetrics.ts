@@ -3,6 +3,9 @@ import { prisma } from '../db/prisma';
 import { enqueueMatchmakingJob } from '../queues/matchmakingQueue';
 import { enqueuePropertyEnrichment } from '../utils/enqueueEnrichmentJob';
 import { enqueueWebhookDelivery } from '../queues/webhookQueue';
+import { convexaImportRowsTotal } from '../server'; // Import the new metric
+import csv from 'csv-parser';
+import { Readable } from 'stream';
 
 const router = Router();
 
@@ -338,6 +341,34 @@ router.get('/matchmaking-jobs', async (req, res) => {
   } catch (e:any) {
     res.status(500).json({ error:'matchmaking_list_failed', message: e?.message });
   }
+});
+
+// GET /api/admin/trigger-500-error - for testing alerts
+router.get('/trigger-500-error', (req, res) => {
+  throw new Error('Test 500 error triggered by admin endpoint');
+});
+
+// POST /api/admin/import/csv - for testing import metrics
+router.post('/import/csv', async (req, res) => {
+  if (!req.body || typeof req.body !== 'string') {
+    return res.status(400).json({ error: 'missing_csv_data' });
+  }
+
+  let rowsProcessed = 0;
+  const stream = Readable.from([req.body]);
+
+  stream.pipe(csv())
+    .on('data', (row) => {
+      rowsProcessed++;
+      convexaImportRowsTotal.inc({ result: 'success' }); // Increment for each row
+    })
+    .on('end', () => {
+      res.json({ success: true, message: `Processed ${rowsProcessed} rows.`, rowsProcessed });
+    })
+    .on('error', (err) => {
+      convexaImportRowsTotal.inc({ result: 'failure' });
+      res.status(500).json({ error: 'csv_processing_failed', message: err.message });
+    });
 });
 
 // POST /api/admin/matchmaking-jobs/:id/replay

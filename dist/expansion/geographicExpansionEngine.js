@@ -1,16 +1,11 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.GeographicExpansionEngine = void 0;
-const openai_1 = __importDefault(require("openai"));
-class GeographicExpansionEngine {
+import OpenAI from 'openai';
+export class GeographicExpansionEngine {
+    openai;
+    activeMarkets = new Map();
+    expansionPlan = null;
+    marketAnalyses = new Map();
     constructor() {
-        this.activeMarkets = new Map();
-        this.expansionPlan = null;
-        this.marketAnalyses = new Map();
-        this.openai = new openai_1.default({
+        this.openai = new OpenAI({
             apiKey: process.env.OPENAI_API_KEY
         });
     }
@@ -528,5 +523,4 @@ class GeographicExpansionEngine {
         return totalConversion / markets.length;
     }
 }
-exports.GeographicExpansionEngine = GeographicExpansionEngine;
 //# sourceMappingURL=geographicExpansionEngine.js.map

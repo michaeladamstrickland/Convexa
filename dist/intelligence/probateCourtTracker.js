@@ -1,15 +1,10 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.ProbateCourtTracker = void 0;
-const openai_1 = __importDefault(require("openai"));
-const puppeteer_1 = __importDefault(require("puppeteer"));
-class ProbateCourtTracker {
+import OpenAI from 'openai';
+import puppeteer from 'puppeteer';
+export class ProbateCourtTracker {
+    openai;
+    courtSystems = [];
     constructor() {
-        this.courtSystems = [];
-        this.openai = new openai_1.default({
+        this.openai = new OpenAI({
             apiKey: process.env.OPENAI_API_KEY
         });
         this.initializeCourtSystems();
@@ -38,7 +33,7 @@ class ProbateCourtTracker {
     }
     async scrapeProbateDocket(county, courtSystem) {
         const cases = [];
-        const browser = await puppeteer_1.default.launch({
+        const browser = await puppeteer.launch({
             headless: true,
             args: ['--no-sandbox', '--disable-setuid-sandbox']
         });
@@ -506,5 +501,4 @@ class ProbateCourtTracker {
         return []; // Placeholder
     }
 }
-exports.ProbateCourtTracker = ProbateCourtTracker;
 //# sourceMappingURL=probateCourtTracker.js.map

@@ -25,9 +25,17 @@ Authoritative server: `backend/integrated-server.js`
 - POST `/dial/:dialId/notes` — append free-text note
 - POST `/dial/:dialId/disposition` — enum {no_answer, voicemail, bad_number, interested, not_interested, follow_up}
 
+## PI1 Dialer Outcomes & Follow-ups
+- POST `/dial/:dialId/disposition` — Record call disposition with grade label tracking
+- POST `/leads/:id/followups` — Create follow-up task (admin-gated)
+- PATCH `/followups/:id` — Update follow-up status (done/snoozed/canceled)
+- GET `/followups` — List follow-ups with filters (status, priority, assignee)
+- GET `/leads/:id/timeline` — Lead activity timeline (newest first, limit 50)
+
 ## Metrics
 - `/metrics` — Prometheus (Basic Auth gated if configured)
-- Counters include: http_requests_total, dial_attempts_total, webhook_errors_total, dial_disposition_total{type}
+- Counters include: http_requests_total, dial_attempts_total, webhook_errors_total
+- PI1 metrics: dialer_disposition_total{type,grade_label}, followups_created_total{channel,priority}, followups_completed_total{status}, followups_due_gauge, followups_overdue_gauge, timeline_events_total{kind}
 
 ## Notes
 - SQLite DB path unified by SQLITE_DB_PATH env.

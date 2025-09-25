@@ -10,11 +10,14 @@ const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 
 // Respect existing env; otherwise set pragmatic defaults
-if (!process.env.PORT) process.env.PORT = '6027';
+if (!process.env.PORT) process.env.PORT = '5001';
 if (!process.env.SQLITE_DB_PATH) process.env.SQLITE_DB_PATH = path.join(repoRoot, 'backend', 'data', 'convexa.db');
 if (process.env.SKIP_TRACE_DEMO_MODE == null) process.env.SKIP_TRACE_DEMO_MODE = 'true';
 if (!process.env.SKIP_TRACE_PRIMARY_PROVIDER) process.env.SKIP_TRACE_PRIMARY_PROVIDER = 'batchdata';
 if (process.env.SKIP_TRACE_FALLBACK_ENABLED == null) process.env.SKIP_TRACE_FALLBACK_ENABLED = 'false';
+// Set basic auth defaults for development/staging
+if (!process.env.BASIC_AUTH_USER) process.env.BASIC_AUTH_USER = 'staging';
+if (!process.env.BASIC_AUTH_PASS) process.env.BASIC_AUTH_PASS = 'RockyDog456';
 
 // Ensure DB directory exists
 try {
@@ -23,6 +26,8 @@ try {
 
 console.log('[Launcher] PORT =', process.env.PORT);
 console.log('[Launcher] SQLITE_DB_PATH =', process.env.SQLITE_DB_PATH);
+console.log('[Launcher] BASIC_AUTH_USER =', process.env.BASIC_AUTH_USER);
+console.log('[Launcher] BASIC_AUTH_PASS = ***');
 console.log('[Launcher] SKIP_TRACE_DEMO_MODE =', process.env.SKIP_TRACE_DEMO_MODE);
 console.log('[Launcher] SKIP_TRACE_PRIMARY_PROVIDER =', process.env.SKIP_TRACE_PRIMARY_PROVIDER);
 console.log('[Launcher] SKIP_TRACE_FALLBACK_ENABLED =', process.env.SKIP_TRACE_FALLBACK_ENABLED);

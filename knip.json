@@ -1,0 +1,27 @@
+{
+  "entry": ["src/server.ts", "backend/integrated-server.js", "backend/server.ts"],
+  "project": ["src/**/*.{ts,js}", "backend/**/*.{ts,js}", "shared/**/*.{ts,js}"],
+  "ignore": [
+    "**/node_modules/**",
+    "**/dist/**",
+    "**/build/**",
+    "**/*.test.{ts,js}",
+    "**/*.spec.{ts,js}",
+    "**/scripts/**",
+    "**/ops/**",
+    "**/docs/**"
+  ],
+  "ignoreDependencies": [
+    "@types/*",
+    "tsx",
+    "typescript",
+    "vitest",
+    "eslint*",
+    "@vitest/coverage-v8"
+  ],
+  "ignoreExportsUsedInFile": true,
+  "includeEntryExports": false,
+  "typescript": {
+    "config": ["tsconfig.json", "tsconfig.server.json"]
+  }
+}
