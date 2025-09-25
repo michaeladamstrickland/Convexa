@@ -32,12 +32,13 @@ jobs:
       - name: Install dependencies (clean)
         run: npm ci
 
-      - name: Setup database for testing
-        env:
-          SQLITE_DB_PATH: ${{ github.workspace }}/backend/data/convexa.db
+      - name: Setup test environment  
         run: |
-          mkdir -p backend/data
-          npm run db:setup
+          mkdir -p backend/data ops/findings
+          # The integrated server will create and initialize its SQLite database automatically
+
+      - name: Run hygiene audit to generate required files
+        run: npm run hygiene:audit
 
       - name: Run PI1 smoke tests with server
         env:
