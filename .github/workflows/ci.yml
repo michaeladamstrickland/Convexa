@@ -32,14 +32,17 @@ jobs:
       - name: Install dependencies (clean)
         run: npm ci
 
-      - name: Install node-fetch for smoke tests
-        run: npm install node-fetch
-
-      - name: Run smoke tests
+      - name: Setup database for testing
+        env:
+          SQLITE_DB_PATH: ${{ github.workspace }}/backend/data/convexa.db
         run: |
-          node scripts/smoke/pi1Campaigns.cjs
-          node scripts/smoke/pi1Grades.cjs
-          npm run smoke:pi1:dialops
+          mkdir -p backend/data
+          npm run db:setup
+
+      - name: Run PI1 smoke tests with server
+        env:
+          SQLITE_DB_PATH: ${{ github.workspace }}/backend/data/convexa.db
+        run: npm run smoke:pi1:all
 
       - name: Check for required metrics in smoke output
         run: |
