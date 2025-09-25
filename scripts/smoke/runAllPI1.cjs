@@ -54,6 +54,8 @@ async function runAllPI1SmokeTests() {
     const serverReady = await isServerReady('http://localhost:5001/health');
     if (!serverReady) {
         console.error('❌ Server failed to start within timeout');
+        console.error('Server output:');
+        console.error(serverOutput);
         server.kill();
         process.exit(1);
     }
