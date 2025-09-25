@@ -1,3 +1,4 @@
 {"ts":"2025-09-23T17:34:49.404Z","user":"unknown","route":"/admin/import/csv?mode=commit","verb":"POST","payloadHash":"c86a8bb35b7618f626fbcdcc4ee5cf78678a55445a84e3178574c5d7e9eae9a8"}
 {"ts":"2025-09-23T17:35:44.254Z","user":"unknown","route":"/admin/import/csv?mode=commit","verb":"POST","payloadHash":"c86a8bb35b7618f626fbcdcc4ee5cf78678a55445a84e3178574c5d7e9eae9a8"}
 {"ts":"2025-09-23T21:29:12.836Z","user":"basic-auth","route":"/admin/import/csv?mode=commit","verb":"POST","payloadHash":"eed475e398e025ac52a97ba1c75745e58bc1696e8447609cdc101fc86fd6d1a1"}
+{"ts":"2025-09-25T14:59:34.836Z","user":"unknown","route":"/admin/export/weekly-bundle","verb":"POST","payloadHash":null}

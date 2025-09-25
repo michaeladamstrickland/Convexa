@@ -74,7 +74,7 @@
     "ops:staging:seed": "node scripts/seedStagingLeades.cjs",
     "ops:backup": "node scripts/ops/backup.mjs",
     "ops:generate-redaction-sample": "node scripts/ops/generateRedactionSample.mjs",
-    "hygiene:audit": "node scripts/audit/routesInventory.mjs && node scripts/audit/deadCodeAnalysis.mjs && node scripts/audit/dupeFinder.mjs && node scripts/audit/envUsage.cjs && node scripts/audit/schemaDump.cjs && node scripts/audit/metricsLogging.cjs",
+    "hygiene:audit": "node scripts/audit/routesInventory.mjs; node scripts/audit/deadCodeAnalysis.mjs; node scripts/audit/dupeFinder.mjs; node scripts/audit/envUsage.cjs; node scripts/audit/schemaDump.cjs; node scripts/audit/metricsLogging.cjs",
     "hygiene:verify": "node scripts/ci/verifyHygieneGates.cjs",
     "ci:prep": "tsc --project tsconfig.server.json && mkdir -p backend/data ops/findings",
     "ci:test": "npm run smoke:pi1:all && npm run smoke:pi2:all && vitest run --coverage",

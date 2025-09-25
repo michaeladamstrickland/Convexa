@@ -31,7 +31,7 @@ function main() {
       check: (data) => data.routes && data.routes.length > 0
     },
     {
-      file: 'ops/findings/dep_unused.json', 
+      file: 'ops/findings/dep_unused_ci.json', 
       description: 'Dead code analysis',
       check: (data) => data.files !== undefined
     },

@@ -30,6 +30,9 @@ jobs:
       - name: Install dependencies
         run: npm ci --no-audit --no-fund
 
+      - name: Setup findings directory
+        run: mkdir -p ops/findings
+
       - name: Run Hygiene Audit
         run: npm run hygiene:audit
 

@@ -1970,6 +1970,72 @@ const startServer = async () => {
     }
   });
 
+  // POST /api/ai/call-summary - PI2 AI Call Summary v0 endpoint
+  app.post('/api/ai/call-summary', basicAuth, async (req, res) => {
+    try {
+      // Validate request body
+      const schema = z.object({
+        lead_id: z.string().min(1),
+        call_transcript: z.string().min(1),
+        call_duration_seconds: z.number().min(0).optional()
+      });
+      
+      const parsed = schema.safeParse(req.body);
+      if (!parsed.success) {
+        return sendProblem(res, 'validation_error', 'Invalid request body', parsed.error.format(), 400);
+      }
+      
+      const { lead_id, call_transcript, call_duration_seconds } = parsed.data;
+      
+      // Generate summary using local heuristic
+      const summaryResult = summarizeCallHeuristic(call_transcript);
+      
+      // Structure the response according to PI2 specification
+      const summary = {
+        main_points: summaryResult.key_points || [],
+        sentiment: summaryResult.sentiment || 'neutral',
+        next_actions: summaryResult.key_points.length > 0 ? ['Follow up based on interest level'] : ['No immediate action needed']
+      };
+      
+      // Create timeline event
+      let timeline_event_id = null;
+      try {
+        const timelineStmt = db.prepare(`
+          INSERT INTO timeline_events (id, lead_id, event_type, event_data, created_at)
+          VALUES (?, ?, ?, ?, datetime('now'))
+        `);
+        timeline_event_id = `tl_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        timelineStmt.run(timeline_event_id, lead_id, 'call_summary', JSON.stringify({
+          summary,
+          transcript_length: call_transcript.length,
+          duration_seconds: call_duration_seconds,
+          processing_method: 'local_heuristic'
+        }));
+      } catch (timelineError) {
+        console.warn('[AI Call Summary] Failed to create timeline event:', timelineError.message);
+      }
+      
+      // Track metrics
+      if (callSummaryCounter) {
+        callSummaryCounter.inc({ reason: 'success' });
+      }
+      
+      res.json({
+        summary,
+        processing_method: 'local_heuristic',
+        timeline_event_id,
+        lead_id
+      });
+      
+    } catch (e) {
+      console.error('[AI Call Summary] Error:', e);
+      if (callSummaryCounter) {
+        callSummaryCounter.inc({ reason: 'error' });
+      }
+      return sendProblem(res, 'ai_call_summary_error', String(e?.message || e), undefined, 500);
+    }
+  });
+
   // === Artifacts listing & signed download ===
   const ARTIFACT_ROOT = path.resolve(STORAGE_ROOT, 'run_reports');
   // Robustly load artifact signer with safe JS fallback (never import TS at runtime)
@@ -5583,6 +5649,104 @@ const startServer = async () => {
     } catch (e) {
       console.error('[Stages] HTML board error:', e);
       return sendProblem(res, 'stage_board_html_error', String(e?.message || e), undefined, 500);
+    }
+  });
+
+  // GET /ops/ai-call-summary - HTML interface for AI Call Summary
+  app.get('/ops/ai-call-summary', (req, res) => {
+    try {
+      const html = `
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <title>AI Call Summary</title>
+            <style>
+              body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+              .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; }
+              h1 { color: #2c5282; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; }
+              .form-group { margin-bottom: 15px; }
+              label { display: block; font-weight: bold; margin-bottom: 5px; }
+              input, textarea, select { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
+              textarea { height: 150px; resize: vertical; }
+              button { background: #3182ce; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; }
+              button:hover { background: #2c5282; }
+              .result { margin-top: 20px; padding: 15px; background: #e6fffa; border-left: 4px solid #38b2ac; }
+              .error { background: #fed7d7; border-left-color: #e53e3e; }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <h1>AI Call Summary</h1>
+              <form id="summaryForm" onsubmit="generateSummary(event)">
+                <div class="form-group">
+                  <label for="lead_id">Lead ID:</label>
+                  <input type="text" id="lead_id" name="lead_id" required placeholder="Enter lead ID">
+                </div>
+                <div class="form-group">
+                  <label for="call_transcript">Call Transcript:</label>
+                  <textarea id="call_transcript" name="call_transcript" required placeholder="Enter call transcript..."></textarea>
+                </div>
+                <div class="form-group">
+                  <label for="call_duration_seconds">Call Duration (seconds):</label>
+                  <input type="number" id="call_duration_seconds" name="call_duration_seconds" min="0" placeholder="180">
+                </div>
+                <button type="submit">Generate AI Summary</button>
+              </form>
+              <div id="result"></div>
+            </div>
+            
+            <script>
+              async function generateSummary(event) {
+                event.preventDefault();
+                const resultDiv = document.getElementById('result');
+                resultDiv.innerHTML = '<p>Generating summary...</p>';
+                
+                const formData = new FormData(event.target);
+                const payload = {
+                  lead_id: formData.get('lead_id'),
+                  call_transcript: formData.get('call_transcript'),
+                  call_duration_seconds: formData.get('call_duration_seconds') ? Number(formData.get('call_duration_seconds')) : undefined
+                };
+                
+                try {
+                  const response = await fetch('/api/ai/call-summary', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                  });
+                  
+                  const data = await response.json();
+                  
+                  if (response.ok) {
+                    resultDiv.className = 'result';
+                    resultDiv.innerHTML = \`
+                      <h3>Summary Generated Successfully</h3>
+                      <p><strong>Processing Method:</strong> \${data.processing_method}</p>
+                      <p><strong>Main Points:</strong></p>
+                      <ul>\${data.summary.main_points.map(point => \`<li>\${point}</li>\`).join('')}</ul>
+                      <p><strong>Sentiment:</strong> \${data.summary.sentiment}</p>
+                      <p><strong>Next Actions:</strong></p>
+                      <ul>\${data.summary.next_actions.map(action => \`<li>\${action}</li>\`).join('')}</ul>
+                      \${data.timeline_event_id ? \`<p><strong>Timeline Event:</strong> \${data.timeline_event_id}</p>\` : ''}
+                    \`;
+                  } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.innerHTML = \`<h3>Error</h3><p>\${data.message || 'Failed to generate summary'}</p>\`;
+                  }
+                } catch (error) {
+                  resultDiv.className = 'result error';
+                  resultDiv.innerHTML = \`<h3>Error</h3><p>\${error.message}</p>\`;
+                }
+              }
+            </script>
+          </body>
+        </html>
+      `;
+      
+      res.send(html);
+    } catch (e) {
+      console.error('[AI Call Summary] HTML page error:', e);
+      return sendProblem(res, 'ai_call_summary_html_error', String(e?.message || e), undefined, 500);
     }
   });
 
