@@ -221,6 +221,22 @@ const startServer = async () => {
         }
       }
     }
+    
+    // Ensure PI2 CRM-Lite stage column exists
+    const pi2Columns = [
+      { name: 'stage', type: 'TEXT DEFAULT "new"' }
+    ];
+
+    for (const col of pi2Columns) {
+      if (!currentColumns.includes(col.name)) {
+        try {
+          db.exec(`ALTER TABLE leads ADD COLUMN ${col.name} ${col.type}`);
+          console.log(`✅ Auto-added ${col.name} column to leads table`);
+        } catch (e) {
+          console.warn(`⚠️ Could not add ${col.name} column:`, e.message);
+        }
+      }
+    }
 
   } else {
     console.log('✅ Skipping leads table schema creation as database already exists and has leads table.');
@@ -279,6 +295,9 @@ const startServer = async () => {
     
     // Create index for timeline_events
     db.exec(`CREATE INDEX IF NOT EXISTS idx_timeline_events_lead_created ON timeline_events(lead_id, created_at)`);
+    
+    // Create index for PI2 stage column
+    db.exec(`CREATE INDEX IF NOT EXISTS idx_leads_stage_updated ON leads(stage, updated_at)`);
     
     console.log('✅ Created dialer outcomes and follow-ups schema');
   } catch (e) {
@@ -1784,6 +1803,173 @@ const startServer = async () => {
     }
   });
 
+  // === PI2 AI Call Summary v0 ===
+  
+  // Helper function for local heuristic call summarization
+  const summarizeCallHeuristic = (transcript) => {
+    if (!transcript || typeof transcript !== 'string') {
+      return {
+        summary: 'No transcript available',
+        key_points: [],
+        sentiment: 'neutral',
+        length_secs: null
+      };
+    }
+    
+    const text = transcript.toLowerCase();
+    const words = text.split(/\s+/);
+    const summary_points = [];
+    const key_points = [];
+    
+    // Interest indicators
+    const interestKeywords = ['interested', 'tell me more', 'sounds good', 'when can', 'how much', 'that works'];
+    const objectionKeywords = ['not interested', 'no thanks', 'busy', 'call back later', 'remove from list'];
+    const timingKeywords = ['soon', 'next week', 'next month', 'few months', 'thinking about'];
+    const amountKeywords = ['thousand', '$', 'price', 'offer', 'cash', 'million'];
+    
+    // Analyze sentiment
+    let sentiment = 'neutral';
+    let interestScore = 0;
+    let objectionScore = 0;
+    
+    interestKeywords.forEach(keyword => {
+      if (text.includes(keyword)) {
+        interestScore++;
+        key_points.push(`Interest: mentioned "${keyword}"`);
+      }
+    });
+    
+    objectionKeywords.forEach(keyword => {
+      if (text.includes(keyword)) {
+        objectionScore++;
+        key_points.push(`Objection: said "${keyword}"`);
+      }
+    });
+    
+    if (interestScore > objectionScore) {
+      sentiment = 'positive';
+    } else if (objectionScore > interestScore) {
+      sentiment = 'negative';
+    }
+    
+    // Look for timing indicators
+    timingKeywords.forEach(keyword => {
+      if (text.includes(keyword)) {
+        key_points.push(`Timing: mentioned "${keyword}"`);
+      }
+    });
+    
+    // Look for amounts
+    const amountMatches = text.match(/\$[\d,]+|\d+\s*thousand|\d+\s*million/g);
+    if (amountMatches) {
+      key_points.push(`Amounts discussed: ${amountMatches.join(', ')}`);
+    }
+    
+    // Callback requests
+    if (text.includes('call back') || text.includes('call me back')) {
+      key_points.push('Callback requested');
+    }
+    
+    // Generate summary based on findings
+    let summary = 'Call completed';
+    if (sentiment === 'positive') {
+      summary = 'Positive conversation - property owner showed interest';
+    } else if (sentiment === 'negative') {
+      summary = 'Owner not interested at this time';
+    } else if (key_points.length > 0) {
+      summary = 'Mixed response - some interest indicators found';
+    }
+    
+    // Estimate call length (rough heuristic: ~150 words per minute)
+    const estimatedSeconds = Math.round((words.length / 150) * 60);
+    
+    return {
+      summary,
+      key_points: key_points.slice(0, 10), // Limit to top 10 points
+      sentiment,
+      length_secs: estimatedSeconds > 5 ? estimatedSeconds : null
+    };
+  };
+  
+  // POST /dial/:dialId/summarize - Generate call summary (admin-gated)
+  app.post('/dial/:dialId/summarize', requireAdmin, async (req, res) => {
+    try {
+      const { dialId } = req.params;
+      
+      // Read transcript from artifacts
+      const transcriptDir = path.resolve(STORAGE_ROOT, 'artifacts', 'dialer', 'transcripts');
+      const transcriptPath = path.join(transcriptDir, `${dialId}.json`);
+      
+      let transcript = null;
+      let reason = 'ok';
+      
+      if (!fs.existsSync(transcriptPath)) {
+        reason = 'no_transcript';
+      } else {
+        try {
+          const transcriptData = JSON.parse(fs.readFileSync(transcriptPath, 'utf-8'));
+          transcript = transcriptData.transcript || transcriptData.text || null;
+        } catch (e) {
+          console.warn('[Call Summary] Failed to parse transcript:', e?.message);
+          reason = 'error';
+        }
+      }
+      
+      // Generate summary using local heuristic
+      let summaryData;
+      try {
+        summaryData = summarizeCallHeuristic(transcript);
+      } catch (e) {
+        console.error('[Call Summary] Heuristic failed:', e);
+        reason = 'error';
+        summaryData = {
+          summary: 'Summary generation failed',
+          key_points: [],
+          sentiment: 'neutral',
+          length_secs: null
+        };
+      }
+      
+      // Add metadata
+      summaryData.dial_id = dialId;
+      summaryData.generated_at = new Date().toISOString();
+      summaryData.method = 'local_heuristic';
+      
+      // Write summary to artifacts
+      const summaryDir = path.resolve(STORAGE_ROOT, 'artifacts', 'dialer', 'summaries');
+      fs.mkdirSync(summaryDir, { recursive: true });
+      const summaryPath = path.join(summaryDir, `${dialId}.json`);
+      
+      fs.writeFileSync(summaryPath, JSON.stringify(summaryData, null, 2));
+      
+      // Generate signed URL for summary
+      const relPath = path.relative(STORAGE_ROOT, summaryPath);
+      const exp = Math.floor(Date.now() / 1000) + (24 * 60 * 60); // 24 hours
+      const sig = signUtil(relPath, exp, process.env.SIGNED_URL_SECRET || 'dev-secret');
+      const summaryUrl = `/admin/artifact-download?path=${encodeURIComponent(relPath)}&exp=${exp}&sig=${sig}`;
+      
+      // Track metrics
+      if (callSummaryCounter) {
+        callSummaryCounter.inc({ reason });
+      }
+      
+      res.json({
+        ok: true,
+        summary: summaryData,
+        summaryUrl,
+        transcript_available: !!transcript,
+        method: 'local_heuristic'
+      });
+      
+    } catch (e) {
+      console.error('[Call Summary] Error:', e);
+      if (callSummaryCounter) {
+        callSummaryCounter.inc({ reason: 'error' });
+      }
+      return sendProblem(res, 'call_summary_error', String(e?.message || e), undefined, 500);
+    }
+  });
+
   // === Artifacts listing & signed download ===
   const ARTIFACT_ROOT = path.resolve(STORAGE_ROOT, 'run_reports');
   // Robustly load artifact signer with safe JS fallback (never import TS at runtime)
@@ -2730,6 +2916,14 @@ const startServer = async () => {
   let followupsDueGauge = null;
   let followupsOverdueGauge = null;
   let timelineEventsCounter = null;
+  
+  // PI2 metrics
+  let campaignResultsCounter = null;
+  let leadGradeCalibrationCounter = null;
+  let stageTransitionsCounter = null;
+  let leadsByStageGauge = null;
+  let callSummaryCounter = null;
+  let exportBundlesCounter = null;
   if (promClient) {
     try {
       campaignQueriesCounter = new promClient.Counter({
@@ -2779,6 +2973,43 @@ const startServer = async () => {
         help: 'Total timeline events created',
         labelNames: ['kind']
       });
+      
+      // PI2 Additional metrics
+      campaignResultsCounter = new promClient.Counter({
+        name: 'campaign_results_total',
+        help: 'Total campaign search results returned',
+        labelNames: ['type']
+      });
+      
+      leadGradeCalibrationCounter = new promClient.Counter({
+        name: 'lead_grade_calibration_runs_total',
+        help: 'Lead grade calibration runs',
+        labelNames: ['mode']
+      });
+      
+      stageTransitionsCounter = new promClient.Counter({
+        name: 'stage_transitions_total',
+        help: 'Lead stage transitions',
+        labelNames: ['from', 'to']
+      });
+      
+      leadsByStageGauge = new promClient.Gauge({
+        name: 'leads_by_stage_gauge',
+        help: 'Count of leads by stage',
+        labelNames: ['stage']
+      });
+      
+      callSummaryCounter = new promClient.Counter({
+        name: 'call_summary_generated_total',
+        help: 'Call summaries generated',
+        labelNames: ['reason']
+      });
+      
+      exportBundlesCounter = new promClient.Counter({
+        name: 'export_bundles_total',
+        help: 'Export bundles created',
+        labelNames: ['kind']
+      });
     } catch (e) {
       console.warn('Campaign metrics init error:', e?.message || e);
     }
@@ -2813,44 +3044,35 @@ const startServer = async () => {
       // Type-based heuristics (zero external spend)
       if (type) {
         switch (type) {
-          case 'probate':
-            where.push('is_probate = 1');
-            criteria_used.push('probate flag');
+          case 'distressed':
+            // Heuristic: motivation_score >= 70 OR temperature_tag in ('hot','warm')
+            where.push("(motivation_score >= 70 OR temperature_tag IN ('hot', 'warm'))");
+            criteria_used.push('high motivation or hot/warm temperature');
+            break;
+          case 'divorce':
+            // Heuristic: look for certain keywords in notes or owner_name patterns
+            where.push("(notes LIKE '%divorce%' OR notes LIKE '%separation%' OR owner_name LIKE '%/%' OR owner_name LIKE '%and%')");
+            criteria_used.push('divorce indicators in notes or joint ownership');
+            break;
+          case 'preforeclosure':
+            // Heuristic: high condition issues or tax problems
+            where.push("(condition_score <= 30 OR notes LIKE '%tax%' OR notes LIKE '%foreclosure%')");
+            criteria_used.push('poor condition or tax/foreclosure notes');
+            break;
+          case 'inheritance':
+            // Heuristic: probate flag or inheritance indicators
+            where.push("(is_probate = 1 OR notes LIKE '%inherit%' OR notes LIKE '%estate%' OR notes LIKE '%deceased%')");
+            criteria_used.push('probate flag or inheritance indicators');
             break;
           case 'vacant':
             where.push('is_vacant = 1');
             criteria_used.push('vacant flag');
             break;
           case 'absentee':
-            // Heuristic: owner mailing address city/state != property city/state
-            // For now, we'll use a simple heuristic if we have owner info
+            // Heuristic: owner mailing address different or out-of-area phone numbers
             where.push('(owner_name IS NOT NULL AND owner_name != "")');
             criteria_used.push('owner presence (absentee heuristic)');
             break;
-          case 'high_equity':
-            // Heuristic: equity >= 0.35 if field present
-            where.push('equity >= 0.35');
-            criteria_used.push('equity >= 35%');
-            break;
-          case 'distressed':
-            // Heuristic: motivation_score >= 70 OR temperature_tag in ('hot','warm')
-            where.push("(motivation_score >= 70 OR temperature_tag IN ('hot', 'warm'))");
-            criteria_used.push('high motivation or hot/warm temperature');
-            break;
-          case 'pre_foreclosure':
-          case 'divorce':
-          case 'inheritance':
-            // These require paid data sources - return empty with explanation
-            return res.json({
-              leads: [],
-              pagination: {
-                page,
-                limit,
-                total: 0,
-                pages: 0
-              },
-              criteria_used: [`${type}: not wired (requires paid data sources)`]
-            });
           default:
             // Fallback to general filters without specific type criteria
             criteria_used.push(`type '${type}' not recognized - using general filters`);
@@ -2912,6 +3134,13 @@ const startServer = async () => {
 
       // Execute query
       const leads = db.prepare(sql).all(...params);
+
+      // Track campaign results metrics
+      try {
+        if (campaignResultsCounter && type) {
+          campaignResultsCounter.inc({ type: type || 'unknown' }, leads.length);
+        }
+      } catch (e) {}
 
       // Calculate pagination
       const pages = Math.ceil(totalCount / limit);
@@ -3308,6 +3537,31 @@ const startServer = async () => {
         ORDER BY due_at ASC
       `).all(id);
       
+      // Check for call summaries in artifacts
+      let callSummaries = [];
+      try {
+        const summariesDir = path.resolve(STORAGE_ROOT, 'artifacts', 'dialer', 'summaries');
+        if (fs.existsSync(summariesDir)) {
+          const summaryFiles = fs.readdirSync(summariesDir)
+            .filter(f => f.endsWith('.json') && f.includes(id))
+            .slice(-5); // Show last 5 summaries
+          
+          for (const file of summaryFiles) {
+            try {
+              const summaryPath = path.join(summariesDir, file);
+              const summaryData = JSON.parse(fs.readFileSync(summaryPath, 'utf-8'));
+              if (summaryData.dial_id) {
+                callSummaries.push(summaryData);
+              }
+            } catch (e) {
+              console.warn('[Call Summary] Failed to read summary file:', file, e?.message);
+            }
+          }
+        }
+      } catch (e) {
+        console.warn('[Call Summary] Failed to check summaries:', e?.message);
+      }
+      
       // Gather recent artifact links (report/audit/csv/zip)
       const exp = Math.floor(Date.now() / 1000) + defaultTtl;
       let links = [];
@@ -3492,6 +3746,36 @@ const startServer = async () => {
       <div class="section">
         <h3>Open Follow-ups (${followups.length})</h3>
         ${followups.length ? `<ul class="timeline">${followupsHtml}</ul>` : '<p>No open follow-ups</p>'}
+      </div>
+
+      <div class="section">
+        <h3>Call Summaries (${callSummaries.length})</h3>
+        ${callSummaries.length ? callSummaries.map(summary => {
+          const sentimentColor = summary.sentiment === 'positive' ? '#4caf50' : 
+                                summary.sentiment === 'negative' ? '#f44336' : '#757575';
+          const generatedDate = new Date(summary.generated_at).toLocaleString();
+          
+          return `
+            <div style="margin:12px 0;padding:12px;border:1px solid #ddd;border-radius:6px;background:white">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+                <strong>Call ${esc(summary.dial_id.slice(-8))}</strong>
+                <span style="color:${sentimentColor};font-weight:bold;text-transform:uppercase;font-size:0.9em">${esc(summary.sentiment)}</span>
+              </div>
+              <div style="margin:8px 0;font-size:0.95em">${esc(summary.summary)}</div>
+              ${summary.key_points && summary.key_points.length > 0 ? 
+                `<div style="margin:8px 0">
+                  <strong>Key Points:</strong>
+                  <ul style="margin:4px 0 0 20px;font-size:0.9em">
+                    ${summary.key_points.map(point => `<li>${esc(point)}</li>`).join('')}
+                  </ul>
+                </div>` : ''}
+              <div style="font-size:0.8em;color:#666;margin-top:8px">
+                Generated: ${generatedDate} | Method: ${esc(summary.method || 'unknown')}
+                ${summary.length_secs ? ` | Duration: ~${Math.floor(summary.length_secs / 60)}:${String(summary.length_secs % 60).padStart(2, '0')}` : ''}
+              </div>
+            </div>
+          `;
+        }).join('') : '<p>No call summaries available</p>'}
       </div>
 
       <div class="section">
@@ -4293,33 +4577,154 @@ const startServer = async () => {
     try {
       // last 7 days by updated_at
       const d = new Date(); const to = d.toISOString(); d.setDate(d.getDate()-7); const from = d.toISOString();
-      const rows = db.prepare("SELECT * FROM leads WHERE datetime(updated_at) >= datetime(?)").all(from);
+      const leads = db.prepare("SELECT * FROM leads WHERE datetime(updated_at) >= datetime(?)").all(from);
       const dateKey = new Date().toISOString().slice(0,10);
       const runId = `weekly_export_${dateKey}`;
       const dir = path.resolve(ARTIFACT_ROOT, runId);
       fs.mkdirSync(dir, { recursive: true });
-      // write leads.csv
-      const headers = ['id','address','owner_name','phone','email','estimated_value','equity','motivation_score','temperature_tag','status','source_type','created_at','updated_at'];
-      const csv = [headers.join(',')].concat(rows.map(r => headers.map(h => (r[h] ?? '')).join(','))).join('\n');
-      fs.writeFileSync(path.join(dir,'leads.csv'), csv);
-      // write summary.json
-      const byStatus = {}; const byTemp = {};
-      rows.forEach(r => { byStatus[r.status||''] = (byStatus[r.status||'']||0)+1; byTemp[r.temperature_tag||''] = (byTemp[r.temperature_tag||'']||0)+1; });
-      fs.writeFileSync(path.join(dir,'summary.json'), JSON.stringify({ from, to, count: rows.length, byStatus, byTemperature: byTemp }, null, 2));
+      
+      // 1. leads.csv (enhanced with PI2 data)
+      const leadsHeaders = ['id','address','owner_name','phone','email','estimated_value','equity','motivation_score','temperature_tag','status','source_type','created_at','updated_at','grade_score','grade_label','grade_reason','grade_computed_at','stage'];
+      const leadsCsv = [leadsHeaders.join(',')].concat(
+        leads.map(r => leadsHeaders.map(h => {
+          const val = r[h] ?? '';
+          return String(val).includes(',') ? `"${val}"` : val;
+        }).join(','))
+      ).join('\n');
+      fs.writeFileSync(path.join(dir,'leads.csv'), leadsCsv);
+      
+      // 2. grades.csv (PI2 requirement)
+      const gradedLeads = leads.filter(l => l.grade_score !== null);
+      const gradesHeaders = ['id','grade_score','grade_label','grade_reason','grade_computed_at'];
+      const gradesCsv = [gradesHeaders.join(',')].concat(
+        gradedLeads.map(r => gradesHeaders.map(h => {
+          const val = r[h] ?? '';
+          return String(val).includes(',') ? `"${val}"` : val;
+        }).join(','))
+      ).join('\n');
+      fs.writeFileSync(path.join(dir,'grades.csv'), gradesCsv);
+      
+      // 3. stages.csv (PI2 requirement)
+      const stagesHeaders = ['id','stage','updated_at'];
+      const stagesCsv = [stagesHeaders.join(',')].concat(
+        leads.map(r => stagesHeaders.map(h => {
+          const val = r[h] ?? '';
+          return String(val).includes(',') ? `"${val}"` : val;
+        }).join(','))
+      ).join('\n');
+      fs.writeFileSync(path.join(dir,'stages.csv'), stagesCsv);
+      
+      // 4. dispositions.csv (PI2 requirement)
+      const dispositions = db.prepare(`
+        SELECT dial_id, lead_id, type, grade_label, created_at as ts 
+        FROM dial_outcomes 
+        WHERE datetime(created_at) >= datetime(?)
+      `).all(from);
+      
+      const dispositionsHeaders = ['dialId','leadId','type','grade_label','ts'];
+      const dispositionsCsv = [dispositionsHeaders.join(',')].concat(
+        dispositions.map(r => dispositionsHeaders.map(h => {
+          const val = r[h] ?? '';
+          return String(val).includes(',') ? `"${val}"` : val;
+        }).join(','))
+      ).join('\n');
+      fs.writeFileSync(path.join(dir,'dispositions.csv'), dispositionsCsv);
+      
+      // 5. followups.csv (PI2 requirement)
+      const followups = db.prepare(`
+        SELECT id, lead_id, status, due_at, priority, channel 
+        FROM follow_ups 
+        WHERE datetime(created_at) >= datetime(?)
+      `).all(from);
+      
+      const followupsHeaders = ['id','leadId','status','due_at','priority','channel'];
+      const followupsCsv = [followupsHeaders.join(',')].concat(
+        followups.map(r => followupsHeaders.map(h => {
+          const val = r[h] ?? '';
+          return String(val).includes(',') ? `"${val}"` : val;
+        }).join(','))
+      ).join('\n');
+      fs.writeFileSync(path.join(dir,'followups.csv'), followupsCsv);
+      
+      // 6. timeline.csv (PI2 requirement)
+      const timeline = db.prepare(`
+        SELECT lead_id as leadId, kind, created_at as ts, 
+               substr(payload_json, 1, 100) as details 
+        FROM timeline_events 
+        WHERE datetime(created_at) >= datetime(?)
+      `).all(from);
+      
+      const timelineHeaders = ['leadId','kind','ts','details'];
+      const timelineCsv = [timelineHeaders.join(',')].concat(
+        timeline.map(r => timelineHeaders.map(h => {
+          const val = r[h] ?? '';
+          return String(val).includes(',') ? `"${val}"` : val;
+        }).join(','))
+      ).join('\n');
+      fs.writeFileSync(path.join(dir,'timeline.csv'), timelineCsv);
+      
+      // 7. Enhanced summary.json
+      const byStatus = {}; const byTemp = {}; const byStage = {}; const byGrade = {};
+      leads.forEach(r => { 
+        byStatus[r.status||'unknown'] = (byStatus[r.status||'unknown']||0)+1; 
+        byTemp[r.temperature_tag||'unknown'] = (byTemp[r.temperature_tag||'unknown']||0)+1;
+        byStage[r.stage||'new'] = (byStage[r.stage||'new']||0)+1;
+        byGrade[r.grade_label||'ungraded'] = (byGrade[r.grade_label||'ungraded']||0)+1;
+      });
+      
+      const summary = {
+        export_date: new Date().toISOString(),
+        period: { from, to },
+        counts: {
+          leads: leads.length,
+          graded_leads: gradedLeads.length,
+          dispositions: dispositions.length,
+          followups: followups.length,
+          timeline_events: timeline.length
+        },
+        breakdowns: {
+          by_status: byStatus,
+          by_temperature: byTemp,
+          by_stage: byStage,
+          by_grade: byGrade
+        }
+      };
+      
+      fs.writeFileSync(path.join(dir,'summary.json'), JSON.stringify(summary, null, 2));
+      
       // zip directory to runId.zip
       const zipPath = path.join(dir, `${runId}.zip`);
       await new Promise((resolve, reject) => {
         const output = fs.createWriteStream(zipPath);
         const archive = Archiver('zip', { zlib: { level: 9 } });
         output.on('close', resolve); archive.on('error', reject);
-        archive.pipe(output); archive.directory(dir, false); archive.finalize();
+        archive.pipe(output); 
+        archive.file(path.join(dir,'leads.csv'), { name: 'leads.csv' });
+        archive.file(path.join(dir,'grades.csv'), { name: 'grades.csv' });
+        archive.file(path.join(dir,'stages.csv'), { name: 'stages.csv' });
+        archive.file(path.join(dir,'dispositions.csv'), { name: 'dispositions.csv' });
+        archive.file(path.join(dir,'followups.csv'), { name: 'followups.csv' });
+        archive.file(path.join(dir,'timeline.csv'), { name: 'timeline.csv' });
+        archive.file(path.join(dir,'summary.json'), { name: 'summary.json' });
+        archive.finalize();
       });
+      
+      // Track metrics
+      if (exportBundlesCounter) {
+        exportBundlesCounter.inc({ kind: 'weekly' });
+      }
+      
       const exp = Math.floor(Date.now()/1000) + defaultTtl;
       const relZip = `${runId}/${runId}.zip`;
       const bundleUrl = `/admin/artifact-download?path=${encodeURIComponent(relZip)}&exp=${exp}&sig=${signUtil(relZip, exp, process.env.ARTIFACT_SIGNING_SECRET || 'dev-secret')}`;
       try { auditMut(req); } catch {}
-      return res.json({ ok: true, bundleUrl });
+      return res.json({ 
+        ok: true, 
+        bundleUrl,
+        export_summary: summary
+      });
     } catch (e) {
+      console.error('[Weekly Export] Error:', e);
       return sendProblem(res, 'export_error', String(e?.message || e), undefined, 500);
     }
   });
@@ -4712,6 +5117,475 @@ const startServer = async () => {
     }
   });
 
+  // === PI2 Grade Calibration v1.1 ===
+  
+  // Helper function to compute grade with custom weights
+  const computeGradeWithWeights = (lead, weights = {}) => {
+    const defaultWeights = {
+      motivation_score: 0.3,
+      estimated_value: 0.2,
+      equity: 0.2,
+      condition_score: 0.1,
+      temperature_factor: 0.1,
+      vacant_penalty: -0.1,
+      probate_bonus: 0.1
+    };
+    
+    const w = { ...defaultWeights, ...weights };
+    let score = 0;
+    const reasons = [];
+    
+    // Motivation score (0-100)
+    if (lead.motivation_score) {
+      const motivationContrib = (lead.motivation_score / 100) * w.motivation_score * 100;
+      score += motivationContrib;
+      reasons.push(`motivation: ${motivationContrib.toFixed(1)}`);
+    }
+    
+    // Estimated value (higher is better)
+    if (lead.estimated_value && lead.estimated_value > 0) {
+      const valueContrib = Math.min(50, (lead.estimated_value / 500000) * w.estimated_value * 100);
+      score += valueContrib;
+      reasons.push(`value: ${valueContrib.toFixed(1)}`);
+    }
+    
+    // Equity (0-1 scale)
+    if (lead.equity && lead.equity > 0) {
+      const equityContrib = lead.equity * w.equity * 100;
+      score += equityContrib;
+      reasons.push(`equity: ${equityContrib.toFixed(1)}`);
+    }
+    
+    // Condition score (0-100, higher is better)
+    if (lead.condition_score) {
+      const conditionContrib = (lead.condition_score / 100) * w.condition_score * 100;
+      score += conditionContrib;
+      reasons.push(`condition: ${conditionContrib.toFixed(1)}`);
+    }
+    
+    // Temperature factor
+    const tempScore = { 'hot': 100, 'warm': 70, 'cold': 30, 'dead': 0 }[lead.temperature_tag] || 0;
+    const tempContrib = (tempScore / 100) * w.temperature_factor * 100;
+    score += tempContrib;
+    reasons.push(`temp: ${tempContrib.toFixed(1)}`);
+    
+    // Penalties and bonuses
+    if (lead.is_vacant) {
+      score += w.vacant_penalty * 100;
+      reasons.push(`vacant penalty: ${(w.vacant_penalty * 100).toFixed(1)}`);
+    }
+    if (lead.is_probate) {
+      score += w.probate_bonus * 100;
+      reasons.push(`probate bonus: ${(w.probate_bonus * 100).toFixed(1)}`);
+    }
+    
+    // Ensure score is in 0-100 range
+    score = Math.max(0, Math.min(100, score));
+    
+    // Assign letter grade
+    let label = 'D';
+    if (score >= 90) label = 'A+';
+    else if (score >= 85) label = 'A';
+    else if (score >= 80) label = 'B+';
+    else if (score >= 75) label = 'B';
+    else if (score >= 70) label = 'C+';
+    else if (score >= 65) label = 'C';
+    else if (score >= 60) label = 'D+';
+    
+    return {
+      score: Math.round(score),
+      label,
+      reason: reasons.join('; ')
+    };
+  };
+  
+  // POST /admin/grade/calibrate - Dry-run grade calibration
+  app.post('/admin/grade/calibrate', async (req, res) => {
+    try {
+      const { weights = {}, sampleLimit = 100 } = req.body;
+      
+      // Get sample of leads for calibration preview
+      const leads = db.prepare(`
+        SELECT * FROM leads 
+        ORDER BY RANDOM() 
+        LIMIT ?
+      `).all(Math.max(1, Math.min(1000, sampleLimit)));
+      
+      if (leads.length === 0) {
+        return sendProblem(res, 'no_leads_found', 'No leads available for calibration', undefined, 400);
+      }
+      
+      // Compute grades with current and new weights
+      const currentGrades = leads.map(lead => computeLeadGrade(lead));
+      const newGrades = leads.map(lead => computeGradeWithWeights(lead, weights));
+      
+      // Calculate deltas and summary stats
+      const by_label = {};
+      const deltas = [];
+      const top_examples = [];
+      
+      for (let i = 0; i < leads.length; i++) {
+        const lead = leads[i];
+        const current = currentGrades[i];
+        const updated = newGrades[i];
+        const delta = updated.score - current.score;
+        
+        // Track by label
+        if (!by_label[updated.label]) {
+          by_label[updated.label] = { count: 0, avg_score: 0, examples: [] };
+        }
+        by_label[updated.label].count++;
+        by_label[updated.label].avg_score += updated.score;
+        if (by_label[updated.label].examples.length < 3) {
+          by_label[updated.label].examples.push({
+            id: lead.id,
+            address: lead.address,
+            current_grade: current.label,
+            new_grade: updated.label,
+            score_delta: delta
+          });
+        }
+        
+        deltas.push(delta);
+        
+        // Top scoring examples
+        if (top_examples.length < 10) {
+          top_examples.push({
+            id: lead.id,
+            address: lead.address,
+            owner_name: lead.owner_name,
+            current_score: current.score,
+            new_score: updated.score,
+            current_grade: current.label,
+            new_grade: updated.label,
+            delta
+          });
+        }
+      }
+      
+      // Calculate averages for by_label
+      Object.keys(by_label).forEach(label => {
+        by_label[label].avg_score = Math.round(by_label[label].avg_score / by_label[label].count);
+      });
+      
+      // Sort examples by new score descending
+      top_examples.sort((a, b) => b.new_score - a.new_score);
+      
+      // Calculate delta statistics
+      const avgDelta = deltas.reduce((sum, d) => sum + d, 0) / deltas.length;
+      const maxDelta = Math.max(...deltas);
+      const minDelta = Math.min(...deltas);
+      
+      // Track metrics
+      if (leadGradeCalibrationCounter) {
+        leadGradeCalibrationCounter.inc({ mode: 'dry' });
+      }
+      
+      res.json({
+        ok: true,
+        preview: {
+          by_label,
+          deltas: {
+            avg: Math.round(avgDelta * 100) / 100,
+            min: Math.round(minDelta * 100) / 100,
+            max: Math.round(maxDelta * 100) / 100
+          },
+          top_examples: top_examples.slice(0, 10)
+        },
+        sample_size: leads.length,
+        weights_used: { ...computeGradeWithWeights.defaultWeights, ...weights }
+      });
+      
+    } catch (e) {
+      console.error('[Grade Calibration] Dry-run error:', e);
+      return sendProblem(res, 'calibration_dry_run_error', String(e?.message || e), undefined, 500);
+    }
+  });
+  
+  // POST /admin/grade/apply-calibration - Apply calibration to all leads
+  app.post('/admin/grade/apply-calibration', async (req, res) => {
+    try {
+      const { weights = {} } = req.body;
+      
+      // Get all leads for re-grading
+      const leads = db.prepare('SELECT * FROM leads').all();
+      
+      if (leads.length === 0) {
+        return sendProblem(res, 'no_leads_found', 'No leads available for calibration', undefined, 400);
+      }
+      
+      let updated = 0;
+      const computedAt = new Date().toISOString();
+      
+      // Begin transaction for bulk updates
+      const updateStmt = db.prepare(`
+        UPDATE leads 
+        SET grade_score = ?, grade_label = ?, grade_reason = ?, grade_computed_at = ?
+        WHERE id = ?
+      `);
+      
+      const transaction = db.transaction((leads) => {
+        for (const lead of leads) {
+          const grade = computeGradeWithWeights(lead, weights);
+          const result = updateStmt.run(grade.score, grade.label, grade.reason, computedAt, lead.id);
+          if (result.changes > 0) updated++;
+        }
+      });
+      
+      transaction(leads);
+      
+      // Track metrics
+      if (leadGradeCalibrationCounter) {
+        leadGradeCalibrationCounter.inc({ mode: 'apply' });
+      }
+      if (gradeComputationsCounter) {
+        gradeComputationsCounter.inc({ type: 'apply_v11' }, leads.length);
+      }
+      
+      res.json({
+        ok: true,
+        total_leads: leads.length,
+        updated_leads: updated,
+        weights_applied: weights,
+        computed_at: computedAt
+      });
+      
+    } catch (e) {
+      console.error('[Grade Calibration] Apply error:', e);
+      return sendProblem(res, 'calibration_apply_error', String(e?.message || e), undefined, 500);
+    }
+  });
+
+  // === PI2 CRM-Lite Stages ===
+  
+  const VALID_STAGES = ['new', 'working', 'contacted', 'follow_up', 'offer_made', 'under_contract', 'closed', 'lost'];
+  
+  // Helper function to update leads_by_stage_gauge
+  const updateStageGauges = () => {
+    if (!leadsByStageGauge) return;
+    
+    try {
+      const stageCounts = db.prepare(`
+        SELECT stage, COUNT(*) as count 
+        FROM leads 
+        GROUP BY stage
+      `).all();
+      
+      // Reset all stage gauges to 0 first
+      VALID_STAGES.forEach(stage => {
+        leadsByStageGauge.set({ stage }, 0);
+      });
+      
+      // Set actual counts
+      stageCounts.forEach(({ stage, count }) => {
+        if (VALID_STAGES.includes(stage)) {
+          leadsByStageGauge.set({ stage }, count);
+        }
+      });
+    } catch (e) {
+      console.warn('[Stages] Failed to update stage gauges:', e?.message);
+    }
+  };
+  
+  // PATCH /leads/:id/stage - Update lead stage
+  app.patch('/leads/:id/stage', async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { stage } = req.body;
+      
+      // Validate stage
+      if (!VALID_STAGES.includes(stage)) {
+        return sendProblem(res, 'invalid_stage', `Stage must be one of: ${VALID_STAGES.join(', ')}`, 'stage', 400);
+      }
+      
+      // Get current lead to check existing stage
+      const lead = db.prepare('SELECT * FROM leads WHERE id = ?').get(id);
+      if (!lead) {
+        return sendProblem(res, 'lead_not_found', 'Lead not found', 'id', 404);
+      }
+      
+      const oldStage = lead.stage || 'new';
+      
+      // Update stage
+      const result = db.prepare(`
+        UPDATE leads 
+        SET stage = ?, updated_at = ? 
+        WHERE id = ?
+      `).run(stage, new Date().toISOString(), id);
+      
+      if (result.changes === 0) {
+        return sendProblem(res, 'stage_update_failed', 'Failed to update stage', undefined, 500);
+      }
+      
+      // Add timeline event
+      addTimelineEvent(id, 'stage_change', { 
+        from: oldStage, 
+        to: stage,
+        changed_at: new Date().toISOString()
+      });
+      
+      // Track metrics
+      if (stageTransitionsCounter) {
+        stageTransitionsCounter.inc({ from: oldStage, to: stage });
+      }
+      
+      // Update stage gauges
+      updateStageGauges();
+      
+      res.json({
+        ok: true,
+        lead_id: id,
+        old_stage: oldStage,
+        new_stage: stage,
+        updated_at: new Date().toISOString()
+      });
+      
+    } catch (e) {
+      console.error('[Stages] Stage update error:', e);
+      return sendProblem(res, 'stage_update_error', String(e?.message || e), undefined, 500);
+    }
+  });
+  
+  // GET /stages/board - Get stage board view
+  app.get('/stages/board', async (req, res) => {
+    try {
+      const columns = [];
+      
+      for (const stage of VALID_STAGES) {
+        // Get count and sample leads for this stage
+        const count = db.prepare(`
+          SELECT COUNT(*) as count FROM leads WHERE stage = ?
+        `).get(stage).count;
+        
+        const sample = db.prepare(`
+          SELECT id, address, owner_name, estimated_value, grade_label, updated_at
+          FROM leads 
+          WHERE stage = ?
+          ORDER BY updated_at DESC
+          LIMIT 5
+        `).all(stage);
+        
+        columns.push({
+          stage,
+          count,
+          sample: sample.map(lead => ({
+            id: lead.id,
+            address: lead.address,
+            owner_name: lead.owner_name,
+            estimated_value: lead.estimated_value,
+            grade_label: lead.grade_label,
+            updated_at: lead.updated_at
+          }))
+        });
+      }
+      
+      res.json({ columns });
+      
+    } catch (e) {
+      console.error('[Stages] Board error:', e);
+      return sendProblem(res, 'stage_board_error', String(e?.message || e), undefined, 500);
+    }
+  });
+  
+  // GET /ops/stages - HTML stage board view
+  app.get('/ops/stages', async (req, res) => {
+    try {
+      const columns = [];
+      
+      for (const stage of VALID_STAGES) {
+        // Get count and sample leads for this stage
+        const count = db.prepare(`
+          SELECT COUNT(*) as count FROM leads WHERE stage = ?
+        `).get(stage).count;
+        
+        const sample = db.prepare(`
+          SELECT id, address, owner_name, estimated_value, grade_label, updated_at
+          FROM leads 
+          WHERE stage = ?
+          ORDER BY updated_at DESC
+          LIMIT 8
+        `).all(stage);
+        
+        columns.push({
+          stage,
+          count,
+          sample
+        });
+      }
+      
+      const esc = (s) => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      
+      const columnsHtml = columns.map(col => {
+        const sampleRows = col.sample.map(lead => 
+          `<div class="lead-card">
+            <div class="lead-header">
+              <a href="/ops/leads/${encodeURIComponent(lead.id)}" class="lead-id">${esc(lead.id.slice(0,8))}...</a>
+              <span class="grade-badge grade-${(lead.grade_label||'').toLowerCase()}">${esc(lead.grade_label||'N/A')}</span>
+            </div>
+            <div class="lead-address">${esc(lead.address||'')}</div>
+            <div class="lead-owner">${esc(lead.owner_name||'Unknown')}</div>
+            <div class="lead-value">$${lead.estimated_value ? lead.estimated_value.toLocaleString() : 'N/A'}</div>
+          </div>`
+        ).join('');
+        
+        return `
+          <div class="stage-column">
+            <div class="stage-header">
+              <h3>${esc(col.stage.toUpperCase())}</h3>
+              <span class="stage-count">${col.count}</span>
+            </div>
+            <div class="stage-content">
+              ${sampleRows}
+              ${col.count > col.sample.length ? `<div class="more-leads">+${col.count - col.sample.length} more leads</div>` : ''}
+            </div>
+          </div>
+        `;
+      }).join('');
+      
+      const html = `<!doctype html><html><head><meta charset="utf-8"><title>CRM Stages</title>
+      <style>
+        body{font-family:system-ui,Segoe UI,Arial;padding:16px;margin:0;background:#f8f9fa}
+        .stage-board{display:flex;gap:16px;overflow-x:auto;padding:16px 0}
+        .stage-column{background:white;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.1);min-width:280px;max-width:320px;flex-shrink:0}
+        .stage-header{padding:16px;border-bottom:1px solid #e9ecef;display:flex;justify-content:space-between;align-items:center}
+        .stage-header h3{margin:0;font-size:14px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px}
+        .stage-count{background:#6c757d;color:white;padding:4px 8px;border-radius:12px;font-size:12px;font-weight:500}
+        .stage-content{padding:8px;max-height:600px;overflow-y:auto}
+        .lead-card{background:#f8f9fa;border:1px solid #e9ecef;border-radius:6px;padding:12px;margin-bottom:8px}
+        .lead-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+        .lead-id{font-family:monospace;font-size:12px;color:#007bff;text-decoration:none}
+        .lead-id:hover{text-decoration:underline}
+        .grade-badge{font-size:10px;padding:2px 6px;border-radius:3px;font-weight:600}
+        .grade-a,.grade-aplus{background:#d4edda;color:#155724}
+        .grade-b,.grade-bplus{background:#d1ecf1;color:#0c5460}
+        .grade-c,.grade-cplus{background:#fff3cd;color:#856404}
+        .grade-d,.grade-dplus{background:#f8d7da;color:#721c24}
+        .lead-address{font-size:13px;font-weight:500;margin-bottom:4px}
+        .lead-owner{font-size:12px;color:#6c757d;margin-bottom:4px}
+        .lead-value{font-size:12px;color:#28a745;font-weight:500}
+        .more-leads{text-align:center;padding:8px;color:#6c757d;font-size:12px;font-style:italic}
+        .toolbar{background:white;padding:16px;margin-bottom:16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.1)}
+        .toolbar h1{margin:0 0 8px 0}
+        .toolbar p{margin:0;color:#6c757d}
+      </style></head>
+      <body>
+        <div class="toolbar">
+          <h1>CRM Stages</h1>
+          <p>Track leads through your sales pipeline</p>
+        </div>
+        <div class="stage-board">
+          ${columnsHtml}
+        </div>
+      </body></html>`;
+      
+      res.set('Content-Type', 'text/html; charset=utf-8').send(html);
+      
+    } catch (e) {
+      console.error('[Stages] HTML board error:', e);
+      return sendProblem(res, 'stage_board_html_error', String(e?.message || e), undefined, 500);
+    }
+  });
+
   // === Dialer Outcomes & Follow-ups ===
   
   // POST /dial/:dialId/disposition - Record disposition for a dial attempt
@@ -5087,10 +5961,14 @@ const startServer = async () => {
     console.log(`  - Analytics: http://localhost:${PORT}/api/zip-search-new/revenue-analytics`);
     console.log(`  - ATTOM Property Lookup: http://localhost:${PORT}/api/attom/property/address?address=123+Main+St&city=Beverly+Hills&state=CA&zip=90210`);
     
-    // Initialize and periodically update follow-up gauges
+    // Initialize and periodically update follow-up and stage gauges
     updateFollowupGauges();
-    const metricsInterval = setInterval(updateFollowupGauges, 5 * 60 * 1000); // Update every 5 minutes
-    console.log(`📊 Follow-up metrics gauges initialized (5 minute refresh interval)`);
+    updateStageGauges();
+    const metricsInterval = setInterval(() => {
+      updateFollowupGauges();
+      updateStageGauges();
+    }, 5 * 60 * 1000); // Update every 5 minutes
+    console.log(`📊 Follow-up and stage metrics gauges initialized (5 minute refresh interval)`);
     
     // Handle process termination gracefully
     const gracefulShutdown = (signal) => {

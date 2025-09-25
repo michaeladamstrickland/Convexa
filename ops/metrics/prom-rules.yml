@@ -17,6 +17,16 @@ groups:
     expr: followups_due_gauge
   - record: pi1_followups_overdue
     expr: followups_overdue_gauge
+  - record: pi2_campaign_queries_15m
+    expr: sum by(type)(increase(campaign_queries_total[15m]))
+  - record: pi2_stage_transitions_1d
+    expr: sum by(from,to)(increase(stage_transitions_total[1d]))
+  - record: pi2_grade_apply_1d
+    expr: increase(lead_grade_computations_total[1d])
+  - record: pi2_call_summaries_1d
+    expr: increase(call_summary_generated_total[1d])
+  - record: pi2_exports_7d
+    expr: increase(export_bundles_total{kind="weekly"}[7d])
 
   - alert: HighErrorRate
     expr: sum(rate(http_requests_total{status=~"5..", job="convexa"}[5m])) / sum(rate(http_requests_total{job="convexa"}[5m])) > 0.02
@@ -46,13 +56,13 @@ groups:
       description: "Webhook errors are increasing. Current rate: {{ $value }} errors/sec"
 
   - alert: DialDispositionStall
-    expr: (time() - max(dial_disposition_total_timestamp)) > 300
+    expr: (time() - max(dialer_disposition_total_timestamp)) > 300
     for: 5m
     labels:
       severity: critical
     annotations:
       summary: "Dial disposition metric stalled"
-      description: "The dial_disposition_total metric has not been updated for more than 5 minutes."
+      description: "The dialer_disposition_total metric has not been updated for more than 5 minutes."
 
   - alert: RedisDown
     expr: redis_up == 0

@@ -117,3 +117,39 @@ groups:
     annotations:
       summary: "No timeline events observed"
       description: "No timeline events have been observed in the last 2 hours. This might indicate an issue with event logging."
+
+  - alert: NoCampaignTraffic
+    expr: pi2_campaign_queries_15m == 0
+    for: 30m
+    labels:
+      severity: critical
+    annotations:
+      summary: "No campaign traffic observed"
+      description: "No campaign queries have been observed for 30 minutes. This might indicate an issue with campaign processing."
+
+  - alert: NoStageMovementToday
+    expr: sum(pi2_stage_transitions_1d) == 0
+    for: 24h
+    labels:
+      severity: critical
+    annotations:
+      summary: "No stage movement today"
+      description: "No stage transitions have been observed today. This might indicate an issue with lead progression."
+
+  - alert: NoSummariesToday
+    expr: pi2_call_summaries_1d == 0
+    for: 24h
+    labels:
+      severity: critical
+    annotations:
+      summary: "No call summaries generated today"
+      description: "No call summaries have been generated today. This might indicate an issue with the call summary service."
+
+  - alert: WeeklyExportMissing
+    expr: pi2_exports_7d == 0
+    for: 7d
+    labels:
+      severity: critical
+    annotations:
+      summary: "Weekly export missing"
+      description: "No weekly export bundles have been generated in the last 7 days. This might indicate an issue with the export process."

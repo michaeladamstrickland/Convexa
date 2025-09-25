@@ -9,7 +9,10 @@
     "**/*.spec.{ts,js}",
     "**/scripts/**",
     "**/ops/**",
-    "**/docs/**"
+    "**/docs/**",
+    "infra/guardrails.js",
+    "src/dto/v1/dialer.js",
+    "src/dto/v1/leads.js"
   ],
   "ignoreDependencies": [
     "@types/*",

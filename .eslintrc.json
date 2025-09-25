@@ -47,10 +47,11 @@
       "error",
       "ignorePackages",
       {
-        "js": "always",
-        "mjs": "always",
-        "ts": "never",
-        "tsx": "never"
+    "js": "always",
+    "mjs": "always",
+    "cjs": "always",
+    "ts": "never",
+    "tsx": "never"
       }
     ],
 

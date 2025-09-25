@@ -12,11 +12,25 @@ on:
     branches:
       - main
       - develop
+      - ops/staging-cutover
     types: [opened, synchronize, reopened]
 
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+    env:
+      CI: 'true'
+      NODE_ENV: 'test'
+      PORT: '0'
+      SQLITE_DB_PATH: '${{ runner.temp }}/ci.sqlite'
+      LOCAL_STORAGE_PATH: '${{ runner.temp }}/run_storage'
+      SKIP_TRACE_DEMO_MODE: 'true'
+      AI_CALLS_ENABLED: 'false'
+      BASIC_AUTH_USER: 'ci'
+      BASIC_AUTH_PASS: 'ci'
+      TWILIO_ACCOUNT_SID: 'stub'
+      TWILIO_AUTH_TOKEN: 'stub'
+      TWILIO_FROM_NUMBER: '+15555550123'
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -27,38 +41,20 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '20.x'
+          cache: 'npm'
 
       - name: Install dependencies (clean)
-        run: npm ci
+        run: npm ci --no-audit --no-fund
 
-      - name: Setup test environment  
-        run: |
-          mkdir -p backend/data ops/findings
-          # The integrated server will create and initialize its SQLite database automatically
+      - name: Run CI Prep
+        run: npm run ci:prep
 
-      - name: Run hygiene audit to generate required files
-        run: npm run hygiene:audit
+      - name: Run CI Tests
+        run: npm run ci:test
 
-      - name: Run PI1 smoke tests with server
-        env:
-          SQLITE_DB_PATH: ${{ github.workspace }}/backend/data/convexa.db
-        run: npm run smoke:pi1:all
-
-      - name: Check for required metrics in smoke output
-        run: |
-          grep -q "campaign_queries_total" ops/findings/pi1_metrics_sample.txt || { echo "campaign_queries_total not found in metrics sample!"; exit 1; }
-          grep -q "lead_grades_total" ops/findings/pi1_metrics_sample.txt || { echo "lead_grades_total not found in metrics sample!"; exit 1; }
-          grep -q "dialer_disposition_total" ops/findings/pi1_metrics_sample.txt || { echo "dialer_disposition_total not found in metrics sample!"; exit 1; }
-          grep -q "followups_created_total" ops/findings/pi1_metrics_sample.txt || { echo "followups_created_total not found in metrics sample!"; exit 1; }
-          grep -q "followups_completed_total" ops/findings/pi1_metrics_sample.txt || { echo "followups_completed_total not found in metrics sample!"; exit 1; }
-          grep -q "followups_due_gauge" ops/findings/pi1_metrics_sample.txt || { echo "followups_due_gauge not found in metrics sample!"; exit 1; }
-
-      - name: Run tests (Vitest with coverage)
-        run: npm run coverage
-
-      - name: Typecheck (server-only)
-        run: npm run typecheck
+      - name: Run CI Hygiene
+        run: npm run ci:hygiene
 
       - name: Upload artifacts (e.g., build output, test reports)
         uses: actions/upload-artifact@v4
@@ -67,12 +63,21 @@ jobs:
           if-no-files-found: ignore
           retention-days: 30
           path: |
-            dist/ # Adjust to your build output directory
-            coverage/ # Adjust to your test coverage report directory
-            test-results.xml # Adjust to your test results file
-            qa/smoke_output/ # Path to smoke test outputs (JSON/logs/PNG)
+            dist/
+            coverage/
+            test-results.xml
+            qa/smoke_output/
             ops/dashboards/convexa_pi1.json
+            ops/dashboards/convexa_pi2.json
             ops/findings/campaigns_smoke.md
             ops/findings/grades_recompute.md
             ops/findings/dial_followup_timeline.md
             ops/findings/pi1_metrics_sample.txt
+            ops/findings/pi2_campaigns_smoke.md
+            ops/findings/pi2_grades_smoke.md
+            ops/findings/pi2_stages_smoke.md
+            ops/findings/pi2_summary_smoke.md
+            ops/findings/pi2_export_smoke.md
+            ops/findings/pi2_metrics_sample.txt
+            ops/findings/ci_fail_root_cause.md
+            ops/findings/ci_pass_links.md
