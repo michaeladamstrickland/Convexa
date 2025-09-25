@@ -1,10 +1,9 @@
-const fetch = require('node-fetch');
 const fs = require('fs');
 const path = require('path');
 
 const BASE_URL = process.env.API_BASE_URL || 'http://localhost:5001';
-const BASIC_AUTH_USER = process.env.BASIC_AUTH_USER || 'admin';
-const BASIC_AUTH_PASS = process.env.BASIC_AUTH_PASS || 'admin';
+const BASIC_AUTH_USER = process.env.BASIC_AUTH_USER || 'staging';
+const BASIC_AUTH_PASS = process.env.BASIC_AUTH_PASS || 'RockyDog456';
 
 const AUTH_HEADER = 'Basic ' + Buffer.from(BASIC_AUTH_USER + ':' + BASIC_AUTH_PASS).toString('base64');
 
@@ -14,9 +13,17 @@ async function getTestLead() {
     const response = await fetch(leadsUrl, {
         headers: { 'Authorization': AUTH_HEADER }
     });
-    const data = await response.json();
-    if (response.ok && data.leads && data.leads.length > 0) {
-        return data.leads[0].id;
+    
+    let data;
+    const responseText = await response.text();
+    
+    try {
+        data = JSON.parse(responseText);
+        if (response.ok && data.leads && data.leads.length > 0) {
+            return data.leads[0].id;
+        }
+    } catch (parseError) {
+        console.log(`Failed to parse leads response as JSON. Status: ${response.status}`);
     }
     
     // If no leads exist, create a synthetic one for testing

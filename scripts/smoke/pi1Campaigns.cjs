@@ -1,10 +1,9 @@
-const fetch = require('node-fetch');
 const fs = require('fs');
 const path = require('path');
 
-const BASE_URL = process.env.API_BASE_URL || 'http://localhost:3000';
-const BASIC_AUTH_USER = process.env.BASIC_AUTH_USER || 'admin'; // Placeholder
-const BASIC_AUTH_PASS = process.env.BASIC_AUTH_PASS || 'admin'; // Placeholder
+const BASE_URL = process.env.API_BASE_URL || 'http://localhost:5001';
+const BASIC_AUTH_USER = process.env.BASIC_AUTH_USER || 'staging';
+const BASIC_AUTH_PASS = process.env.BASIC_AUTH_PASS || 'RockyDog456';
 
 const AUTH_HEADER = 'Basic ' + Buffer.from(BASIC_AUTH_USER + ':' + BASIC_AUTH_PASS).toString('base64');
 
@@ -49,26 +48,29 @@ async function runCampaignSmoke() {
 
         // Scrape /metrics
         const metricsUrl = `${BASE_URL}/metrics`;
-        const metricsResponse = await fetch(metricsUrl, {
-            headers: {
-                'Authorization': AUTH_HEADER
-            }
-        });
+        const metricsResponse = await fetch(metricsUrl);
         const metricsText = await metricsResponse.text();
 
-        // Filter metrics
-        const filteredMetrics = metricsText.split('\n').filter(line =>
-            line.startsWith('campaign_queries_total') ||
-            line.startsWith('lead_grade') ||
-            line.startsWith('followups') ||
-            line.startsWith('dial_disposition') ||
-            line.startsWith('http_requests_total') ||
-            line.startsWith('# HELP') || // Include help lines for context
-            line.startsWith('# TYPE') // Include type lines for context
-        ).join('\n');
+        // Check if we got valid metrics (not HTML error page)
+        if (metricsText.startsWith('<!DOCTYPE') || metricsText.includes('<html>')) {
+            metricsOutput += `### Metrics from ${metricsUrl}\n\n`;
+            metricsOutput += `❌ Got HTML error page instead of metrics. Status: ${metricsResponse.status}\n\n`;
+            metricsOutput += `\`\`\`html\n${metricsText.substring(0, 300)}...\n\`\`\`\n\n`;
+        } else {
+            // Filter metrics
+            const filteredMetrics = metricsText.split('\n').filter(line =>
+                line.startsWith('campaign_queries_total') ||
+                line.startsWith('lead_grade') ||
+                line.startsWith('followups') ||
+                line.startsWith('dial_disposition') ||
+                line.startsWith('http_requests_total') ||
+                line.startsWith('# HELP') || // Include help lines for context
+                line.startsWith('# TYPE') // Include type lines for context
+            ).join('\n');
 
-        metricsOutput += `### Metrics from ${metricsUrl}\n\n`;
-        metricsOutput += `\`\`\`\n${filteredMetrics}\n\`\`\`\n\n`;
+            metricsOutput += `### Metrics from ${metricsUrl}\n\n`;
+            metricsOutput += `\`\`\`\n${filteredMetrics}\n\`\`\`\n\n`;
+        }
 
         fs.writeFileSync(path.join(findingsDir, 'pi1_metrics_sample.txt'), metricsOutput);
         console.log('Metrics sample saved to ops/findings/pi1_metrics_sample.txt');

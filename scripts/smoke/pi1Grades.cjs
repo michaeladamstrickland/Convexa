@@ -1,10 +1,9 @@
-const fetch = require('node-fetch');
 const fs = require('fs');
 const path = require('path');
 
-const BASE_URL = process.env.API_BASE_URL || 'http://localhost:3000';
-const BASIC_AUTH_USER = process.env.BASIC_AUTH_USER || 'admin'; // Placeholder
-const BASIC_AUTH_PASS = process.env.BASIC_AUTH_PASS || 'admin'; // Placeholder
+const BASE_URL = process.env.API_BASE_URL || 'http://localhost:5001';
+const BASIC_AUTH_USER = process.env.BASIC_AUTH_USER || 'staging'; 
+const BASIC_AUTH_PASS = process.env.BASIC_AUTH_PASS || 'RockyDog456';
 
 const AUTH_HEADER = 'Basic ' + Buffer.from(BASIC_AUTH_USER + ':' + BASIC_AUTH_PASS).toString('base64');
 
@@ -22,7 +21,20 @@ async function runGradesSmoke() {
                 'Content-Type': 'application/json'
             }
         });
-        const recomputeData = await recomputeResponse.json();
+        
+        let recomputeData;
+        const recomputeText = await recomputeResponse.text();
+        
+        try {
+            recomputeData = JSON.parse(recomputeText);
+        } catch (parseError) {
+            recomputeData = { 
+                error: 'Failed to parse JSON', 
+                status: recomputeResponse.status,
+                responseText: recomputeText.substring(0, 300) + (recomputeText.length > 300 ? '...' : '')
+            };
+        }
+        
         output += `## Grade Recompute\n\n`;
         output += `### Request URL:\n\`${recomputeUrl}\`\n\n`;
         output += `### Response Status: ${recomputeResponse.status}\n\n`;
