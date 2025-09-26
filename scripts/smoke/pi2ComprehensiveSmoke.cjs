@@ -178,39 +178,28 @@ async function testCRMStages() {
 async function testCallSummary() {
   console.log('🤖 Testing AI Call Summary v0...');
   const results = [];
-  const testDialId = 'smoke-test-dial-' + Date.now();
   
-  // Create a sample transcript first
-  const transcriptDir = path.join(__dirname, '../../backend/data/artifacts/dialer/transcripts');
   try {
-    fs.mkdirSync(transcriptDir, { recursive: true });
-    const sampleTranscript = {
-      dial_id: testDialId,
-      transcript: "Hello, I'm interested in selling my property. How much would you offer? I need to sell soon.",
-      generated_at: new Date().toISOString()
+    // Test call summary generation with PI2 endpoint
+    const summaryPayload = {
+      lead_id: 'smoke-test-lead-' + Date.now(),
+      call_transcript: "Hello, I'm interested in selling my property. How much would you offer? I need to sell soon.",
+      call_duration_seconds: 120
     };
-    fs.writeFileSync(path.join(transcriptDir, `${testDialId}.json`), JSON.stringify(sampleTranscript, null, 2));
     
-    // Test call summary generation
-    const response = await makeRequest(`${BASE_URL}/dial/${testDialId}/summarize`, {
-      method: 'POST'
+    const response = await makeRequest(`${BASE_URL}/api/ai/call-summary`, {
+      method: 'POST',
+      body: JSON.stringify(summaryPayload)
     });
     
     const data = await response.json();
     
-    if (data.ok && data.summary && data.summaryUrl) {
+    if (data.summary && data.processing_method && data.summary.sentiment && data.summary.main_points && data.summary.next_actions) {
       results.push('✅ Call summary generation successful');
-      if (data.summary.sentiment && data.summary.key_points) {
-        results.push(`✅ Call summary includes sentiment (${data.summary.sentiment}) and key points (${data.summary.key_points.length} points)`);
-      }
+      results.push(`✅ Call summary includes sentiment (${data.summary.sentiment}) and ${data.summary.main_points.length} main points`);
     } else {
       results.push('❌ Call summary generation failed or invalid response');
     }
-    
-    // Clean up test transcript
-    try {
-      fs.unlinkSync(path.join(transcriptDir, `${testDialId}.json`));
-    } catch (e) {}
     
   } catch (error) {
     results.push(`❌ Call summary error: ${error.message}`);

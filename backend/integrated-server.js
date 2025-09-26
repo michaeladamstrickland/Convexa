@@ -3136,7 +3136,7 @@ const startServer = async () => {
             break;
           case 'absentee':
             // Heuristic: owner mailing address different or out-of-area phone numbers
-            where.push('(owner_name IS NOT NULL AND owner_name != "")');
+            where.push("(owner_name IS NOT NULL AND owner_name != '')");
             criteria_used.push('owner presence (absentee heuristic)');
             break;
           default:
@@ -3280,7 +3280,7 @@ const startServer = async () => {
               criteria_used.push('vacant');
               break;
             case 'absentee':
-              where.push('(owner_name IS NOT NULL AND owner_name != "")');
+              where.push("(owner_name IS NOT NULL AND owner_name != '')");
               criteria_used.push('absentee heuristic');
               break;
             case 'high_equity':
