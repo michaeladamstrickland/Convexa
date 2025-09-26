@@ -15,9 +15,9 @@ if (!process.env.SQLITE_DB_PATH) process.env.SQLITE_DB_PATH = path.join(repoRoot
 if (process.env.SKIP_TRACE_DEMO_MODE == null) process.env.SKIP_TRACE_DEMO_MODE = 'true';
 if (!process.env.SKIP_TRACE_PRIMARY_PROVIDER) process.env.SKIP_TRACE_PRIMARY_PROVIDER = 'batchdata';
 if (process.env.SKIP_TRACE_FALLBACK_ENABLED == null) process.env.SKIP_TRACE_FALLBACK_ENABLED = 'false';
-// Set basic auth defaults for development/staging
-if (!process.env.BASIC_AUTH_USER) process.env.BASIC_AUTH_USER = 'staging';
-if (!process.env.BASIC_AUTH_PASS) process.env.BASIC_AUTH_PASS = 'RockyDog456';
+// Set basic auth defaults for development/staging only if not explicitly set (including empty string)
+if (process.env.BASIC_AUTH_USER === undefined) process.env.BASIC_AUTH_USER = 'staging';
+if (process.env.BASIC_AUTH_PASS === undefined) process.env.BASIC_AUTH_PASS = 'RockyDog456';
 
 // Ensure DB directory exists
 try {
@@ -32,7 +32,13 @@ console.log('[Launcher] SKIP_TRACE_DEMO_MODE =', process.env.SKIP_TRACE_DEMO_MOD
 console.log('[Launcher] SKIP_TRACE_PRIMARY_PROVIDER =', process.env.SKIP_TRACE_PRIMARY_PROVIDER);
 console.log('[Launcher] SKIP_TRACE_FALLBACK_ENABLED =', process.env.SKIP_TRACE_FALLBACK_ENABLED);
 
-// Import the integrated server (it self-starts)
+// Import the integrated server and explicitly start it
 const serverEntry = path.resolve(repoRoot, 'backend', 'integrated-server.js');
 const serverUrl = pathToFileURL(serverEntry).href;
-await import(serverUrl);
+const { startServer } = await import(serverUrl);
+
+// Start the server
+await startServer().catch(error => {
+  console.error('Failed to start server:', error);
+  process.exit(1);
+});

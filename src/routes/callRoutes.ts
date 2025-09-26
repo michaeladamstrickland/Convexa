@@ -2,6 +2,9 @@ import express, { Router } from 'express';
 import { prisma } from '../db/prisma';
 import { analyzeCallTranscript } from '../services/callAnalysisService';
 import { enqueueWebhookDelivery } from '../queues/webhookQueue';
+import twilio from 'twilio';
+
+const VoiceResponse = twilio.twiml.VoiceResponse;
 
 // In-memory metrics for calls
 export const callMetrics = ((global as any).__CALL_METRICS__ = (global as any).__CALL_METRICS__ || {
@@ -10,6 +13,10 @@ export const callMetrics = ((global as any).__CALL_METRICS__ = (global as any)._
   transcriptionLatencyMs: [] as number[],
   scoringLatencyMs: [] as number[],
   summary: { success: 0, fail: 0 },
+  connectedCalls: 0, // New metric for PI3
+  intentsDetected: 0, // New metric for PI3
+  agentLatencyMs: [] as number[], // New metric for PI3 (histogram)
+  blockedCalls: 0, // New metric for PI3
 });
 
 // Live transcript/summary counters
@@ -63,6 +70,11 @@ router.post('/transcript', async (req, res) => {
     let transcript: string | undefined = body.transcript || body.text || body.transcript_text;
     if (!transcript && Array.isArray(body.utterances)) {
       transcript = (body.utterances as any[]).map(u => u.text).join(' ');
+    }
+    // Redact PII from the transcript
+    if (transcript) {
+      const { redactPII } = require('../utils/piiRedactor');
+      transcript = redactPII(transcript);
     }
     const leadId = body.leadId || body?.metadata?.leadId;
     const userId = body.userId || body?.metadata?.userId;
@@ -342,26 +354,82 @@ function verifyTwilio(_req: any): boolean {
   return !!process.env.TWILIO_AUTH_TOKEN; // non-zero token considered pass in this stub
 }
 
-// POST /api/calls/webhooks/twilio
-twilioRouter.post('/webhooks/twilio', async (req, res) => {
+// POST /twilio/voice/answer - Handles incoming calls and provides TwiML instructions
+twilioRouter.post('/twilio/voice/answer', async (req, res) => {
+  if (!verifyTwilio(req)) return res.status(403).json({ error: 'signature_invalid' });
+  try {
+    const twiml = new VoiceResponse();
+    twiml.say('Hello from Convexa AI. Please wait while we connect you.');
+    twiml.record({
+      transcribe: true,
+      transcribeCallback: '/twilio/recording-complete',
+      maxLength: 3600, // 1 hour max recording
+      timeout: 10,
+      playBeep: true,
+    });
+    twiml.hangup();
+    res.type('text/xml').send(twiml.toString());
+  } catch (e: any) {
+    console.error('[twilio/voice/answer] error', e?.message || e);
+    res.status(500).json({ error: 'twilio_voice_answer_failed', message: e?.message });
+  }
+});
+
+// POST /twilio/voice/status - Handles call status updates
+twilioRouter.post('/twilio/voice/status', async (req, res) => {
   if (!verifyTwilio(req)) return res.status(403).json({ error: 'signature_invalid' });
   try {
     const b = req.body || {};
-    const callSid = b.CallSid || b.CallSid || b.CallSid; // Twilio passes CallSid
-    const recordingUrl = b.RecordingUrl || b.RecordingUrl;
-    const digits = b.Digits || b.DTMF || b.DtmfDigits;
-    if (!callSid) return res.status(400).json({ error: 'missing_callSid' });
-    await (prisma as any).callTranscript.upsert({
-      where: { callSid },
-      update: { recordingUrl: recordingUrl || undefined, dtmfCaptured: digits || undefined },
-      create: { callSid, recordingUrl: recordingUrl || undefined, dtmfCaptured: digits || undefined },
-    });
-    if (digits) {
-      await createLiveTranscriptActivity({ callSid, content: `DTMF: ${digits}` });
-    }
+    const callSid = b.CallSid;
+    const callStatus = b.CallStatus;
+    console.log(`[twilio/voice/status] Call ${callSid} status: ${callStatus}`);
+    // Here you might update a database record for the call status
+    // For now, just acknowledge
     res.json({ success: true });
   } catch (e: any) {
-    res.status(500).json({ error: 'twilio_ingest_failed', message: e?.message });
+    console.error('[twilio/voice/status] error', e?.message || e);
+    res.status(500).json({ error: 'twilio_voice_status_failed', message: e?.message });
+  }
+});
+
+// POST /twilio/recording-complete - Handles recording completion
+twilioRouter.post('/twilio/recording-complete', async (req, res) => {
+  if (!verifyTwilio(req)) return res.status(403).json({ error: 'signature_invalid' });
+  try {
+    const b = req.body || {};
+    const callSid = b.CallSid;
+    const recordingUrl = b.RecordingUrl;
+    const transcriptText = b.TranscriptionText; // Twilio can transcribe recordings
+    if (!callSid) return res.status(400).json({ error: 'missing_callSid' });
+
+    await (prisma as any).callTranscript.upsert({
+      where: { callSid },
+      update: { recordingUrl: recordingUrl || undefined, transcript: transcriptText || undefined },
+      create: { callSid, recordingUrl: recordingUrl || undefined, transcript: transcriptText || undefined },
+    });
+
+    if (transcriptText) {
+      await createLiveTranscriptActivity({ callSid, content: `Twilio Transcription: ${transcriptText}` });
+      // Optionally trigger analysis if a full transcript is available
+      // This would be similar to the AssemblyAI webhook logic
+      try {
+        const analysis = await analyzeCallTranscript(transcriptText);
+        const summary = analysis.summary;
+        const score = typeof analysis.motivationScore === 'number' ? analysis.motivationScore : 0;
+        const tags: string[] = [];
+        if (analysis.outcome) tags.push(`outcome:${analysis.outcome}`);
+        if (analysis.sentiment) tags.push(`sentiment:${analysis.sentiment}`);
+        await (prisma as any).callAnalysis.upsert({ where: { callSid }, update: { summary, score, tags }, create: { callSid, transcriptId: (await (prisma as any).callTranscript.findUnique({ where: { callSid } }))?.id, summary, score, tags } });
+        await createLiveSummaryActivity({ callSid, summary, score, tags });
+      } catch (analysisError) {
+        console.error('[twilio/recording-complete] Analysis failed:', analysisError);
+      }
+    }
+
+    res.json({ success: true });
+  } catch (e: any) {
+    console.error('[twilio/recording-complete] error', e?.message || e);
+    res.status(500).json({ error: 'twilio_recording_complete_failed', message: e?.message });
   }
 });
 

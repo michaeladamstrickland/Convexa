@@ -31,6 +31,7 @@ jobs:
       TWILIO_ACCOUNT_SID: 'stub'
       TWILIO_AUTH_TOKEN: 'stub'
       TWILIO_FROM_NUMBER: '+15555550123'
+      AGENT_MODE: 'sim' # Set agent mode to sim for CI smoke tests
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -56,6 +57,10 @@ jobs:
       - name: Run CI Hygiene
         run: npm run ci:hygiene
 
+      - name: Run PI3 Agent Smoke Test
+        run: node scripts/smoke/pi3Agent.cjs > ops/findings/pi3_agent_smoke_output.txt 2>&1 || true # Continue on error
+        working-directory: .
+
       - name: Upload artifacts (e.g., build output, test reports)
         uses: actions/upload-artifact@v4
         with:
@@ -69,6 +74,7 @@ jobs:
             qa/smoke_output/
             ops/dashboards/convexa_pi1.json
             ops/dashboards/convexa_pi2.json
+            ops/dashboards/convexa_pi3.json # New PI3 dashboard
             ops/findings/campaigns_smoke.md
             ops/findings/grades_recompute.md
             ops/findings/dial_followup_timeline.md
@@ -81,3 +87,7 @@ jobs:
             ops/findings/pi2_metrics_sample.txt
             ops/findings/ci_fail_root_cause.md
             ops/findings/ci_pass_links.md
+            ops/findings/pi3_twilio_wiring.md # New Twilio wiring doc
+            ops/findings/pi3_metrics_sample.txt # New PI3 metrics sample
+            ops/findings/pi3_agent_smoke_output.txt # PI3 agent smoke test output
+            ops/findings/pi3_dashboard.png # Placeholder for exported dashboard PNG

@@ -8,7 +8,28 @@ import { fileURLToPath } from 'url';
 
 // Mock prom-client to track metric increments
 const mockInc = vi.fn();
-const mockCounter = vi.fn(() => ({ inc: mockInc }));
+const mockDialerInc = vi.fn();  // Separate mock for dialer metrics
+const mockFollowupCreatedInc = vi.fn(); // Separate mock for followup creation metrics
+const mockFollowupCompletedInc = vi.fn(); // Separate mock for followup completion metrics
+const mockRequestInc = vi.fn();  // Separate mock for request metrics
+
+let counterCallCount = 0;
+const mockCounter = vi.fn((config) => {
+  counterCallCount++;
+  // Return different mock inc functions for different counters
+  if (config?.name === 'dialer_disposition_total') {
+    return { inc: mockDialerInc };
+  } else if (config?.name === 'followups_created_total') {
+    return { inc: mockFollowupCreatedInc };
+  } else if (config?.name === 'followups_completed_total') {
+    return { inc: mockFollowupCompletedInc };
+  } else if (config?.name?.includes('request')) {
+    return { inc: mockRequestInc };
+  } else {
+    return { inc: mockInc };
+  }
+});
+
 const mockGauge = vi.fn(() => ({ set: vi.fn() }));
 const mockHistogram = vi.fn(() => ({ observe: vi.fn() }));
 
@@ -36,13 +57,21 @@ describe('PI1 Dialer Routes', () => {
     if (fs.existsSync(testDbPath)) fs.unlinkSync(testDbPath);
     
     // Set up test environment
-    process.env.DATABASE_URL = `sqlite:${testDbPath}`;
+    process.env.SQLITE_DB_PATH = testDbPath;
     process.env.NODE_ENV = 'test';
+    // Disable basic auth for tests
+    delete process.env.BASIC_AUTH_USER;
+    delete process.env.BASIC_AUTH_PASS;
     
     // Import and setup the integrated server
     const serverModule = await import('../../backend/integrated-server.js');
-    app = serverModule.default;
+    app = await serverModule.startServer({ listen: false });
     request = supertest(app);
+    
+    // Import test data once for all tests
+    await request
+      .post('/import/test-data')
+      .send([]);
   });
   
   afterAll(() => {
@@ -57,8 +86,13 @@ describe('PI1 Dialer Routes', () => {
   });
   
   beforeEach(() => {
-    // Reset mocks
+    // Reset all mocks
     vi.clearAllMocks();
+    mockInc.mockClear();
+    mockDialerInc.mockClear(); 
+    mockFollowupCreatedInc.mockClear();
+    mockFollowupCompletedInc.mockClear();
+    mockRequestInc.mockClear();
   });
   
   describe('POST /dial/:dialId/disposition', () => {
@@ -116,7 +150,7 @@ describe('PI1 Dialer Routes', () => {
         .expect(200);
       
       // Verify metric was incremented with proper labels
-      expect(mockInc).toHaveBeenCalledWith({
+      expect(mockDialerInc).toHaveBeenCalledWith({
         type: 'voicemail',
         grade_label: expect.any(String) // Will be 'ungraded' for test leads
       });
@@ -136,7 +170,7 @@ describe('PI1 Dialer Routes', () => {
       }
       
       // Verify metrics were called for each type
-      expect(mockInc).toHaveBeenCalledTimes(validTypes.length);
+      expect(mockDialerInc).toHaveBeenCalledTimes(validTypes.length);
     });
   });
   
@@ -224,7 +258,7 @@ describe('PI1 Dialer Routes', () => {
         })
         .expect(200);
       
-      expect(mockInc).toHaveBeenCalledWith({
+      expect(mockFollowupCreatedInc).toHaveBeenCalledWith({
         channel: 'sms',
         priority: 'med'
       });
@@ -253,7 +287,7 @@ describe('PI1 Dialer Routes', () => {
         }
       }
       
-      expect(mockInc).toHaveBeenCalledTimes(validChannels.length * validPriorities.length);
+      expect(mockFollowupCreatedInc).toHaveBeenCalledTimes(validChannels.length * validPriorities.length);
     });
   });
   
@@ -337,7 +371,7 @@ describe('PI1 Dialer Routes', () => {
         .send({ status: 'done' })
         .expect(200);
       
-      expect(mockInc).toHaveBeenCalledWith({ status: 'done' });
+      expect(mockFollowupCompletedInc).toHaveBeenCalledWith({ status: 'done' });
     });
     
     it('should handle all valid status transitions', async () => {
@@ -363,7 +397,7 @@ describe('PI1 Dialer Routes', () => {
         expect(response.body.ok).toBe(true);
       }
       
-      expect(mockInc).toHaveBeenCalledTimes(validStatuses.length);
+      expect(mockFollowupCompletedInc).toHaveBeenCalledTimes(validStatuses.length);
     });
   });
   

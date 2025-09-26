@@ -4,9 +4,11 @@ rule_files:
   - /etc/prometheus/rules/prom-rules.yml
 scrape_configs:
   - job_name: "convexa"
+    metrics_path: /api/dev/metrics
     static_configs:
       - targets:
           # Windows + Docker Desktop: app runs on host
+          - "host.docker.internal:5001" # Backend server
           - "host.docker.internal:6027"
           - "host.docker.internal:6033"
           - "host.docker.internal:6035"

@@ -28,6 +28,35 @@ groups:
   - record: pi2_exports_7d
     expr: increase(export_bundles_total{kind="weekly"}[7d])
 
+  # PI3 Rules
+  - record: convexa_calls_connected_rate_5m
+    expr: sum(rate(convexa_calls_connected_total[5m]))
+  - record: convexa_intents_detected_rate_5m
+    expr: sum(rate(convexa_intents_detected_total[5m]))
+  - record: convexa_agent_latency_p95_5m
+    expr: histogram_quantile(0.95, sum by(le) (rate(convexa_agent_latency_ms_bucket[5m])))
+  - record: convexa_calls_blocked_rate_5m
+    expr: sum(rate(convexa_calls_blocked_total[5m]))
+
+  # PI3 Alerts
+  - alert: HighBlockedCallRate
+    expr: convexa_calls_blocked_rate_5m > 0.1 # More than 10% of calls blocked
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "High rate of blocked calls detected"
+      description: "The rate of blocked calls is above 10% for 5 minutes. Current rate: {{ $value | humanizePercentage }}"
+
+  - alert: HighAgentLatency
+    expr: convexa_agent_latency_p95_5m > 1000 # p95 latency above 1 second
+    for: 5m
+    labels:
+      severity: critical
+    annotations:
+      summary: "High p95 agent latency detected"
+      description: "The p95 agent latency has been above 1 second for 5 minutes. Current value: {{ $value }}ms"
+
   - alert: HighErrorRate
     expr: sum(rate(http_requests_total{status=~"5..", job="convexa"}[5m])) / sum(rate(http_requests_total{job="convexa"}[5m])) > 0.02
     for: 5m
