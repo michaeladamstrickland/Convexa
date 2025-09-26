@@ -59,7 +59,7 @@ router.post('/transcript', async (req, res) => {
   try {
     const body = req.body || {};
     // Accept multiple vendor payloads (AssemblyAI, manual)
-    let callSid = body.callSid || body.call_sid || body?.metadata?.callSid || body?.metadata?.call_sid;
+    const callSid = body.callSid || body.call_sid || body?.metadata?.callSid || body?.metadata?.call_sid;
     let transcript: string | undefined = body.transcript || body.text || body.transcript_text;
     if (!transcript && Array.isArray(body.utterances)) {
       transcript = (body.utterances as any[]).map(u => u.text).join(' ');
@@ -312,8 +312,8 @@ assemblyAiRouter.post('/webhooks/assemblyai', async (req, res) => {
           const analysis = await analyzeCallTranscript(ct.transcript);
           // Persist standard analysis + crm activity call.summary (idempotent)
           // Reuse existing /analyze path logic by invoking directly
-          let summary = analysis.summary;
-          let score = typeof analysis.motivationScore === 'number' ? analysis.motivationScore : 0;
+          const summary = analysis.summary;
+          const score = typeof analysis.motivationScore === 'number' ? analysis.motivationScore : 0;
           const tags: string[] = [];
           if (analysis.outcome) tags.push(`outcome:${analysis.outcome}`);
           if (analysis.sentiment) tags.push(`sentiment:${analysis.sentiment}`);

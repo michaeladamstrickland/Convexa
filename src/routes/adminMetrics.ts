@@ -446,6 +446,6 @@ router.get('/delivery-history', async (req, res) => {
 
 
 // Expose metrics reference for devQueueRoutes metrics endpoint to scrape
-;(global as any).__EXPORT_METRICS__ = exportMetrics;
+(global as any).__EXPORT_METRICS__ = exportMetrics;
 
 export default router;
