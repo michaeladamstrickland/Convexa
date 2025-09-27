@@ -1,0 +1,28 @@
+{
+  "extends": "./backend/tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "skipLibCheck": true,
+    "strict": false,
+    "noImplicitAny": false,
+    "strictNullChecks": false,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false
+  },
+  "include": [
+    "backend/src/middleware/auth.ts",
+    "backend/src/routes/organizations.ts",
+    "backend/src/routes/auth.ts",
+    "backend/src/routes/analytics.ts",
+    "backend/src/routes/campaigns.ts",
+    "backend/src/routes/leads.ts",
+    "backend/src/services/aiService.ts",
+    "backend/src/services/realPropertyDataService.ts",
+    "backend/src/services/skipTraceService.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "**/*.test.ts",
+    "**/*.spec.ts"
+  ]
+}

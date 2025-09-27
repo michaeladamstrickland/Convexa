@@ -36,7 +36,7 @@ router.post('/search-zip', async (req, res) => {
     // Search leads by zip code in address
     const leads = await prisma.lead.findMany({
       where: {
-        address: {
+        propertyAddress: {
           contains: zipCode
         }
       },
@@ -51,16 +51,16 @@ router.post('/search-zip', async (req, res) => {
     // Format the lead response for consistent API
     const formattedLeads = leads.map(lead => ({
       id: lead.id,
-      propertyAddress: lead.address,
-      ownerName: lead.owner_name,
-      estimatedValue: lead.estimated_value,
+      propertyAddress: lead.propertyAddress,
+      ownerName: lead.ownerName,
+      estimatedValue: lead.estimatedValue,
       equity: lead.equity,
-      motivationScore: lead.motivation_score,
-      temperatureTag: lead.temperature_tag,
+      motivationScore: lead.motivationScore,
+      temperatureTag: lead.temperatureTag,
       status: lead.status,
-      source: lead.source_type,
-      createdAt: lead.created_at,
-      updatedAt: lead.updated_at
+      source: lead.source,
+      createdAt: lead.createdAt,
+      updatedAt: lead.updatedAt
     }));
     
     res.json({
@@ -96,8 +96,8 @@ router.post('/search-multiple-zips', async (req, res) => {
         OR: whereConditions
       },
       orderBy: [
-        { lead_score: 'desc' },
-        { estimated_value: 'desc' }
+        { motivationScore: 'desc' },
+        { estimatedValue: 'desc' }
       ]
     });
     
