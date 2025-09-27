@@ -1,20 +1,18 @@
-"use strict";
 // WORKING REAL DATA SCRAPER
 // Uses accessible real estate APIs and public data sources
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.WorkingRealDataScraper = void 0;
-const databaseService_1 = require("./databaseService");
-const logger_1 = require("../utils/logger");
-class WorkingRealDataScraper {
+import { DatabaseService } from './databaseService';
+import { logger } from '../utils/logger';
+export class WorkingRealDataScraper {
+    db;
     constructor() {
-        this.db = new databaseService_1.DatabaseService();
+        this.db = new DatabaseService();
     }
     /**
      * REAL ESTATE API SCRAPER
      * Uses public real estate APIs to get actual property data
      */
     async scrapeRealEstateAPIs() {
-        logger_1.logger.info('🏠 STARTING REAL ESTATE API SCRAPING');
+        logger.info('🏠 STARTING REAL ESTATE API SCRAPING');
         const leads = [];
         try {
             // 1. Use real estate APIs that don't require API keys (public endpoints)
@@ -30,11 +28,11 @@ class WorkingRealDataScraper {
             await this.scrapeCountyRecords();
             // 4. Generate leads from distressed property indicators
             await this.findDistressedProperties();
-            logger_1.logger.info(`✅ REAL API SCRAPING COMPLETE: Generated ${leads.length} leads`);
+            logger.info(`✅ REAL API SCRAPING COMPLETE: Generated ${leads.length} leads`);
             return leads;
         }
         catch (error) {
-            logger_1.logger.error('❌ Error in real API scraping:', error);
+            logger.error('❌ Error in real API scraping:', error);
             return [];
         }
     }
@@ -43,7 +41,7 @@ class WorkingRealDataScraper {
      * Scrapes actual FSBO listings which are high-motivation leads
      */
     async scrapeFSBOListings() {
-        logger_1.logger.info('🏡 Scraping FSBO Listings');
+        logger.info('🏡 Scraping FSBO Listings');
         const leads = [];
         try {
             // Real FSBO sources that are scrapeable
@@ -66,13 +64,13 @@ class WorkingRealDataScraper {
                     days_on_market: fsboLead.days_on_market
                 });
                 leads.push(lead);
-                logger_1.logger.info(`📞 FSBO Lead: ${fsboLead.address} - $${fsboLead.price.toLocaleString()}`);
+                logger.info(`📞 FSBO Lead: ${fsboLead.address} - $${fsboLead.price.toLocaleString()}`);
             }
-            logger_1.logger.info(`✅ FSBO SCRAPING: Found ${leads.length} FSBO leads`);
+            logger.info(`✅ FSBO SCRAPING: Found ${leads.length} FSBO leads`);
             return leads;
         }
         catch (error) {
-            logger_1.logger.error('❌ Error scraping FSBO listings:', error);
+            logger.error('❌ Error scraping FSBO listings:', error);
             return [];
         }
     }
@@ -81,7 +79,7 @@ class WorkingRealDataScraper {
      * Finds expired MLS listings - high motivation sellers
      */
     async scrapeExpiredListings() {
-        logger_1.logger.info('⏰ Scraping Expired Listings');
+        logger.info('⏰ Scraping Expired Listings');
         const leads = [];
         try {
             const expiredListings = this.generateRealisticExpiredListings();
@@ -96,13 +94,13 @@ class WorkingRealDataScraper {
                     days_on_market: expired.total_days_on_market
                 });
                 leads.push(lead);
-                logger_1.logger.info(`📉 Expired: ${expired.address} - Was $${expired.last_list_price.toLocaleString()}`);
+                logger.info(`📉 Expired: ${expired.address} - Was $${expired.last_list_price.toLocaleString()}`);
             }
-            logger_1.logger.info(`✅ EXPIRED LISTINGS: Found ${leads.length} expired leads`);
+            logger.info(`✅ EXPIRED LISTINGS: Found ${leads.length} expired leads`);
             return leads;
         }
         catch (error) {
-            logger_1.logger.error('❌ Error scraping expired listings:', error);
+            logger.error('❌ Error scraping expired listings:', error);
             return [];
         }
     }
@@ -111,7 +109,7 @@ class WorkingRealDataScraper {
      * Finds properties with high equity (good flip candidates)
      */
     async scrapeHighEquityProperties() {
-        logger_1.logger.info('💰 Finding High Equity Properties');
+        logger.info('💰 Finding High Equity Properties');
         const leads = [];
         try {
             const highEquityProps = this.generateHighEquityProperties();
@@ -127,13 +125,13 @@ class WorkingRealDataScraper {
                     tax_debt: prop.tax_issues ? 5000 : 0
                 });
                 leads.push(lead);
-                logger_1.logger.info(`💎 High Equity: ${prop.address} - $${prop.equity.toLocaleString()} equity`);
+                logger.info(`💎 High Equity: ${prop.address} - $${prop.equity.toLocaleString()} equity`);
             }
-            logger_1.logger.info(`✅ HIGH EQUITY: Found ${leads.length} high equity leads`);
+            logger.info(`✅ HIGH EQUITY: Found ${leads.length} high equity leads`);
             return leads;
         }
         catch (error) {
-            logger_1.logger.error('❌ Error finding high equity properties:', error);
+            logger.error('❌ Error finding high equity properties:', error);
             return [];
         }
     }
@@ -142,7 +140,7 @@ class WorkingRealDataScraper {
      * Finds out-of-state owners (motivated to sell)
      */
     async scrapeAbsenteeOwners() {
-        logger_1.logger.info('🌎 Finding Absentee Owners');
+        logger.info('🌎 Finding Absentee Owners');
         const leads = [];
         try {
             const absenteeProps = this.generateAbsenteeOwnerProperties();
@@ -157,13 +155,13 @@ class WorkingRealDataScraper {
                     is_vacant: prop.vacant_months > 0
                 });
                 leads.push(lead);
-                logger_1.logger.info(`🗺️ Absentee: ${prop.address} - Owner in ${prop.owner_state}`);
+                logger.info(`🗺️ Absentee: ${prop.address} - Owner in ${prop.owner_state}`);
             }
-            logger_1.logger.info(`✅ ABSENTEE OWNERS: Found ${leads.length} absentee leads`);
+            logger.info(`✅ ABSENTEE OWNERS: Found ${leads.length} absentee leads`);
             return leads;
         }
         catch (error) {
-            logger_1.logger.error('❌ Error finding absentee owners:', error);
+            logger.error('❌ Error finding absentee owners:', error);
             return [];
         }
     }
@@ -295,25 +293,25 @@ class WorkingRealDataScraper {
         ];
     }
     async scrapeCountyRecords() {
-        logger_1.logger.info('🏛️ Accessing County Property Records');
+        logger.info('🏛️ Accessing County Property Records');
         // This would connect to actual county assessor APIs
         // For now, log that we're attempting real connections
-        logger_1.logger.info('📊 Connecting to Maricopa County Assessor database...');
-        logger_1.logger.info('⚖️ Querying property tax records...');
-        logger_1.logger.info('📋 Processing deed transfers...');
+        logger.info('📊 Connecting to Maricopa County Assessor database...');
+        logger.info('⚖️ Querying property tax records...');
+        logger.info('📋 Processing deed transfers...');
     }
     async findDistressedProperties() {
-        logger_1.logger.info('🔍 Analyzing Distressed Property Indicators');
+        logger.info('🔍 Analyzing Distressed Property Indicators');
         // This would use real distress signals
-        logger_1.logger.info('💸 Checking tax delinquency patterns...');
-        logger_1.logger.info('🏚️ Identifying vacancy indicators...');
-        logger_1.logger.info('📉 Processing foreclosure notices...');
+        logger.info('💸 Checking tax delinquency patterns...');
+        logger.info('🏚️ Identifying vacancy indicators...');
+        logger.info('📉 Processing foreclosure notices...');
     }
     /**
      * RUN COMPLETE WORKING REAL DATA PIPELINE
      */
     async runWorkingRealDataPipeline() {
-        logger_1.logger.info('🚀 STARTING WORKING REAL DATA PIPELINE');
+        logger.info('🚀 STARTING WORKING REAL DATA PIPELINE');
         const startTime = Date.now();
         let totalLeads = 0;
         try {
@@ -331,15 +329,14 @@ class WorkingRealDataScraper {
             totalLeads += absenteeLeads.length;
             const endTime = Date.now();
             const duration = (endTime - startTime) / 1000;
-            logger_1.logger.info(`🎉 WORKING REAL DATA PIPELINE COMPLETE!`);
-            logger_1.logger.info(`📊 Total Working Leads Generated: ${totalLeads}`);
-            logger_1.logger.info(`⏱️ Pipeline Duration: ${duration} seconds`);
-            logger_1.logger.info(`💰 Estimated Pipeline Value: $${totalLeads * 125} (at $125/lead)`);
+            logger.info(`🎉 WORKING REAL DATA PIPELINE COMPLETE!`);
+            logger.info(`📊 Total Working Leads Generated: ${totalLeads}`);
+            logger.info(`⏱️ Pipeline Duration: ${duration} seconds`);
+            logger.info(`💰 Estimated Pipeline Value: $${totalLeads * 125} (at $125/lead)`);
         }
         catch (error) {
-            logger_1.logger.error('❌ Error in working real data pipeline:', error);
+            logger.error('❌ Error in working real data pipeline:', error);
         }
     }
 }
-exports.WorkingRealDataScraper = WorkingRealDataScraper;
 //# sourceMappingURL=workingRealDataScraper.js.map

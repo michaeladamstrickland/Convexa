@@ -1,8 +1,6 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const express_1 = require("express");
-const prisma_1 = require("../db/prisma");
-const router = (0, express_1.Router)();
+import { Router } from 'express';
+import { prisma } from '../db/prisma';
+const router = Router();
 // lightweight in-memory counter for metrics endpoint aggregation
 const feedMetrics = global.__FEED_METRICS__ || { servedTotal: 0 };
 global.__FEED_METRICS__ = feedMetrics;
@@ -113,7 +111,7 @@ router.get('/', async (req, res) => {
         const sortSel = sortable.includes(sortBy) ? sortBy : 'createdAt';
         const dir = (String(order).toLowerCase() === 'asc') ? 'asc' : 'desc';
         const orderBy = sortSel === 'score' ? { investmentScore: dir } : { createdAt: dir };
-        const p = prisma_1.prisma;
+        const p = prisma;
         const [rows, total] = await Promise.all([
             p.scrapedProperty.findMany({ where, orderBy, take, skip }),
             p.scrapedProperty.count({ where })
@@ -130,5 +128,5 @@ router.get('/', async (req, res) => {
         res.status(500).json({ error: 'feed_failed', message: e?.message });
     }
 });
-exports.default = router;
+export default router;
 //# sourceMappingURL=propertiesFeed.js.map

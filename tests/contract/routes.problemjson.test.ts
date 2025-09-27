@@ -11,7 +11,14 @@ let BASE = '';
 async function startServer(): Promise<void> {
   return new Promise((resolve, reject) => {
     const { spawn } = require('child_process');
-  const env = { ...process.env, PORT: '6033', SQLITE_DB_PATH: path.resolve(process.cwd(), 'backend', 'data', 'convexa.db') };
+  const env = { 
+    ...process.env, 
+    PORT: '6033', 
+    SQLITE_DB_PATH: path.resolve(process.cwd(), 'backend', 'data', 'convexa.db'),
+    // Disable basic auth for tests
+    BASIC_AUTH_USER: '',
+    BASIC_AUTH_PASS: ''
+  };
     const node = process.execPath;
   const entry = path.resolve(process.cwd(), 'scripts', 'start-integrated.mjs');
     serverProc = spawn(node, [entry], { env });

@@ -1,50 +1,13 @@
-"use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.RealDataScraper = void 0;
 // REAL DATA SCRAPER - Connects to actual public data sources
-const axios_1 = __importDefault(require("axios"));
-const cheerio = __importStar(require("cheerio"));
-const databaseService_1 = require("./databaseService");
-const logger_1 = require("../utils/logger");
-class RealDataScraper {
+import axios from 'axios';
+import * as cheerio from 'cheerio';
+import { DatabaseService } from './databaseService';
+import { logger } from '../utils/logger';
+export class RealDataScraper {
+    db;
+    scraperConfig;
     constructor() {
-        this.db = new databaseService_1.DatabaseService();
+        this.db = new DatabaseService();
         this.scraperConfig = {
             userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
             delayMs: 2000, // 2 second delay between requests
@@ -56,13 +19,13 @@ class RealDataScraper {
      * Scrapes live probate filings from Arizona Supreme Court public records
      */
     async scrapeMaricopaProbateRecords() {
-        logger_1.logger.info('🏛️ STARTING REAL PROBATE SCRAPING - Maricopa County');
+        logger.info('🏛️ STARTING REAL PROBATE SCRAPING - Maricopa County');
         try {
             const leads = [];
             const baseUrl = 'https://apps.supremecourt.az.gov';
             // Get recent probate case filings (last 30 days)
             const searchUrl = `${baseUrl}/publicaccess/caselookup.aspx`;
-            const response = await axios_1.default.get(searchUrl, {
+            const response = await axios.get(searchUrl, {
                 headers: { 'User-Agent': this.scraperConfig.userAgent },
                 timeout: 10000
             });
@@ -82,7 +45,7 @@ class RealDataScraper {
                     const deceasedName = this.extractDeceasedName($row);
                     const filingDate = this.extractFilingDate($row);
                     if (caseNumber && deceasedName) {
-                        logger_1.logger.info(`📋 Found probate case: ${caseNumber} - ${deceasedName}`);
+                        logger.info(`📋 Found probate case: ${caseNumber} - ${deceasedName}`);
                         // Get detailed case information
                         const caseDetails = await this.scrapeProbateCaseDetails(caseNumber);
                         if (caseDetails) {
@@ -94,11 +57,11 @@ class RealDataScraper {
                     }
                 }
             }
-            logger_1.logger.info(`✅ REAL PROBATE SCRAPING COMPLETE: Found ${leads.length} leads`);
+            logger.info(`✅ REAL PROBATE SCRAPING COMPLETE: Found ${leads.length} leads`);
             return leads;
         }
         catch (error) {
-            logger_1.logger.error('❌ Error in real probate scraping:', error);
+            logger.error('❌ Error in real probate scraping:', error);
             return [];
         }
     }
@@ -107,7 +70,7 @@ class RealDataScraper {
      * Scrapes live code enforcement data from City of Phoenix
      */
     async scrapePhoenixCodeViolations() {
-        logger_1.logger.info('🚨 STARTING REAL CODE VIOLATION SCRAPING - Phoenix');
+        logger.info('🚨 STARTING REAL CODE VIOLATION SCRAPING - Phoenix');
         try {
             const leads = [];
             // Phoenix Code Enforcement Open Data
@@ -120,7 +83,7 @@ class RealDataScraper {
             ];
             for (const endpoint of endpoints) {
                 try {
-                    const response = await axios_1.default.get(endpoint, {
+                    const response = await axios.get(endpoint, {
                         headers: { 'User-Agent': this.scraperConfig.userAgent },
                         timeout: 15000
                     });
@@ -138,7 +101,7 @@ class RealDataScraper {
                         // HTML scraping
                         violations = this.parseHtmlViolations(response.data);
                     }
-                    logger_1.logger.info(`📊 Found ${violations.length} violations from ${endpoint}`);
+                    logger.info(`📊 Found ${violations.length} violations from ${endpoint}`);
                     for (const violation of violations.slice(0, 20)) { // Limit to 20 per endpoint
                         const lead = await this.createViolationLead(violation);
                         if (lead) {
@@ -149,15 +112,15 @@ class RealDataScraper {
                     break; // Success, exit loop
                 }
                 catch (endpointError) {
-                    logger_1.logger.warn(`⚠️ Endpoint failed: ${endpoint}`, endpointError?.message || 'Unknown error');
+                    logger.warn(`⚠️ Endpoint failed: ${endpoint}`, endpointError?.message || 'Unknown error');
                     continue;
                 }
             }
-            logger_1.logger.info(`✅ REAL CODE VIOLATION SCRAPING COMPLETE: Found ${leads.length} leads`);
+            logger.info(`✅ REAL CODE VIOLATION SCRAPING COMPLETE: Found ${leads.length} leads`);
             return leads;
         }
         catch (error) {
-            logger_1.logger.error('❌ Error in real code violation scraping:', error);
+            logger.error('❌ Error in real code violation scraping:', error);
             return [];
         }
     }
@@ -166,7 +129,7 @@ class RealDataScraper {
      * Scrapes Maricopa County Assessor tax delinquency data
      */
     async scrapeMaricopaTaxDelinquencies() {
-        logger_1.logger.info('💰 STARTING REAL TAX DELINQUENCY SCRAPING - Maricopa County');
+        logger.info('💰 STARTING REAL TAX DELINQUENCY SCRAPING - Maricopa County');
         try {
             const leads = [];
             // Maricopa County Assessor public data
@@ -179,7 +142,7 @@ class RealDataScraper {
             for (const endpoint of searchEndpoints) {
                 try {
                     // Get the search page
-                    const response = await axios_1.default.get(endpoint, {
+                    const response = await axios.get(endpoint, {
                         headers: { 'User-Agent': this.scraperConfig.userAgent }
                     });
                     const $ = cheerio.load(response.data);
@@ -191,7 +154,7 @@ class RealDataScraper {
                         if (href) {
                             const fullUrl = href.startsWith('http') ? href : `${assessorUrl}${href}`;
                             try {
-                                const detailResponse = await axios_1.default.get(fullUrl, {
+                                const detailResponse = await axios.get(fullUrl, {
                                     headers: { 'User-Agent': this.scraperConfig.userAgent }
                                 });
                                 const taxData = this.parseTaxDelinquencyData(detailResponse.data);
@@ -204,20 +167,20 @@ class RealDataScraper {
                                 await this.delay(this.scraperConfig.delayMs);
                             }
                             catch (detailError) {
-                                logger_1.logger.warn('⚠️ Error getting tax detail:', detailError?.message || 'Unknown error');
+                                logger.warn('⚠️ Error getting tax detail:', detailError?.message || 'Unknown error');
                             }
                         }
                     }
                 }
                 catch (endpointError) {
-                    logger_1.logger.warn(`⚠️ Tax endpoint failed: ${endpoint}`, endpointError?.message || 'Unknown error');
+                    logger.warn(`⚠️ Tax endpoint failed: ${endpoint}`, endpointError?.message || 'Unknown error');
                 }
             }
-            logger_1.logger.info(`✅ REAL TAX DELINQUENCY SCRAPING COMPLETE: Found ${leads.length} leads`);
+            logger.info(`✅ REAL TAX DELINQUENCY SCRAPING COMPLETE: Found ${leads.length} leads`);
             return leads;
         }
         catch (error) {
-            logger_1.logger.error('❌ Error in real tax delinquency scraping:', error);
+            logger.error('❌ Error in real tax delinquency scraping:', error);
             return [];
         }
     }
@@ -226,7 +189,7 @@ class RealDataScraper {
      * Scrapes foreclosure notices from multiple sources
      */
     async scrapeForeclosureNotices() {
-        logger_1.logger.info('🏠 STARTING REAL FORECLOSURE SCRAPING');
+        logger.info('🏠 STARTING REAL FORECLOSURE SCRAPING');
         try {
             const leads = [];
             // Multiple foreclosure data sources
@@ -238,7 +201,7 @@ class RealDataScraper {
             ];
             for (const source of sources) {
                 try {
-                    const response = await axios_1.default.get(source, {
+                    const response = await axios.get(source, {
                         headers: { 'User-Agent': this.scraperConfig.userAgent },
                         timeout: 15000
                     });
@@ -265,14 +228,14 @@ class RealDataScraper {
                     await this.delay(this.scraperConfig.delayMs * 2); // Longer delay for foreclosure sites
                 }
                 catch (sourceError) {
-                    logger_1.logger.warn(`⚠️ Foreclosure source failed: ${source}`, sourceError?.message || 'Unknown error');
+                    logger.warn(`⚠️ Foreclosure source failed: ${source}`, sourceError?.message || 'Unknown error');
                 }
             }
-            logger_1.logger.info(`✅ REAL FORECLOSURE SCRAPING COMPLETE: Found ${leads.length} leads`);
+            logger.info(`✅ REAL FORECLOSURE SCRAPING COMPLETE: Found ${leads.length} leads`);
             return leads;
         }
         catch (error) {
-            logger_1.logger.error('❌ Error in real foreclosure scraping:', error);
+            logger.error('❌ Error in real foreclosure scraping:', error);
             return [];
         }
     }
@@ -367,7 +330,7 @@ class RealDataScraper {
     }
     async scrapeProbateCaseDetails(caseNumber) {
         // Implementation for detailed probate case scraping
-        logger_1.logger.info(`📋 Getting details for case: ${caseNumber}`);
+        logger.info(`📋 Getting details for case: ${caseNumber}`);
         // This would make additional requests to get property details, heir information, etc.
         // For now, return structured data
         return {
@@ -391,7 +354,7 @@ class RealDataScraper {
             });
         }
         catch (error) {
-            logger_1.logger.error('Error creating probate lead:', error);
+            logger.error('Error creating probate lead:', error);
             return null;
         }
     }
@@ -410,7 +373,7 @@ class RealDataScraper {
             });
         }
         catch (error) {
-            logger_1.logger.error('Error creating violation lead:', error);
+            logger.error('Error creating violation lead:', error);
             return null;
         }
     }
@@ -427,7 +390,7 @@ class RealDataScraper {
             });
         }
         catch (error) {
-            logger_1.logger.error('Error creating tax delinquency lead:', error);
+            logger.error('Error creating tax delinquency lead:', error);
             return null;
         }
     }
@@ -443,7 +406,7 @@ class RealDataScraper {
             });
         }
         catch (error) {
-            logger_1.logger.error('Error creating foreclosure lead:', error);
+            logger.error('Error creating foreclosure lead:', error);
             return null;
         }
     }
@@ -458,7 +421,7 @@ class RealDataScraper {
      * This executes all real data scraping in sequence
      */
     async runCompleteRealDataPipeline() {
-        logger_1.logger.info('🚀 STARTING COMPLETE REAL DATA SCRAPING PIPELINE');
+        logger.info('🚀 STARTING COMPLETE REAL DATA SCRAPING PIPELINE');
         const startTime = Date.now();
         let totalLeads = 0;
         try {
@@ -476,15 +439,14 @@ class RealDataScraper {
             totalLeads += foreclosureLeads.length;
             const endTime = Date.now();
             const duration = (endTime - startTime) / 1000;
-            logger_1.logger.info(`🎉 REAL DATA PIPELINE COMPLETE!`);
-            logger_1.logger.info(`📊 Total Real Leads Generated: ${totalLeads}`);
-            logger_1.logger.info(`⏱️ Pipeline Duration: ${duration} seconds`);
-            logger_1.logger.info(`💰 Estimated Pipeline Value: $${totalLeads * 125} (at $125/lead)`);
+            logger.info(`🎉 REAL DATA PIPELINE COMPLETE!`);
+            logger.info(`📊 Total Real Leads Generated: ${totalLeads}`);
+            logger.info(`⏱️ Pipeline Duration: ${duration} seconds`);
+            logger.info(`💰 Estimated Pipeline Value: $${totalLeads * 125} (at $125/lead)`);
         }
         catch (error) {
-            logger_1.logger.error('❌ Error in real data pipeline:', error);
+            logger.error('❌ Error in real data pipeline:', error);
         }
     }
 }
-exports.RealDataScraper = RealDataScraper;
 //# sourceMappingURL=realDataScraper.js.map

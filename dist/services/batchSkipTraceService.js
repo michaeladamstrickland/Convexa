@@ -1,66 +1,34 @@
-"use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.BatchSkipTraceService = void 0;
-const axios_1 = __importDefault(require("axios"));
-const client_1 = require("@prisma/client");
-const dotenv = __importStar(require("dotenv"));
-const addressNormalization_1 = require("../utils/addressNormalization");
+import axios from 'axios';
+import { PrismaClient } from '@prisma/client';
+import * as dotenv from 'dotenv';
+import { normalizeAddress } from '../utils/addressNormalization';
 dotenv.config();
-const prisma = new client_1.PrismaClient();
+const prisma = new PrismaClient();
 /**
  * BatchData Skip Trace Service
  *
  * This service handles communication with the BatchData API for skip tracing
  * property owners and retrieving contact information.
  */
-class BatchSkipTraceService {
+export class BatchSkipTraceService {
+    client;
+    apiKey;
+    maxRetries = 3;
+    costPerLookupCents = 12; // Update with actual cost
+    rateLimitPerMinute = 50;
+    requestCount = 0;
+    lastResetTime = Date.now();
     constructor() {
-        this.maxRetries = 3;
-        this.costPerLookupCents = 12; // Update with actual cost
-        this.rateLimitPerMinute = 50;
-        this.requestCount = 0;
-        this.lastResetTime = Date.now();
         this.apiKey = process.env.BATCHDATA_API_KEY || '';
         if (!this.apiKey) {
-            throw new Error('BatchData API key not found in environment variables');
+            // Disabled mode: allow server to run without key; routes will respond with success: false
+            console.warn('BatchData API key not found; Skip Trace service is running in disabled mode. Set BATCHDATA_API_KEY to enable.');
+            // Minimal client to satisfy typing; not used in disabled mode
+            this.client = axios.create();
+            this._disabled = true;
+            return;
         }
-        this.client = axios_1.default.create({
+        this.client = axios.create({
             baseURL: 'https://api.batchdata.com/api',
             headers: {
                 'X-API-Key': this.apiKey,
@@ -78,11 +46,15 @@ class BatchSkipTraceService {
      */
     async skipTraceByAddress(request) {
         try {
+            // Disabled mode short-circuit
+            if (this._disabled) {
+                return { success: false, cost: 0 };
+            }
             // Check rate limits
             await this.checkRateLimit();
             // Create the normalized address for deduplication
             const fullAddress = `${request.address}, ${request.city}, ${request.state} ${request.zipCode}`;
-            const normalizedAddress = (0, addressNormalization_1.normalizeAddress)(fullAddress);
+            const normalizedAddress = normalizeAddress(fullAddress);
             // Check if we've already skip traced this property
             const existingLead = await prisma.lead.findFirst({
                 where: {
@@ -163,6 +135,10 @@ class BatchSkipTraceService {
      * @returns Array of skip trace results
      */
     async batchSkipTrace(requests) {
+        // Disabled mode short-circuit
+        if (this._disabled) {
+            return requests.map(() => ({ success: false, cost: 0 }));
+        }
         const results = [];
         // Process in batches of 10 to avoid rate limits
         const batchSize = 10;
@@ -295,6 +271,5 @@ class BatchSkipTraceService {
         }
     }
 }
-exports.BatchSkipTraceService = BatchSkipTraceService;
-exports.default = new BatchSkipTraceService();
+export default new BatchSkipTraceService();
 //# sourceMappingURL=batchSkipTraceService.js.map

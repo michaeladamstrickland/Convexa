@@ -1,13 +1,9 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.MotivationPredictor = void 0;
-const openai_1 = __importDefault(require("openai"));
-class MotivationPredictor {
+import OpenAI from 'openai';
+export class MotivationPredictor {
+    openai;
+    neuralNetwork;
     constructor() {
-        this.openai = new openai_1.default({
+        this.openai = new OpenAI({
             apiKey: process.env.OPENAI_API_KEY
         });
         this.neuralNetwork = this.initializeNeuralNetwork();
@@ -412,5 +408,4 @@ class MotivationPredictor {
         };
     }
 }
-exports.MotivationPredictor = MotivationPredictor;
 //# sourceMappingURL=motivationPredictor.js.map

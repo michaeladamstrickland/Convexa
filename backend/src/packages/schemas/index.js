@@ -1,14 +1,7 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.ScrapeResult = exports.ScrapedProperty = exports.ContactSchema = exports.DistressSignalEnum = exports.parseScraperJobPayload = exports.ScraperJobPayload = void 0;
-exports.parseScrapeResult = parseScrapeResult;
-exports.parseScrapedProperty = parseScrapedProperty;
-const zod_1 = require("zod");
-var JobPayload_1 = require("./JobPayload");
-Object.defineProperty(exports, "ScraperJobPayload", { enumerable: true, get: function () { return JobPayload_1.ScraperJobPayload; } });
-Object.defineProperty(exports, "parseScraperJobPayload", { enumerable: true, get: function () { return JobPayload_1.parseScraperJobPayload; } });
+import { z } from 'zod';
+export { ScraperJobPayload, parseScraperJobPayload } from './JobPayload';
 // Distress signal enumeration
-exports.DistressSignalEnum = zod_1.z.enum([
+export const DistressSignalEnum = z.enum([
     'FSBO',
     'AUCTION',
     'PRE_FORECLOSURE',
@@ -18,49 +11,49 @@ exports.DistressSignalEnum = zod_1.z.enum([
     'EVICTION'
 ]);
 // Contacts schema
-exports.ContactSchema = zod_1.z.object({
-    type: zod_1.z.enum(['phone', 'email']),
-    value: zod_1.z.string(),
-    confidence: zod_1.z.number().optional(),
-    source: zod_1.z.string().optional()
+export const ContactSchema = z.object({
+    type: z.enum(['phone', 'email']),
+    value: z.string(),
+    confidence: z.number().optional(),
+    source: z.string().optional()
 });
 // ScrapedProperty schema (supports dynamic county-*)
-exports.ScrapedProperty = zod_1.z.object({
-    sourceKey: zod_1.z.union([
-        zod_1.z.enum(['zillow', 'auction-com']),
-        zod_1.z.string().regex(/^county-.+$/, 'county-* sources must start with county-')
+export const ScrapedProperty = z.object({
+    sourceKey: z.union([
+        z.enum(['zillow', 'auction-com']),
+        z.string().regex(/^county-.+$/, 'county-* sources must start with county-')
     ]),
-    capturedAt: zod_1.z.string().datetime(),
-    address: zod_1.z.object({
-        line1: zod_1.z.string(),
-        city: zod_1.z.string().optional(),
-        state: zod_1.z.string().optional(),
-        zip: zod_1.z.string().optional()
+    capturedAt: z.string().datetime(),
+    address: z.object({
+        line1: z.string(),
+        city: z.string().optional(),
+        state: z.string().optional(),
+        zip: z.string().optional()
     }),
-    parcelId: zod_1.z.string().optional(),
-    apn: zod_1.z.string().optional(),
-    ownerName: zod_1.z.string().optional(),
-    attributes: zod_1.z.record(zod_1.z.string(), zod_1.z.any()).optional(),
-    priceHint: zod_1.z.number().optional(),
-    lastEventDate: zod_1.z.string().optional(),
-    distressSignals: zod_1.z.array(exports.DistressSignalEnum).default([]),
-    contacts: zod_1.z.array(exports.ContactSchema).optional(),
-    attachments: zod_1.z.array(zod_1.z.object({
-        kind: zod_1.z.enum(['img', 'pdf', 'html']),
-        s3Key: zod_1.z.string().optional(),
-        sha256: zod_1.z.string().optional()
+    parcelId: z.string().optional(),
+    apn: z.string().optional(),
+    ownerName: z.string().optional(),
+    attributes: z.record(z.string(), z.any()).optional(),
+    priceHint: z.number().optional(),
+    lastEventDate: z.string().optional(),
+    distressSignals: z.array(DistressSignalEnum).default([]),
+    contacts: z.array(ContactSchema).optional(),
+    attachments: z.array(z.object({
+        kind: z.enum(['img', 'pdf', 'html']),
+        s3Key: z.string().optional(),
+        sha256: z.string().optional()
     })).optional()
 });
-exports.ScrapeResult = zod_1.z.object({
-    ok: zod_1.z.boolean(),
-    errors: zod_1.z.array(zod_1.z.string()).optional(),
-    items: zod_1.z.array(exports.ScrapedProperty)
+export const ScrapeResult = z.object({
+    ok: z.boolean(),
+    errors: z.array(z.string()).optional(),
+    items: z.array(ScrapedProperty)
 });
 // Helper runtime validators
-function parseScrapeResult(data) {
-    return exports.ScrapeResult.parse(data);
+export function parseScrapeResult(data) {
+    return ScrapeResult.parse(data);
 }
-function parseScrapedProperty(data) {
-    return exports.ScrapedProperty.parse(data);
+export function parseScrapedProperty(data) {
+    return ScrapedProperty.parse(data);
 }
 //# sourceMappingURL=index.js.map

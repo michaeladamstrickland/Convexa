@@ -37,6 +37,7 @@ import healthRoutes from './routes/health';
 import { correlationIdMiddleware } from './middleware/correlationId';
 import { masterConfig } from './config/masterConfig';
 import axios from 'axios';
+import { callMetrics } from './routes/calls'; // Import callMetrics
 
 const app = express();
 const PORT = Number(process.env.PORT) || 5000; // default 5000; overridden to 5001 in dev via nodemon
@@ -255,6 +256,31 @@ app.get('/api/dev/metrics', (_req, res) => {
   lines.push('# TYPE convexa_call_summary_total counter');
   lines.push('convexa_call_summary_total{outcome="answered"} 0');
   lines.push('convexa_call_summary_total{outcome="missed"} 0');
+
+  // PI3 Metrics
+  lines.push('# TYPE convexa_calls_connected_total counter');
+  lines.push(`convexa_calls_connected_total ${callMetrics.connectedCalls}`);
+  lines.push('# TYPE convexa_intents_detected_total counter');
+  lines.push(`convexa_intents_detected_total ${callMetrics.intentsDetected}`);
+  lines.push('# TYPE convexa_calls_blocked_total counter');
+  lines.push(`convexa_calls_blocked_total ${callMetrics.blockedCalls}`);
+
+  // Agent Latency Histogram
+  lines.push('# TYPE convexa_agent_latency_ms histogram');
+  const latencyBuckets = [100, 250, 500, 1000, 2000, 5000, 10000, Infinity];
+  const latencyData: number[] = callMetrics.agentLatencyMs;
+  const histogram = latencyBuckets.map(bucket => ({
+    le: bucket,
+    count: latencyData.filter((latency: number) => latency <= bucket).length,
+  }));
+  let sumLatency = 0;
+  latencyData.forEach((latency: number) => (sumLatency += latency));
+
+  histogram.forEach(bucket => {
+    lines.push(`convexa_agent_latency_ms_bucket{le="${bucket.le}"} ${bucket.count}`);
+  });
+  lines.push(`convexa_agent_latency_ms_count ${latencyData.length}`);
+  lines.push(`convexa_agent_latency_ms_sum ${sumLatency}`);
 
   res.send(lines.join('\n') + '\n');
 });

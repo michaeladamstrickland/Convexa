@@ -1,17 +1,12 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.SearchService = void 0;
-const client_1 = require("@prisma/client");
-const node_cache_1 = __importDefault(require("node-cache"));
+import { PrismaClient } from '@prisma/client';
+import NodeCache from 'node-cache';
+import { convexaCacheHitTotal, convexaCacheTotal } from '../server';
 // Initialize Prisma client
-const prisma = new client_1.PrismaClient();
+const prisma = new PrismaClient();
 // Initialize cache with TTL of 5 minutes
-const cache = new node_cache_1.default({ stdTTL: 300 });
+const cache = new NodeCache({ stdTTL: 300 });
 // Search service class
-class SearchService {
+export class SearchService {
     /**
      * Search for leads with various filters
      */
@@ -20,8 +15,10 @@ class SearchService {
         // Create cache key from params
         const cacheKey = JSON.stringify(params);
         // Check cache first
+        convexaCacheTotal.inc({ operation: 'get', cache_name: 'search_leads' });
         const cachedResults = cache.get(cacheKey);
         if (cachedResults) {
+            convexaCacheHitTotal.inc({ operation: 'get', cache_name: 'search_leads' });
             return cachedResults;
         }
         // Build query filters
@@ -93,6 +90,7 @@ class SearchService {
                 pagination
             };
             // Cache the results
+            convexaCacheTotal.inc({ operation: 'set', cache_name: 'search_leads' });
             cache.set(cacheKey, results);
             return results;
         }
@@ -107,8 +105,10 @@ class SearchService {
     async getLeadAnalytics() {
         const cacheKey = 'lead_analytics';
         // Check cache
+        convexaCacheTotal.inc({ operation: 'get', cache_name: 'lead_analytics' });
         const cachedAnalytics = cache.get(cacheKey);
         if (cachedAnalytics) {
+            convexaCacheHitTotal.inc({ operation: 'get', cache_name: 'lead_analytics' });
             return cachedAnalytics;
         }
         try {
@@ -154,6 +154,7 @@ class SearchService {
                 potentialRevenue: (totalValueResult._sum.estimated_value || 0) * 0.05 // 5% of total value
             };
             // Cache the results
+            convexaCacheTotal.inc({ operation: 'set', cache_name: 'lead_analytics' });
             cache.set(cacheKey, analytics);
             return analytics;
         }
@@ -215,6 +216,5 @@ class SearchService {
         };
     }
 }
-exports.SearchService = SearchService;
-exports.default = new SearchService();
+export default new SearchService();
 //# sourceMappingURL=searchService.js.map

@@ -1,20 +1,17 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.Phase3EmpireLauncher = void 0;
-const index_1 = require("./index");
-const phase3EmpireScaling_1 = require("./scaling/phase3EmpireScaling");
-const dotenv_1 = __importDefault(require("dotenv"));
-const readline_1 = __importDefault(require("readline"));
+import { LeadFlowAILauncher } from './index';
+import { Phase3EmpireScaling } from './scaling/phase3EmpireScaling';
+import dotenv from 'dotenv';
+import readline from 'readline';
 // Load environment variables
-dotenv_1.default.config();
-const rl = readline_1.default.createInterface({
+dotenv.config();
+const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout
 });
 class Phase3EmpireLauncher {
+    phase2Launcher;
+    phase3Scaling;
+    config;
     constructor(config) {
         this.config = {
             mode: 'development',
@@ -26,7 +23,7 @@ class Phase3EmpireLauncher {
             ...config
         };
         // Initialize Phase 2 launcher for backward compatibility
-        this.phase2Launcher = new index_1.LeadFlowAILauncher({
+        this.phase2Launcher = new LeadFlowAILauncher({
             mode: this.config.mode,
             daily_lead_target: Math.floor(this.config.target_monthly_leads / 30),
             monthly_revenue_goal: this.config.target_monthly_revenue,
@@ -34,7 +31,7 @@ class Phase3EmpireLauncher {
             intelligence_depth: 'ultra'
         });
         // Initialize Phase 3 scaling system
-        this.phase3Scaling = new phase3EmpireScaling_1.Phase3EmpireScaling();
+        this.phase3Scaling = new Phase3EmpireScaling();
         console.log(`🌟 Convexa AI Empire Phase 3 Launcher initialized!`);
         console.log(`🎯 Mode: ${this.config.mode.toUpperCase()}`);
         console.log(`📊 Monthly Target: ${this.config.target_monthly_leads.toLocaleString()} leads`);
@@ -306,7 +303,6 @@ class Phase3EmpireLauncher {
         rl.close();
     }
 }
-exports.Phase3EmpireLauncher = Phase3EmpireLauncher;
 // CLI Interface for direct execution
 async function main() {
     console.log(`🌟 CONVEXA AI EMPIRE - PHASE 3 LAUNCHER`);
@@ -354,6 +350,8 @@ async function main() {
         process.exit(1);
     }
 }
+// Export for use as module
+export { Phase3EmpireLauncher };
 // Run if called directly
 if (require.main === module) {
     main().catch(error => {

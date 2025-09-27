@@ -229,7 +229,7 @@ router.post('/bulk', async (req, res) => {
     const body = req.body || {};
     const respectQuietHours = !!body.respectQuietHours;
  
-    let requests: SkipTraceServiceRequest[] = [];
+    const requests: SkipTraceServiceRequest[] = [];
     let leadIds: string[] = [];
  
     if (Array.isArray(body.leadIds) && body.leadIds.length) {

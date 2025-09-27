@@ -1,14 +1,9 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.__WORKER_REGISTRY_MODULE__ = void 0;
-exports.registerWorker = registerWorker;
-exports.shutdownAllWorkers = shutdownAllWorkers;
 const workers = [];
-function registerWorker(w) {
+export function registerWorker(w) {
     if (!workers.includes(w))
         workers.push(w);
 }
-async function shutdownAllWorkers() {
+export async function shutdownAllWorkers() {
     for (const w of workers) {
         try {
             await w.close?.();
@@ -47,5 +42,5 @@ async function shutdownAllWorkers() {
     }
     workers.length = 0;
 }
-exports.__WORKER_REGISTRY_MODULE__ = true;
+export const __WORKER_REGISTRY_MODULE__ = true;
 //# sourceMappingURL=index.js.map

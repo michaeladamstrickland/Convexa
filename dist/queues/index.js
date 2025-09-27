@@ -1,14 +1,9 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.__QUEUE_REGISTRY_MODULE__ = void 0;
-exports.registerQueue = registerQueue;
-exports.shutdownAllQueues = shutdownAllQueues;
 const queues = [];
-function registerQueue(q) {
+export function registerQueue(q) {
     if (!queues.includes(q))
         queues.push(q);
 }
-async function shutdownAllQueues() {
+export async function shutdownAllQueues() {
     for (const q of queues) {
         try {
             await q.drain?.();
@@ -64,5 +59,5 @@ async function shutdownAllQueues() {
     queues.length = 0;
 }
 // Export a runtime constant to guarantee this file is treated as a module in all TS configs
-exports.__QUEUE_REGISTRY_MODULE__ = true;
+export const __QUEUE_REGISTRY_MODULE__ = true;
 //# sourceMappingURL=index.js.map

@@ -222,7 +222,7 @@ export async function calculateRenovationCosts(
     const adjustedLaborCost = isDIY ? laborCost * 0.3 : laborCost; // DIY saves 70% on labor
     
     // Calculate total cost before contingency
-    let totalBeforeContingency = materialsCost + adjustedLaborCost + permitsCost;
+    const totalBeforeContingency = materialsCost + adjustedLaborCost + permitsCost;
     
     // Add contingency
     const contingencyAmount = totalBeforeContingency * (contingencyPercent / 100);

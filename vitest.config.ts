@@ -12,9 +12,10 @@ export default defineConfig({
       exclude: ['**/*.d.ts'],
     },
     include: [
-      'tests/unit/**/*.test.ts',
-      'tests/contract/**/*.test.ts',
-      'tests/snapshot/**/*.test.ts',
+      'tests/unit/**/*.{test,spec}.ts',
+      'tests/contract/**/*.{test,spec}.ts',
+      'tests/snapshot/**/*.{test,spec}.ts',
+      'tests/routes/**/*.{test,spec}.ts',
     ],
     exclude: [
       'tests/dev/**',

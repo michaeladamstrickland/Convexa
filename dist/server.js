@@ -1,67 +1,175 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.__leadflowServerInstance = void 0;
-const express_1 = __importDefault(require("express"));
-const cors_1 = __importDefault(require("cors"));
-const dotenv_1 = __importDefault(require("dotenv"));
-const winston_1 = __importDefault(require("winston"));
-const searchRoutes_1 = __importDefault(require("./routes/searchRoutes"));
-const experimentalRoutes_1 = __importDefault(require("./routes/experimentalRoutes"));
-const devQueueRoutes_1 = __importDefault(require("./routes/devQueueRoutes"));
-const publicProperties_1 = __importDefault(require("./routes/publicProperties"));
-const dailyScheduler_1 = require("./scheduler/dailyScheduler");
-const leadRoutes_1 = __importDefault(require("./routes/leadRoutes"));
-const adminMetrics_1 = __importDefault(require("./routes/adminMetrics"));
-const webhookAdmin_1 = __importDefault(require("./routes/webhookAdmin"));
-const callRoutes_1 = __importDefault(require("./routes/callRoutes"));
+import express from 'express';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import winston from 'winston';
+import axios from 'axios';
+import client, { Counter, Gauge, register } from 'prom-client';
+import searchRoutes from './routes/searchRoutes';
+import experimentalRoutes from './routes/experimentalRoutes';
+import devQueueRoutes from './routes/devQueueRoutes';
+import publicProperties from './routes/publicProperties';
+import { startDailyScheduler } from './scheduler/dailyScheduler';
+import leadRoutes from './routes/leadRoutes';
+import adminMetrics from './routes/adminMetrics';
+import webhookAdmin from './routes/webhookAdmin';
+import callRoutes from './routes/callRoutes';
+import dealRoutes from './routes/dealRoutes';
+import skipTraceRoutes from './routes/skipTraceRoutes';
+import { basicAuthMiddleware } from './middleware/basicAuth';
+import { redactPIIInObject } from './utils/piiRedactor';
 // Load environment variables
-dotenv_1.default.config();
+dotenv.config();
 // Configure logging
-const logger = winston_1.default.createLogger({
+const logger = winston.createLogger({
     level: 'info',
-    format: winston_1.default.format.combine(winston_1.default.format.timestamp(), winston_1.default.format.json()),
+    format: winston.format.combine(winston.format.timestamp(), winston.format.json()),
     transports: [
-        new winston_1.default.transports.Console({
-            format: winston_1.default.format.combine(winston_1.default.format.colorize(), winston_1.default.format.simple())
+        new winston.transports.Console({
+            format: winston.format.combine(winston.format.colorize(), winston.format.simple())
         }),
-        new winston_1.default.transports.File({ filename: 'convexa-ai.log' })
+        new winston.transports.File({ filename: 'convexa-ai.log' })
     ]
 });
+// Initialize Prometheus metrics
+export const httpRequestErrorsTotal = new Counter({
+    name: 'http_requests_errors_total',
+    help: 'Total number of HTTP requests that resulted in a 5xx error.',
+    labelNames: ['method', 'path', 'status'],
+});
+export const convexaCacheHitTotal = new Counter({
+    name: 'convexa_cache_hit_total',
+    help: 'Total number of cache hits.',
+    labelNames: ['operation', 'cache_name'],
+});
+export const convexaCacheTotal = new Counter({
+    name: 'convexa_cache_total',
+    help: 'Total number of cache operations (hits + misses).',
+    labelNames: ['operation', 'cache_name'],
+});
+export const convexaQuotaFraction = new Gauge({
+    name: 'convexa_quota_fraction',
+    help: 'Fraction of configured budget/quota currently used (0-1).',
+    labelNames: ['resource'],
+});
+export const queueDepth = new Gauge({
+    name: 'queue_depth',
+    help: 'Current depth of processing queues.',
+    labelNames: ['queue_name'],
+});
+export const dlqDepth = new Gauge({
+    name: 'dlq_depth',
+    help: 'Current depth of dead-letter queues.',
+    labelNames: ['queue_name'],
+});
+export const convexaWeeklyExportsTotal = new Counter({
+    name: 'convexa_weekly_exports_total',
+    help: 'Total number of weekly exports.',
+});
+export const convexaImportRowsTotal = new Counter({
+    name: 'convexa_import_rows_total',
+    help: 'Total number of rows imported, labeled by result (success/failure).',
+    labelNames: ['result'],
+});
+// Register default metrics
+client.collectDefaultMetrics();
 class LeadFlowAIServer {
+    app;
+    obituaryMiner; // temporarily any (obituary miner disabled in test context)
+    revenueMetrics;
+    isRunning = false;
     constructor() {
-        this.isRunning = false;
-        this.app = (0, express_1.default)();
+        this.app = express();
         // this.obituaryMiner = new ObituaryDeathMiner();
         this.revenueMetrics = this.initializeRevenueMetrics();
         this.setupMiddleware();
         this.setupRoutes();
     }
     setupMiddleware() {
-        this.app.use((0, cors_1.default)());
-        this.app.use(express_1.default.json());
-        this.app.use(express_1.default.urlencoded({ extended: true }));
-        // Request logging
+        this.app.use(cors());
+        this.app.use(express.json());
+        this.app.use(express.urlencoded({ extended: true }));
+        // Request logging with PII redaction
         this.app.use((req, res, next) => {
-            logger.info(`${req.method} ${req.path}`, {
+            const redactedMeta = redactPIIInObject({
                 ip: req.ip,
-                userAgent: req.get('User-Agent')
+                userAgent: req.get('User-Agent'),
+                body: req.body, // Redact request body
+            });
+            logger.info(`${req.method} ${req.path}`, {
+                ip: redactedMeta.ip,
+                userAgent: redactedMeta.userAgent,
+                body: redactedMeta.body,
             });
             next();
+        });
+        // Error metrics middleware
+        this.app.use((err, req, res, next) => {
+            if (res.statusCode >= 500 && res.statusCode < 600) {
+                httpRequestErrorsTotal.inc({
+                    method: req.method,
+                    path: req.path,
+                    status: res.statusCode,
+                });
+            }
+            next(err);
         });
     }
     setupRoutes() {
         // Register API routes
-        this.app.use('/api/search', searchRoutes_1.default);
-        this.app.use('/api/leads', leadRoutes_1.default);
-        this.app.use('/api/_experimental', experimentalRoutes_1.default);
-        this.app.use('/api/dev', devQueueRoutes_1.default); // queue dev endpoints
-        this.app.use('/api/properties', publicProperties_1.default);
-        this.app.use('/api/admin', adminMetrics_1.default);
-        this.app.use('/api/admin', webhookAdmin_1.default);
-        this.app.use('/api/calls', callRoutes_1.default);
+        this.app.use('/api/search', searchRoutes);
+        this.app.use('/api/leads', leadRoutes);
+        this.app.use('/api/skip-trace', skipTraceRoutes);
+        this.app.use('/api/_experimental', experimentalRoutes);
+        this.app.use('/api/dev', devQueueRoutes); // queue dev endpoints
+        this.app.use('/api/queue', devQueueRoutes); // queue dev endpoints
+        this.app.use('/api/properties', publicProperties);
+        this.app.use('/api/admin', basicAuthMiddleware, adminMetrics);
+        this.app.use('/api/admin', basicAuthMiddleware, webhookAdmin);
+        this.app.use('/api/calls', callRoutes);
+        this.app.use('/api/deals', dealRoutes);
+        // New route for weekly exports
+        this.app.post('/api/exports/bundle', basicAuthMiddleware, (req, res) => {
+            convexaWeeklyExportsTotal.inc();
+            logger.info('Weekly export bundle endpoint hit, incrementing convexa_weekly_exports_total');
+            res.json({ success: true, message: 'Export counted.' });
+        });
+        // Apply basic auth to /metrics endpoint
+        this.app.use('/metrics', basicAuthMiddleware);
+        // Prometheus metrics endpoint
+        this.app.get('/metrics', async (req, res) => {
+            res.set('Content-Type', register.contentType);
+            res.end(await register.metrics());
+        });
+        // Lightweight proxy to integrated ATTOM server (port 5002)
+        // Allows frontend to use a single base URL (http://localhost:3001/api)
+        this.app.all('/api/attom/*', async (req, res) => {
+            try {
+                const targetUrl = `http://localhost:5002${req.originalUrl}`;
+                const method = req.method.toLowerCase();
+                const response = await axios({
+                    url: targetUrl,
+                    method,
+                    // Forward query for GET/HEAD, body for others
+                    params: method === 'get' || method === 'head' ? req.query : undefined,
+                    data: method !== 'get' && method !== 'head' ? req.body : undefined,
+                    // Keep it JSON-focused; integrated server already sets headers
+                    headers: {
+                        Accept: 'application/json',
+                    },
+                    timeout: 8000,
+                });
+                res.status(response.status).send(response.data);
+            }
+            catch (err) {
+                const status = err?.response?.status || 502;
+                const payload = err?.response?.data || {
+                    status: 'error',
+                    message: 'ATTOM proxy error',
+                    error: err?.message || 'Unknown error',
+                };
+                res.status(status).send(payload);
+            }
+        });
         // Health check
         this.app.get('/health', (req, res) => {
             res.json({
@@ -291,21 +399,21 @@ class LeadFlowAIServer {
             }
         ];
     }
-    start(port = 3001) {
+    start(port = Number(process.env.PORT) || 3001) {
         this.app.listen(port, () => {
             logger.info(`🚀 Convexa AI Server started on port ${port}`);
             logger.info('💰 Ready to generate MONEY! Use /intelligence/start to begin mining leads');
             logger.info(`📊 Revenue dashboard: http://localhost:${port}/revenue`);
             logger.info(`🎯 Generate leads: POST http://localhost:${port}/leads/generate`);
             // Start daily scheduler after server is listening
-            (0, dailyScheduler_1.startDailyScheduler)();
+            startDailyScheduler();
         });
     }
 }
 // Direct execution removed for ESM compatibility; use npm scripts to start.
-exports.default = LeadFlowAIServer;
+export default LeadFlowAIServer;
 // Auto-start when this module is evaluated (ESM-friendly)
 const __leadflowServerInstance = new LeadFlowAIServer();
-exports.__leadflowServerInstance = __leadflowServerInstance;
-__leadflowServerInstance.start(3001);
+__leadflowServerInstance.start();
+export { __leadflowServerInstance };
 //# sourceMappingURL=server.js.map

@@ -1,0 +1,137 @@
+[
+  {
+    "id": "403ada1b-9260-4da7-8c16-8ffaffba8100",
+    "dialId": "test-lead-timeline",
+    "leadId": "test-lead-timeline",
+    "type": "interested",
+    "notes": "Lead showed interest",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T14:48:58.668Z"
+  },
+  {
+    "id": "6c5a3cf6-0cbe-4262-b973-2f2786c833c6",
+    "dialId": "test-lead-timeline",
+    "leadId": "test-lead-timeline",
+    "type": "interested",
+    "notes": "Lead showed interest",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T14:57:54.119Z"
+  },
+  {
+    "id": "7609577c-f710-4e6c-9de1-43ad1afd81bd",
+    "dialId": "test-lead-timeline",
+    "leadId": "test-lead-timeline",
+    "type": "interested",
+    "notes": "Lead showed interest",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T15:00:52.532Z"
+  },
+  {
+    "id": "4e244b92-057a-4170-9425-296e5eea36bc",
+    "dialId": "test-lead-timeline",
+    "leadId": "test-lead-timeline",
+    "type": "interested",
+    "notes": "Lead showed interest",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T15:38:09.310Z"
+  },
+  {
+    "id": "301e8414-9fb9-492f-96b6-d1f3de663ccb",
+    "dialId": "test-lead-timeline",
+    "leadId": "test-lead-timeline",
+    "type": "interested",
+    "notes": "Lead showed interest",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T16:03:56.338Z"
+  },
+  {
+    "id": "34bd16bd-e54c-4224-bd23-ef4301294711",
+    "dialId": "test-lead-timeline",
+    "leadId": "test-lead-timeline",
+    "type": "interested",
+    "notes": "Lead showed interest",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T20:38:52.660Z"
+  },
+  {
+    "id": "90335815-9bef-4d76-8f8c-e4a5924f2591",
+    "dialId": "test-lead-timeline",
+    "leadId": "test-lead-timeline",
+    "type": "interested",
+    "notes": "Lead showed interest",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T20:47:48.418Z"
+  },
+  {
+    "id": "bd62e394-4efb-4b6b-8bb8-007109ecb5d9",
+    "dialId": "test-lead-timeline",
+    "leadId": "test-lead-timeline",
+    "type": "interested",
+    "notes": "Lead showed interest",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T20:50:39.037Z"
+  },
+  {
+    "id": "c2e6b0b8-f9b7-4559-be87-de3b12d64541",
+    "dialId": "test-lead-timeline",
+    "leadId": "test-lead-timeline",
+    "type": "interested",
+    "notes": "Lead showed interest",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T20:52:24.850Z"
+  },
+  {
+    "id": "7b280be1-61a3-4ef7-b0ac-e2f76d887ec7",
+    "dialId": "test-lead-timeline",
+    "leadId": "test-lead-timeline",
+    "type": "interested",
+    "notes": "Lead showed interest",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T20:54:56.634Z"
+  },
+  {
+    "id": "73c831a0-8489-421a-bc44-c9964f09fc56",
+    "dialId": "test-lead-timeline",
+    "leadId": "test-lead-timeline",
+    "type": "interested",
+    "notes": "Lead showed interest",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T20:59:49.870Z"
+  },
+  {
+    "id": "b76e43c5-fb6b-49d9-b8d2-a050003c9ea3",
+    "dialId": "test-lead-timeline",
+    "leadId": "test-lead-timeline",
+    "type": "interested",
+    "notes": "Lead showed interest",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T21:03:33.704Z"
+  },
+  {
+    "id": "d8dc1ec4-b904-445e-b0a7-e5fcf1ac6290",
+    "dialId": "test-lead-timeline",
+    "leadId": "test-lead-timeline",
+    "type": "interested",
+    "notes": "Lead showed interest",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T21:09:18.692Z"
+  },
+  {
+    "id": "6487466b-51ae-45cb-abea-392c1c19cb51",
+    "dialId": "test-lead-timeline",
+    "leadId": "test-lead-timeline",
+    "type": "interested",
+    "notes": "Lead showed interest",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T21:11:34.792Z"
+  },
+  {
+    "id": "0ef7d0fc-1cf9-4a57-8248-b5cc48edb498",
+    "dialId": "test-lead-timeline",
+    "leadId": "test-lead-timeline",
+    "type": "interested",
+    "notes": "Lead showed interest",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T21:12:33.166Z"
+  }
+]

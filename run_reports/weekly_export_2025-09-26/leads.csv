@@ -1,0 +1,2 @@
+id,address,owner_name,phone,email,estimated_value,equity,motivation_score,temperature_tag,status,source_type,created_at,updated_at,grade_score,grade_label,grade_reason,grade_computed_at,stage
+aed4b9b8-4af6-436f-a38d-07df5bf6514f,"123 Test St, Smoke City, ST 12345",Smoke Test Owner,,,,,50,warm,new,smoke_test,2025-09-25T14:59:34.664Z,2025-09-25T14:59:34.664Z,30,D,motivation: 17.5; condition: 5.0; temp: 7.0,2025-09-26T11:51:04.214Z,new

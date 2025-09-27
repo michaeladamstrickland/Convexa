@@ -1,14 +1,9 @@
-"use strict";
 /**
  * Address Normalization Utility
  *
  * Provides functions to standardize and normalize property addresses
  * for consistent matching and deduplication.
  */
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.normalizeAddress = normalizeAddress;
-exports.calculateAddressSimilarity = calculateAddressSimilarity;
-exports.isSameProperty = isSameProperty;
 /**
  * Normalize an address string by removing punctuation, extra spaces,
  * and converting to lowercase.
@@ -16,7 +11,7 @@ exports.isSameProperty = isSameProperty;
  * @param address - Raw address string
  * @returns Normalized address string
  */
-function normalizeAddress(address) {
+export function normalizeAddress(address) {
     if (!address)
         return '';
     // Convert to lowercase
@@ -69,7 +64,7 @@ function normalizeAddress(address) {
  * @param address2 - Second address
  * @returns Similarity score (0-1)
  */
-function calculateAddressSimilarity(address1, address2) {
+export function calculateAddressSimilarity(address1, address2) {
     const normalized1 = normalizeAddress(address1);
     const normalized2 = normalizeAddress(address2);
     if (!normalized1 || !normalized2)
@@ -98,7 +93,7 @@ function calculateAddressSimilarity(address1, address2) {
  * @param threshold - Similarity threshold (default: 0.8)
  * @returns Whether addresses likely refer to the same property
  */
-function isSameProperty(address1, address2, threshold = 0.8) {
+export function isSameProperty(address1, address2, threshold = 0.8) {
     const similarity = calculateAddressSimilarity(address1, address2);
     return similarity >= threshold;
 }

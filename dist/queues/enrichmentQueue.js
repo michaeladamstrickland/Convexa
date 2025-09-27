@@ -1,29 +1,23 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.ENRICHMENT_QUEUE_NAME = void 0;
-exports.getEnrichmentQueue = getEnrichmentQueue;
-exports.enqueueEnrichmentJob = enqueueEnrichmentJob;
-exports.shutdownEnrichmentQueue = shutdownEnrichmentQueue;
-const bullmq_1 = require("bullmq");
-const index_1 = require("./index");
-exports.ENRICHMENT_QUEUE_NAME = 'enrichment';
+import { Queue } from 'bullmq';
+import { registerQueue } from './index';
+export const ENRICHMENT_QUEUE_NAME = 'enrichment';
 let _queue = global.__ENRICHMENT_QUEUE__ || null;
-function getEnrichmentQueue() {
+export function getEnrichmentQueue() {
     if (!_queue) {
-        _queue = new bullmq_1.Queue(exports.ENRICHMENT_QUEUE_NAME, { connection: { url: process.env.REDIS_URL || 'redis://localhost:6379' } });
+        _queue = new Queue(ENRICHMENT_QUEUE_NAME, { connection: { url: process.env.REDIS_URL || 'redis://localhost:6379' } });
         global.__ENRICHMENT_QUEUE__ = _queue;
         try {
-            (0, index_1.registerQueue)(_queue);
+            registerQueue(_queue);
         }
         catch { }
     }
     return _queue;
 }
-async function enqueueEnrichmentJob(payload) {
+export async function enqueueEnrichmentJob(payload) {
     const q = getEnrichmentQueue();
     return q.add('enrich', payload, { removeOnComplete: 100, removeOnFail: 25 });
 }
-async function shutdownEnrichmentQueue() {
+export async function shutdownEnrichmentQueue() {
     if (_queue) {
         try {
             await _queue.drain?.();

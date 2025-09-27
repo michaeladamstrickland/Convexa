@@ -1,7 +1,4 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.computeScoreAndTags = computeScoreAndTags;
-function computeScoreAndTags(input) {
+export function computeScoreAndTags(input) {
     let base = 50;
     const reasons = [];
     const tagReasons = [];

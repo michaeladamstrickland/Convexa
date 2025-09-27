@@ -7,13 +7,13 @@ export declare const ContactSchema: z.ZodObject<{
     confidence: z.ZodOptional<z.ZodNumber>;
     source: z.ZodOptional<z.ZodString>;
 }, "strip", z.ZodTypeAny, {
-    type: "phone" | "email";
     value: string;
+    type: "phone" | "email";
     source?: string | undefined;
     confidence?: number | undefined;
 }, {
-    type: "phone" | "email";
     value: string;
+    type: "phone" | "email";
     source?: string | undefined;
     confidence?: number | undefined;
 }>;
@@ -49,13 +49,13 @@ export declare const ScrapedProperty: z.ZodObject<{
         confidence: z.ZodOptional<z.ZodNumber>;
         source: z.ZodOptional<z.ZodString>;
     }, "strip", z.ZodTypeAny, {
-        type: "phone" | "email";
         value: string;
+        type: "phone" | "email";
         source?: string | undefined;
         confidence?: number | undefined;
     }, {
-        type: "phone" | "email";
         value: string;
+        type: "phone" | "email";
         source?: string | undefined;
         confidence?: number | undefined;
     }>, "many">>;
@@ -64,11 +64,11 @@ export declare const ScrapedProperty: z.ZodObject<{
         s3Key: z.ZodOptional<z.ZodString>;
         sha256: z.ZodOptional<z.ZodString>;
     }, "strip", z.ZodTypeAny, {
-        kind: "html" | "img" | "pdf";
+        kind: "img" | "pdf" | "html";
         s3Key?: string | undefined;
         sha256?: string | undefined;
     }, {
-        kind: "html" | "img" | "pdf";
+        kind: "img" | "pdf" | "html";
         s3Key?: string | undefined;
         sha256?: string | undefined;
     }>, "many">>;
@@ -82,20 +82,20 @@ export declare const ScrapedProperty: z.ZodObject<{
     sourceKey: string;
     capturedAt: string;
     distressSignals: ("FSBO" | "AUCTION" | "PRE_FORECLOSURE" | "CODE_VIOLATION" | "TAX_DELINQUENT" | "PROBATE" | "EVICTION")[];
-    ownerName?: string | undefined;
     parcelId?: string | undefined;
     apn?: string | undefined;
+    ownerName?: string | undefined;
     attributes?: Record<string, any> | undefined;
     priceHint?: number | undefined;
     lastEventDate?: string | undefined;
     contacts?: {
-        type: "phone" | "email";
         value: string;
+        type: "phone" | "email";
         source?: string | undefined;
         confidence?: number | undefined;
     }[] | undefined;
     attachments?: {
-        kind: "html" | "img" | "pdf";
+        kind: "img" | "pdf" | "html";
         s3Key?: string | undefined;
         sha256?: string | undefined;
     }[] | undefined;
@@ -108,21 +108,21 @@ export declare const ScrapedProperty: z.ZodObject<{
     };
     sourceKey: string;
     capturedAt: string;
-    ownerName?: string | undefined;
     parcelId?: string | undefined;
     apn?: string | undefined;
+    ownerName?: string | undefined;
     attributes?: Record<string, any> | undefined;
     priceHint?: number | undefined;
     lastEventDate?: string | undefined;
     distressSignals?: ("FSBO" | "AUCTION" | "PRE_FORECLOSURE" | "CODE_VIOLATION" | "TAX_DELINQUENT" | "PROBATE" | "EVICTION")[] | undefined;
     contacts?: {
-        type: "phone" | "email";
         value: string;
+        type: "phone" | "email";
         source?: string | undefined;
         confidence?: number | undefined;
     }[] | undefined;
     attachments?: {
-        kind: "html" | "img" | "pdf";
+        kind: "img" | "pdf" | "html";
         s3Key?: string | undefined;
         sha256?: string | undefined;
     }[] | undefined;
@@ -163,13 +163,13 @@ export declare const ScrapeResult: z.ZodObject<{
             confidence: z.ZodOptional<z.ZodNumber>;
             source: z.ZodOptional<z.ZodString>;
         }, "strip", z.ZodTypeAny, {
-            type: "phone" | "email";
             value: string;
+            type: "phone" | "email";
             source?: string | undefined;
             confidence?: number | undefined;
         }, {
-            type: "phone" | "email";
             value: string;
+            type: "phone" | "email";
             source?: string | undefined;
             confidence?: number | undefined;
         }>, "many">>;
@@ -178,11 +178,11 @@ export declare const ScrapeResult: z.ZodObject<{
             s3Key: z.ZodOptional<z.ZodString>;
             sha256: z.ZodOptional<z.ZodString>;
         }, "strip", z.ZodTypeAny, {
-            kind: "html" | "img" | "pdf";
+            kind: "img" | "pdf" | "html";
             s3Key?: string | undefined;
             sha256?: string | undefined;
         }, {
-            kind: "html" | "img" | "pdf";
+            kind: "img" | "pdf" | "html";
             s3Key?: string | undefined;
             sha256?: string | undefined;
         }>, "many">>;
@@ -196,20 +196,20 @@ export declare const ScrapeResult: z.ZodObject<{
         sourceKey: string;
         capturedAt: string;
         distressSignals: ("FSBO" | "AUCTION" | "PRE_FORECLOSURE" | "CODE_VIOLATION" | "TAX_DELINQUENT" | "PROBATE" | "EVICTION")[];
-        ownerName?: string | undefined;
         parcelId?: string | undefined;
         apn?: string | undefined;
+        ownerName?: string | undefined;
         attributes?: Record<string, any> | undefined;
         priceHint?: number | undefined;
         lastEventDate?: string | undefined;
         contacts?: {
-            type: "phone" | "email";
             value: string;
+            type: "phone" | "email";
             source?: string | undefined;
             confidence?: number | undefined;
         }[] | undefined;
         attachments?: {
-            kind: "html" | "img" | "pdf";
+            kind: "img" | "pdf" | "html";
             s3Key?: string | undefined;
             sha256?: string | undefined;
         }[] | undefined;
@@ -222,21 +222,21 @@ export declare const ScrapeResult: z.ZodObject<{
         };
         sourceKey: string;
         capturedAt: string;
-        ownerName?: string | undefined;
         parcelId?: string | undefined;
         apn?: string | undefined;
+        ownerName?: string | undefined;
         attributes?: Record<string, any> | undefined;
         priceHint?: number | undefined;
         lastEventDate?: string | undefined;
         distressSignals?: ("FSBO" | "AUCTION" | "PRE_FORECLOSURE" | "CODE_VIOLATION" | "TAX_DELINQUENT" | "PROBATE" | "EVICTION")[] | undefined;
         contacts?: {
-            type: "phone" | "email";
             value: string;
+            type: "phone" | "email";
             source?: string | undefined;
             confidence?: number | undefined;
         }[] | undefined;
         attachments?: {
-            kind: "html" | "img" | "pdf";
+            kind: "img" | "pdf" | "html";
             s3Key?: string | undefined;
             sha256?: string | undefined;
         }[] | undefined;
@@ -253,20 +253,20 @@ export declare const ScrapeResult: z.ZodObject<{
         sourceKey: string;
         capturedAt: string;
         distressSignals: ("FSBO" | "AUCTION" | "PRE_FORECLOSURE" | "CODE_VIOLATION" | "TAX_DELINQUENT" | "PROBATE" | "EVICTION")[];
-        ownerName?: string | undefined;
         parcelId?: string | undefined;
         apn?: string | undefined;
+        ownerName?: string | undefined;
         attributes?: Record<string, any> | undefined;
         priceHint?: number | undefined;
         lastEventDate?: string | undefined;
         contacts?: {
-            type: "phone" | "email";
             value: string;
+            type: "phone" | "email";
             source?: string | undefined;
             confidence?: number | undefined;
         }[] | undefined;
         attachments?: {
-            kind: "html" | "img" | "pdf";
+            kind: "img" | "pdf" | "html";
             s3Key?: string | undefined;
             sha256?: string | undefined;
         }[] | undefined;
@@ -283,21 +283,21 @@ export declare const ScrapeResult: z.ZodObject<{
         };
         sourceKey: string;
         capturedAt: string;
-        ownerName?: string | undefined;
         parcelId?: string | undefined;
         apn?: string | undefined;
+        ownerName?: string | undefined;
         attributes?: Record<string, any> | undefined;
         priceHint?: number | undefined;
         lastEventDate?: string | undefined;
         distressSignals?: ("FSBO" | "AUCTION" | "PRE_FORECLOSURE" | "CODE_VIOLATION" | "TAX_DELINQUENT" | "PROBATE" | "EVICTION")[] | undefined;
         contacts?: {
-            type: "phone" | "email";
             value: string;
+            type: "phone" | "email";
             source?: string | undefined;
             confidence?: number | undefined;
         }[] | undefined;
         attachments?: {
-            kind: "html" | "img" | "pdf";
+            kind: "img" | "pdf" | "html";
             s3Key?: string | undefined;
             sha256?: string | undefined;
         }[] | undefined;

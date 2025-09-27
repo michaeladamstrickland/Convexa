@@ -12,7 +12,7 @@ interface ScheduleItem {
   nextRun?: string;
   createdAt: string;
   updatedAt: string;
-  active: boolean;
+  isActive: boolean; // Fixed: use isActive instead of active
 }
 
 interface ScraperSchedulerProps {
@@ -81,8 +81,9 @@ export const ScraperScheduler: React.FC<ScraperSchedulerProps> = ({ refreshJobsL
       }
 
       const response = await scraperApi.createSchedule({
-        source: newSchedule.source,
-        frequency: newSchedule.frequency,
+        name: `${newSchedule.source}_${newSchedule.frequency}`,
+        scraperType: newSchedule.source,
+        cronExpression: getCronExpression(newSchedule.frequency),
         config: configObj
       });
       
@@ -102,7 +103,7 @@ export const ScraperScheduler: React.FC<ScraperSchedulerProps> = ({ refreshJobsL
   const toggleScheduleActive = async (id: string, currentActive: boolean) => {
     try {
       const response = await scraperApi.updateSchedule(id, {
-        active: !currentActive
+        isActive: !currentActive
       });
       
       if (response.data.success) {
@@ -135,7 +136,7 @@ export const ScraperScheduler: React.FC<ScraperSchedulerProps> = ({ refreshJobsL
 
   const runScheduleNow = async (id: string, source: string) => {
     try {
-      const response = await scraperApi.runScheduleNow(id);
+      const response = await scraperApi.runSchedule(id);
       
       if (response.data.success) {
         toast.success(`${capitalizeFirstLetter(source)} scraper started`);
@@ -149,6 +150,57 @@ export const ScraperScheduler: React.FC<ScraperSchedulerProps> = ({ refreshJobsL
       console.error('Error running scraper:', error);
       toast.error('Failed to run scraper');
     }
+  };
+
+  const capitalizeFirstLetter = (string: string) => {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+  };
+
+  const getCronExpression = (frequency: string): string => {
+    switch (frequency) {
+      case 'hourly': return '0 * * * *';
+      case 'daily': return '0 0 * * *';
+      case 'weekly': return '0 0 * * 0';
+      case 'monthly': return '0 0 1 * *';
+      default: return '0 0 * * *';
+    }
+  };
+
+  const handleSourceChange = (source: string) => {
+    let defaultConfig = {};
+    
+    switch (source) {
+      case 'zillow':
+        defaultConfig = {
+          location: 'San Diego, CA',
+          propertyTypes: ['house', 'condo'],
+          minPrice: 300000,
+          maxPrice: 1000000,
+          minBeds: 2,
+          minBaths: 2,
+          maxResults: 50
+        };
+        break;
+      case 'auction':
+        defaultConfig = {
+          location: 'San Diego, CA',
+          propertyTypes: ['house', 'condo'],
+          maxResults: 50
+        };
+        break;
+      case 'county':
+        defaultConfig = {
+          county: 'San Diego County',
+          maxResults: 50
+        };
+        break;
+    }
+    
+    setNewSchedule({
+      ...newSchedule,
+      source,
+      config: JSON.stringify(defaultConfig, null, 2)
+    });
   };
 
   const handleSourceChange = (source: string) => {
@@ -210,11 +262,12 @@ export const ScraperScheduler: React.FC<ScraperSchedulerProps> = ({ refreshJobsL
         </div>
       ) : schedules.length === 0 ? (
         <div className="text-center py-10 text-gray-500">
-          No scheduled jobs found
-        </div>
-      ) : (
-        <div className="overflow-x-auto">
-          <table className="min-w-full">
+          const response = await scraperApi.createSchedule({
+            source: newSchedule.source,
+            frequency: newSchedule.frequency,
+            config: configObj,
+            isActive: true // default to active on creation
+          });
             <thead>
               <tr className="bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 <th className="px-4 py-2">Source</th>

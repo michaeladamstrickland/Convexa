@@ -1,0 +1,812 @@
+[
+  {
+    "id": "32454a71-dea4-4a47-a0c8-7855150889ff",
+    "dialId": "test-lead-all-types",
+    "leadId": "test-lead-all-types",
+    "type": "no_answer",
+    "notes": "Test no_answer",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T14:48:58.551Z"
+  },
+  {
+    "id": "14f5a769-008a-4ed9-baa6-837cb9aae89e",
+    "dialId": "test-lead-all-types",
+    "leadId": "test-lead-all-types",
+    "type": "voicemail",
+    "notes": "Test voicemail",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T14:48:58.558Z"
+  },
+  {
+    "id": "eac483e0-9cca-472b-a3a2-9e324ac62a8b",
+    "dialId": "test-lead-all-types",
+    "leadId": "test-lead-all-types",
+    "type": "bad_number",
+    "notes": "Test bad_number",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T14:48:58.564Z"
+  },
+  {
+    "id": "8a21ce08-b983-4f50-95b2-c443aa3329cc",
+    "dialId": "test-lead-all-types",
+    "leadId": "test-lead-all-types",
+    "type": "interested",
+    "notes": "Test interested",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T14:48:58.570Z"
+  },
+  {
+    "id": "e4d00700-b257-4a26-b649-880847c85ee6",
+    "dialId": "test-lead-all-types",
+    "leadId": "test-lead-all-types",
+    "type": "not_interested",
+    "notes": "Test not_interested",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T14:48:58.578Z"
+  },
+  {
+    "id": "9a8414ae-8c78-4b95-93cb-91b85402139d",
+    "dialId": "test-lead-all-types",
+    "leadId": "test-lead-all-types",
+    "type": "follow_up",
+    "notes": "Test follow_up",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T14:48:58.585Z"
+  },
+  {
+    "id": "8cb0e173-39d4-462b-996b-fb4175606655",
+    "dialId": "test-lead-all-types",
+    "leadId": "test-lead-all-types",
+    "type": "no_answer",
+    "notes": "Test no_answer",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T14:57:54.013Z"
+  },
+  {
+    "id": "a20d3a19-8d9c-4047-8e56-914a6bc138a4",
+    "dialId": "test-lead-all-types",
+    "leadId": "test-lead-all-types",
+    "type": "voicemail",
+    "notes": "Test voicemail",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T14:57:54.019Z"
+  },
+  {
+    "id": "1cc4b11d-03e2-47d6-963a-65e87eb3b239",
+    "dialId": "test-lead-all-types",
+    "leadId": "test-lead-all-types",
+    "type": "bad_number",
+    "notes": "Test bad_number",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T14:57:54.025Z"
+  },
+  {
+    "id": "167c1c32-f47c-4342-b23e-9153613a9b32",
+    "dialId": "test-lead-all-types",
+    "leadId": "test-lead-all-types",
+    "type": "interested",
+    "notes": "Test interested",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T14:57:54.031Z"
+  },
+  {
+    "id": "10d4af84-bc39-4bd0-9c9b-fcd2e8af10d1",
+    "dialId": "test-lead-all-types",
+    "leadId": "test-lead-all-types",
+    "type": "not_interested",
+    "notes": "Test not_interested",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T14:57:54.038Z"
+  },
+  {
+    "id": "4602359a-fa54-4cbf-8661-2b70c84adf76",
+    "dialId": "test-lead-all-types",
+    "leadId": "test-lead-all-types",
+    "type": "follow_up",
+    "notes": "Test follow_up",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T14:57:54.044Z"
+  },
+  {
+    "id": "bb156323-5484-4645-bc7e-ae2665cdf84e",
+    "dialId": "test-lead-all-types",
+    "leadId": "test-lead-all-types",
+    "type": "no_answer",
+    "notes": "Test no_answer",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T15:00:52.298Z"
+  },
+  {
+    "id": "d4c50be7-d567-4ec9-96b8-0b4a3a52bc9a",
+    "dialId": "test-lead-all-types",
+    "leadId": "test-lead-all-types",
+    "type": "voicemail",
+    "notes": "Test voicemail",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T15:00:52.305Z"
+  },
+  {
+    "id": "64fe484f-fea3-4769-8aaf-19c93fed40b1",
+    "dialId": "test-lead-all-types",
+    "leadId": "test-lead-all-types",
+    "type": "bad_number",
+    "notes": "Test bad_number",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T15:00:52.312Z"
+  },
+  {
+    "id": "5fa407a9-9ceb-46a1-b384-99760dc6f6b7",
+    "dialId": "test-lead-all-types",
+    "leadId": "test-lead-all-types",
+    "type": "interested",
+    "notes": "Test interested",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T15:00:52.318Z"
+  },
+  {
+    "id": "ab3025a4-dcba-47ea-890d-0e53a9ff7ad2",
+    "dialId": "test-lead-all-types",
+    "leadId": "test-lead-all-types",
+    "type": "not_interested",
+    "notes": "Test not_interested",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T15:00:52.324Z"
+  },
+  {
+    "id": "74dafd31-eb8b-4102-9a97-33199d4ac3ad",
+    "dialId": "test-lead-all-types",
+    "leadId": "test-lead-all-types",
+    "type": "follow_up",
+    "notes": "Test follow_up",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T15:00:52.331Z"
+  },
+  {
+    "id": "e05daff1-82cb-48b4-ae3f-8be6f2e4438e",
+    "dialId": "test-lead-all-types",
+    "leadId": "test-lead-all-types",
+    "type": "no_answer",
+    "notes": "Test no_answer",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T15:38:09.181Z"
+  },
+  {
+    "id": "c2ba2bf5-056d-47d2-8bec-0dd30fbc20af",
+    "dialId": "test-lead-all-types",
+    "leadId": "test-lead-all-types",
+    "type": "voicemail",
+    "notes": "Test voicemail",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T15:38:09.188Z"
+  },
+  {
+    "id": "554c16b1-97c3-49b3-8c7d-71c473138366",
+    "dialId": "test-lead-all-types",
+    "leadId": "test-lead-all-types",
+    "type": "bad_number",
+    "notes": "Test bad_number",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T15:38:09.196Z"
+  },
+  {
+    "id": "e4e7e003-f7ba-41df-b678-f85caa6cbfeb",
+    "dialId": "test-lead-all-types",
+    "leadId": "test-lead-all-types",
+    "type": "interested",
+    "notes": "Test interested",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T15:38:09.202Z"
+  },
+  {
+    "id": "c7cd542c-8ec2-41ad-bbf7-da3c73313631",
+    "dialId": "test-lead-all-types",
+    "leadId": "test-lead-all-types",
+    "type": "not_interested",
+    "notes": "Test not_interested",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T15:38:09.212Z"
+  },
+  {
+    "id": "6f9c674f-ddb2-4828-ae8d-acb0354215b9",
+    "dialId": "test-lead-all-types",
+    "leadId": "test-lead-all-types",
+    "type": "follow_up",
+    "notes": "Test follow_up",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T15:38:09.218Z"
+  },
+  {
+    "id": "b22a2730-e5e3-4b71-9430-301a2950364e",
+    "dialId": "test-lead-all-types",
+    "leadId": "test-lead-all-types",
+    "type": "no_answer",
+    "notes": "Test no_answer",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T16:03:56.222Z"
+  },
+  {
+    "id": "b663ad14-6056-4081-9b70-96d2c56367f8",
+    "dialId": "test-lead-all-types",
+    "leadId": "test-lead-all-types",
+    "type": "voicemail",
+    "notes": "Test voicemail",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T16:03:56.228Z"
+  },
+  {
+    "id": "1da6dca9-0c4a-4d83-8880-8b95bc9a65bd",
+    "dialId": "test-lead-all-types",
+    "leadId": "test-lead-all-types",
+    "type": "bad_number",
+    "notes": "Test bad_number",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T16:03:56.234Z"
+  },
+  {
+    "id": "7aba7f91-9982-4801-a4eb-07dd50bbc712",
+    "dialId": "test-lead-all-types",
+    "leadId": "test-lead-all-types",
+    "type": "interested",
+    "notes": "Test interested",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T16:03:56.239Z"
+  },
+  {
+    "id": "b3e551d3-881a-4a2b-983d-eeeb1ee239ad",
+    "dialId": "test-lead-all-types",
+    "leadId": "test-lead-all-types",
+    "type": "not_interested",
+    "notes": "Test not_interested",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T16:03:56.243Z"
+  },
+  {
+    "id": "24083739-d24a-44ec-a36f-4f8437e78b30",
+    "dialId": "test-lead-all-types",
+    "leadId": "test-lead-all-types",
+    "type": "follow_up",
+    "notes": "Test follow_up",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T16:03:56.249Z"
+  },
+  {
+    "id": "7e070c59-551f-487c-b510-85ee11a8dcc7",
+    "dialId": "test-lead-all-types",
+    "leadId": "test-lead-all-types",
+    "type": "no_answer",
+    "notes": "Test no_answer",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T20:38:52.470Z"
+  },
+  {
+    "id": "8a7f75fc-2eee-4bd6-86c7-c68897021302",
+    "dialId": "test-lead-all-types",
+    "leadId": "test-lead-all-types",
+    "type": "voicemail",
+    "notes": "Test voicemail",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T20:38:52.480Z"
+  },
+  {
+    "id": "2edd0409-2053-488a-8fb7-c17a14b45028",
+    "dialId": "test-lead-all-types",
+    "leadId": "test-lead-all-types",
+    "type": "bad_number",
+    "notes": "Test bad_number",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T20:38:52.488Z"
+  },
+  {
+    "id": "fbec4097-6737-476d-ba1f-de42e2e29af2",
+    "dialId": "test-lead-all-types",
+    "leadId": "test-lead-all-types",
+    "type": "interested",
+    "notes": "Test interested",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T20:38:52.500Z"
+  },
+  {
+    "id": "ac43604e-bf8b-430b-a08a-739286eb11fe",
+    "dialId": "test-lead-all-types",
+    "leadId": "test-lead-all-types",
+    "type": "not_interested",
+    "notes": "Test not_interested",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T20:38:52.513Z"
+  },
+  {
+    "id": "7a14dd51-a2ac-4b7c-9bf1-daa2b0715df1",
+    "dialId": "test-lead-all-types",
+    "leadId": "test-lead-all-types",
+    "type": "follow_up",
+    "notes": "Test follow_up",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T20:38:52.525Z"
+  },
+  {
+    "id": "6efda75e-909f-40fe-a1e8-8b0e2e927201",
+    "dialId": "test-lead-all-types",
+    "leadId": "test-lead-all-types",
+    "type": "no_answer",
+    "notes": "Test no_answer",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T20:47:48.093Z"
+  },
+  {
+    "id": "afe2c2ad-9153-4fea-a464-418d9d0a22c6",
+    "dialId": "test-lead-all-types",
+    "leadId": "test-lead-all-types",
+    "type": "voicemail",
+    "notes": "Test voicemail",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T20:47:48.104Z"
+  },
+  {
+    "id": "e05d1a4e-2ed1-4fb8-bcbf-0c8e064e0ad6",
+    "dialId": "test-lead-all-types",
+    "leadId": "test-lead-all-types",
+    "type": "bad_number",
+    "notes": "Test bad_number",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T20:47:48.113Z"
+  },
+  {
+    "id": "0d8e3545-3db6-45a1-ac4a-b5dd180517f0",
+    "dialId": "test-lead-all-types",
+    "leadId": "test-lead-all-types",
+    "type": "interested",
+    "notes": "Test interested",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T20:47:48.125Z"
+  },
+  {
+    "id": "4b82263c-08ce-404d-94e8-5576f18fb368",
+    "dialId": "test-lead-all-types",
+    "leadId": "test-lead-all-types",
+    "type": "not_interested",
+    "notes": "Test not_interested",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T20:47:48.140Z"
+  },
+  {
+    "id": "9b889f86-9d36-4101-8cbb-53dc4ac7bdba",
+    "dialId": "test-lead-all-types",
+    "leadId": "test-lead-all-types",
+    "type": "follow_up",
+    "notes": "Test follow_up",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T20:47:48.153Z"
+  },
+  {
+    "id": "3fbbec16-0c5c-4a5f-8c3c-c2df15b13aab",
+    "dialId": "test-lead-all-types",
+    "leadId": "test-lead-all-types",
+    "type": "no_answer",
+    "notes": "Test no_answer",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T20:50:38.902Z"
+  },
+  {
+    "id": "5bf213f2-96a2-455b-9351-57efa4a7740b",
+    "dialId": "test-lead-all-types",
+    "leadId": "test-lead-all-types",
+    "type": "voicemail",
+    "notes": "Test voicemail",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T20:50:38.908Z"
+  },
+  {
+    "id": "f2a42822-f67b-4946-b17b-63cd4f190d00",
+    "dialId": "test-lead-all-types",
+    "leadId": "test-lead-all-types",
+    "type": "bad_number",
+    "notes": "Test bad_number",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T20:50:38.915Z"
+  },
+  {
+    "id": "5b7fb996-0921-40d3-80e3-3188dea86eda",
+    "dialId": "test-lead-all-types",
+    "leadId": "test-lead-all-types",
+    "type": "interested",
+    "notes": "Test interested",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T20:50:38.923Z"
+  },
+  {
+    "id": "576c1b5b-a36c-40a9-b44c-abce1b5098b4",
+    "dialId": "test-lead-all-types",
+    "leadId": "test-lead-all-types",
+    "type": "not_interested",
+    "notes": "Test not_interested",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T20:50:38.932Z"
+  },
+  {
+    "id": "d3e601c5-506c-45cd-9ce1-f7d6ca48c6a6",
+    "dialId": "test-lead-all-types",
+    "leadId": "test-lead-all-types",
+    "type": "follow_up",
+    "notes": "Test follow_up",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T20:50:38.939Z"
+  },
+  {
+    "id": "634b8e83-97d2-4326-894a-78d65bb3b438",
+    "dialId": "test-lead-all-types",
+    "leadId": "test-lead-all-types",
+    "type": "no_answer",
+    "notes": "Test no_answer",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T20:52:24.706Z"
+  },
+  {
+    "id": "693ef4ed-9a55-4ec1-ac0e-ba367cdd72fd",
+    "dialId": "test-lead-all-types",
+    "leadId": "test-lead-all-types",
+    "type": "voicemail",
+    "notes": "Test voicemail",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T20:52:24.715Z"
+  },
+  {
+    "id": "fd87c17b-685d-45b0-87bf-498c9ba23978",
+    "dialId": "test-lead-all-types",
+    "leadId": "test-lead-all-types",
+    "type": "bad_number",
+    "notes": "Test bad_number",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T20:52:24.722Z"
+  },
+  {
+    "id": "ec51f139-9415-4834-a4d3-9e7d87d961c7",
+    "dialId": "test-lead-all-types",
+    "leadId": "test-lead-all-types",
+    "type": "interested",
+    "notes": "Test interested",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T20:52:24.731Z"
+  },
+  {
+    "id": "22e76d6a-a075-4ef6-84aa-11e1f8f44957",
+    "dialId": "test-lead-all-types",
+    "leadId": "test-lead-all-types",
+    "type": "not_interested",
+    "notes": "Test not_interested",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T20:52:24.738Z"
+  },
+  {
+    "id": "48c17b08-7379-474a-a070-e0cec6ecbad4",
+    "dialId": "test-lead-all-types",
+    "leadId": "test-lead-all-types",
+    "type": "follow_up",
+    "notes": "Test follow_up",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T20:52:24.744Z"
+  },
+  {
+    "id": "5e6a0a3c-4397-412b-8db7-7a2437a51242",
+    "dialId": "test-lead-all-types",
+    "leadId": "test-lead-all-types",
+    "type": "no_answer",
+    "notes": "Test no_answer",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T20:54:56.498Z"
+  },
+  {
+    "id": "bfa7b885-bda6-4440-af19-86e3fa72ae5d",
+    "dialId": "test-lead-all-types",
+    "leadId": "test-lead-all-types",
+    "type": "voicemail",
+    "notes": "Test voicemail",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T20:54:56.506Z"
+  },
+  {
+    "id": "9746fada-bfbe-498b-8837-c2351f2b5493",
+    "dialId": "test-lead-all-types",
+    "leadId": "test-lead-all-types",
+    "type": "bad_number",
+    "notes": "Test bad_number",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T20:54:56.513Z"
+  },
+  {
+    "id": "fcfe9e88-8106-43b6-a631-69f3f5df8f59",
+    "dialId": "test-lead-all-types",
+    "leadId": "test-lead-all-types",
+    "type": "interested",
+    "notes": "Test interested",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T20:54:56.521Z"
+  },
+  {
+    "id": "4ebea261-aabd-4332-b67b-2140f91acf4b",
+    "dialId": "test-lead-all-types",
+    "leadId": "test-lead-all-types",
+    "type": "not_interested",
+    "notes": "Test not_interested",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T20:54:56.528Z"
+  },
+  {
+    "id": "4130319b-5156-4958-b668-a98711309ded",
+    "dialId": "test-lead-all-types",
+    "leadId": "test-lead-all-types",
+    "type": "follow_up",
+    "notes": "Test follow_up",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T20:54:56.536Z"
+  },
+  {
+    "id": "c12f7337-f61f-4edf-a410-faa2b58184fc",
+    "dialId": "test-lead-all-types",
+    "leadId": "test-lead-all-types",
+    "type": "no_answer",
+    "notes": "Test no_answer",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T20:59:49.562Z"
+  },
+  {
+    "id": "05cb0d8f-0312-4f2b-9380-f09eb10a7ee6",
+    "dialId": "test-lead-all-types",
+    "leadId": "test-lead-all-types",
+    "type": "voicemail",
+    "notes": "Test voicemail",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T20:59:49.571Z"
+  },
+  {
+    "id": "1d478072-b714-4827-b061-e22b252ad810",
+    "dialId": "test-lead-all-types",
+    "leadId": "test-lead-all-types",
+    "type": "bad_number",
+    "notes": "Test bad_number",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T20:59:49.580Z"
+  },
+  {
+    "id": "13b7432c-2af1-490a-b2cb-62b3ce99559b",
+    "dialId": "test-lead-all-types",
+    "leadId": "test-lead-all-types",
+    "type": "interested",
+    "notes": "Test interested",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T20:59:49.590Z"
+  },
+  {
+    "id": "44e15a13-2d17-49ec-82a9-5340db73feb2",
+    "dialId": "test-lead-all-types",
+    "leadId": "test-lead-all-types",
+    "type": "not_interested",
+    "notes": "Test not_interested",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T20:59:49.601Z"
+  },
+  {
+    "id": "47c445cb-65cf-475c-ad02-330f752ad2dc",
+    "dialId": "test-lead-all-types",
+    "leadId": "test-lead-all-types",
+    "type": "follow_up",
+    "notes": "Test follow_up",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T20:59:49.607Z"
+  },
+  {
+    "id": "f415d5c8-5527-4436-a15b-bccb9fc10c2d",
+    "dialId": "test-lead-all-types",
+    "leadId": "test-lead-all-types",
+    "type": "no_answer",
+    "notes": "Test no_answer",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T21:03:33.433Z"
+  },
+  {
+    "id": "ad598098-39da-4345-ab32-f74ed20ca282",
+    "dialId": "test-lead-all-types",
+    "leadId": "test-lead-all-types",
+    "type": "voicemail",
+    "notes": "Test voicemail",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T21:03:33.441Z"
+  },
+  {
+    "id": "c1a36c91-bc57-40b2-9dd4-cf6dae5324cc",
+    "dialId": "test-lead-all-types",
+    "leadId": "test-lead-all-types",
+    "type": "bad_number",
+    "notes": "Test bad_number",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T21:03:33.449Z"
+  },
+  {
+    "id": "88387bfe-8bcb-4a22-98a9-d2523b791686",
+    "dialId": "test-lead-all-types",
+    "leadId": "test-lead-all-types",
+    "type": "interested",
+    "notes": "Test interested",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T21:03:33.458Z"
+  },
+  {
+    "id": "e2d401bb-880f-4401-8eb9-091bfd4f6154",
+    "dialId": "test-lead-all-types",
+    "leadId": "test-lead-all-types",
+    "type": "not_interested",
+    "notes": "Test not_interested",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T21:03:33.467Z"
+  },
+  {
+    "id": "a009f7ba-517e-4bbd-94f2-16a3b8b8a380",
+    "dialId": "test-lead-all-types",
+    "leadId": "test-lead-all-types",
+    "type": "follow_up",
+    "notes": "Test follow_up",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T21:03:33.475Z"
+  },
+  {
+    "id": "97da91e6-69df-4adc-9bd5-8b9a5d44ee51",
+    "dialId": "test-lead-all-types",
+    "leadId": "test-lead-all-types",
+    "type": "no_answer",
+    "notes": "Test no_answer",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T21:09:18.443Z"
+  },
+  {
+    "id": "e7960de6-58ea-4465-9721-3cc34dcb61fb",
+    "dialId": "test-lead-all-types",
+    "leadId": "test-lead-all-types",
+    "type": "voicemail",
+    "notes": "Test voicemail",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T21:09:18.450Z"
+  },
+  {
+    "id": "fff34052-dd82-4c5b-9ce8-e2c054d1c076",
+    "dialId": "test-lead-all-types",
+    "leadId": "test-lead-all-types",
+    "type": "bad_number",
+    "notes": "Test bad_number",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T21:09:18.457Z"
+  },
+  {
+    "id": "640ef364-45ae-4a01-a292-2cffee267fe4",
+    "dialId": "test-lead-all-types",
+    "leadId": "test-lead-all-types",
+    "type": "interested",
+    "notes": "Test interested",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T21:09:18.465Z"
+  },
+  {
+    "id": "882309ad-07e4-429e-b830-afc67ec4c010",
+    "dialId": "test-lead-all-types",
+    "leadId": "test-lead-all-types",
+    "type": "not_interested",
+    "notes": "Test not_interested",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T21:09:18.472Z"
+  },
+  {
+    "id": "4d2a56a7-9a3f-4337-8911-58c2879316a2",
+    "dialId": "test-lead-all-types",
+    "leadId": "test-lead-all-types",
+    "type": "follow_up",
+    "notes": "Test follow_up",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T21:09:18.478Z"
+  },
+  {
+    "id": "83bdd3c5-8b13-40fb-b6a8-56974a2cae10",
+    "dialId": "test-lead-all-types",
+    "leadId": "test-lead-all-types",
+    "type": "no_answer",
+    "notes": "Test no_answer",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T21:11:34.396Z"
+  },
+  {
+    "id": "e5fdbd11-565d-4c94-8464-48effac735d5",
+    "dialId": "test-lead-all-types",
+    "leadId": "test-lead-all-types",
+    "type": "voicemail",
+    "notes": "Test voicemail",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T21:11:34.416Z"
+  },
+  {
+    "id": "51c706db-163e-46e5-9c7b-3e5e2f7dcaef",
+    "dialId": "test-lead-all-types",
+    "leadId": "test-lead-all-types",
+    "type": "bad_number",
+    "notes": "Test bad_number",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T21:11:34.430Z"
+  },
+  {
+    "id": "10a770d4-207d-418a-bf17-7dfc8271fd5f",
+    "dialId": "test-lead-all-types",
+    "leadId": "test-lead-all-types",
+    "type": "interested",
+    "notes": "Test interested",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T21:11:34.442Z"
+  },
+  {
+    "id": "2acf0ec8-ae9a-4e8f-96f4-378b3d3de8d0",
+    "dialId": "test-lead-all-types",
+    "leadId": "test-lead-all-types",
+    "type": "not_interested",
+    "notes": "Test not_interested",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T21:11:34.455Z"
+  },
+  {
+    "id": "56beefd6-5707-4676-83eb-df43aed95d27",
+    "dialId": "test-lead-all-types",
+    "leadId": "test-lead-all-types",
+    "type": "follow_up",
+    "notes": "Test follow_up",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T21:11:34.469Z"
+  },
+  {
+    "id": "3148c9a6-aa4b-4241-81e4-90c491bed7a3",
+    "dialId": "test-lead-all-types",
+    "leadId": "test-lead-all-types",
+    "type": "no_answer",
+    "notes": "Test no_answer",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T21:12:32.581Z"
+  },
+  {
+    "id": "8cc22aad-09d4-488e-85e2-0e1211ef6192",
+    "dialId": "test-lead-all-types",
+    "leadId": "test-lead-all-types",
+    "type": "voicemail",
+    "notes": "Test voicemail",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T21:12:32.595Z"
+  },
+  {
+    "id": "c0b3bbae-e8c2-49ad-8d47-7c4e74fe1c36",
+    "dialId": "test-lead-all-types",
+    "leadId": "test-lead-all-types",
+    "type": "bad_number",
+    "notes": "Test bad_number",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T21:12:32.605Z"
+  },
+  {
+    "id": "9a9b4153-a37c-4721-9bf3-fd5b011ae87f",
+    "dialId": "test-lead-all-types",
+    "leadId": "test-lead-all-types",
+    "type": "interested",
+    "notes": "Test interested",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T21:12:32.643Z"
+  },
+  {
+    "id": "bd96a93d-8f91-4845-9ed8-0014617e1eed",
+    "dialId": "test-lead-all-types",
+    "leadId": "test-lead-all-types",
+    "type": "not_interested",
+    "notes": "Test not_interested",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T21:12:32.700Z"
+  },
+  {
+    "id": "5644f025-376c-4846-a516-fe673257966b",
+    "dialId": "test-lead-all-types",
+    "leadId": "test-lead-all-types",
+    "type": "follow_up",
+    "notes": "Test follow_up",
+    "gradeLabel": "ungraded",
+    "createdAt": "2025-09-26T21:12:32.713Z"
+  }
+]

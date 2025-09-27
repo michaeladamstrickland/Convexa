@@ -1,45 +1,5 @@
-"use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.getAttomClient = getAttomClient;
-exports.searchByZip = searchByZip;
-exports.getPropertyByAddress = getPropertyByAddress;
-exports.getPropertyById = getPropertyById;
-exports.checkHealth = checkHealth;
-const dotenv = __importStar(require("dotenv"));
-const vendorClient_1 = require("../utils/vendorClient");
+import * as dotenv from "dotenv";
+import { makeClient, logApiCall } from "../utils/vendorClient";
 dotenv.config();
 // Check if ATTOM integration is enabled
 const isAttomEnabled = process.env.FEATURE_ATTOM_ENABLED === 'true';
@@ -48,10 +8,10 @@ const attomBaseUrl = process.env.ATTOM_BASE_URL || 'https://api.gateway.attomdat
 const attomApiKey = process.env.ATTOM_API_KEY || '';
 // Only create the client if ATTOM is enabled and API key is provided
 const attom = isAttomEnabled && attomApiKey
-    ? (0, vendorClient_1.makeClient)(attomBaseUrl, { apikey: attomApiKey })
+    ? makeClient(attomBaseUrl, { apikey: attomApiKey })
     : null;
 // Expose the raw ATTOM client for advanced use-cases (e.g., comps)
-async function getAttomClient() {
+export async function getAttomClient() {
     if (!isAttomEnabled || !attom)
         return null;
     return attom;
@@ -63,7 +23,7 @@ async function getAttomClient() {
  * @param pageSize - Number of results to return (default: 10)
  * @returns Array of property data or empty array if feature disabled
  */
-async function searchByZip(zipCode, pageSize = 10) {
+export async function searchByZip(zipCode, pageSize = 10) {
     // If ATTOM is disabled or client wasn't initialized, return empty results
     if (!isAttomEnabled || !attom) {
         console.warn('ATTOM API is disabled. Returning empty results.');
@@ -80,7 +40,7 @@ async function searchByZip(zipCode, pageSize = 10) {
             }
         });
         // Log the successful API call
-        (0, vendorClient_1.logApiCall)('ATTOM', `${endpoint} (ZIP: ${zipCode})`, status, startTime);
+        logApiCall('ATTOM', `${endpoint} (ZIP: ${zipCode})`, status, startTime);
         return {
             properties: data.property || [],
             status: 'success'
@@ -88,7 +48,7 @@ async function searchByZip(zipCode, pageSize = 10) {
     }
     catch (error) {
         // Log the failed API call
-        (0, vendorClient_1.logApiCall)('ATTOM', `${endpoint} (ZIP: ${zipCode})`, error.response?.status || 0, startTime, error);
+        logApiCall('ATTOM', `${endpoint} (ZIP: ${zipCode})`, error.response?.status || 0, startTime, error);
         // Return empty results with an error status
         return {
             properties: [],
@@ -106,7 +66,7 @@ async function searchByZip(zipCode, pageSize = 10) {
  * @param zip - ZIP code
  * @returns Property details or null if not found or disabled
  */
-async function getPropertyByAddress(address, city, state, zip) {
+export async function getPropertyByAddress(address, city, state, zip) {
     // If ATTOM is disabled or client wasn't initialized, return null
     if (!isAttomEnabled || !attom) {
         console.warn('ATTOM API is disabled. Returning null.');
@@ -122,7 +82,7 @@ async function getPropertyByAddress(address, city, state, zip) {
             }
         });
         // Log the successful API call
-        (0, vendorClient_1.logApiCall)('ATTOM', `${endpoint} (Address: ${address})`, status, startTime);
+        logApiCall('ATTOM', `${endpoint} (Address: ${address})`, status, startTime);
         // Get the first property from results
         const property = data.property?.[0] || null;
         return {
@@ -132,7 +92,7 @@ async function getPropertyByAddress(address, city, state, zip) {
     }
     catch (error) {
         // Log the failed API call
-        (0, vendorClient_1.logApiCall)('ATTOM', `${endpoint} (Address: ${address})`, error.response?.status || 0, startTime, error);
+        logApiCall('ATTOM', `${endpoint} (Address: ${address})`, error.response?.status || 0, startTime, error);
         // Return null with an error status
         return {
             property: null,
@@ -147,7 +107,7 @@ async function getPropertyByAddress(address, city, state, zip) {
  * @param attomId - ATTOM property ID
  * @returns Property details or null if not found or disabled
  */
-async function getPropertyById(attomId) {
+export async function getPropertyById(attomId) {
     // If ATTOM is disabled or client wasn't initialized, return null
     if (!isAttomEnabled || !attom) {
         console.warn('ATTOM API is disabled. Returning null.');
@@ -162,7 +122,7 @@ async function getPropertyById(attomId) {
             }
         });
         // Log the successful API call
-        (0, vendorClient_1.logApiCall)('ATTOM', `${endpoint} (ID: ${attomId})`, status, startTime);
+        logApiCall('ATTOM', `${endpoint} (ID: ${attomId})`, status, startTime);
         // Get the first property from results
         const property = data.property?.[0] || null;
         return {
@@ -172,7 +132,7 @@ async function getPropertyById(attomId) {
     }
     catch (error) {
         // Log the failed API call
-        (0, vendorClient_1.logApiCall)('ATTOM', `${endpoint} (ID: ${attomId})`, error.response?.status || 0, startTime, error);
+        logApiCall('ATTOM', `${endpoint} (ID: ${attomId})`, error.response?.status || 0, startTime, error);
         // Return null with an error status
         return {
             property: null,
@@ -186,7 +146,7 @@ async function getPropertyById(attomId) {
  *
  * @returns Status of the ATTOM API
  */
-async function checkHealth() {
+export async function checkHealth() {
     // If ATTOM is disabled or client wasn't initialized, return disabled status
     if (!isAttomEnabled || !attom) {
         return {
@@ -206,7 +166,7 @@ async function checkHealth() {
             }
         });
         // Log the health check
-        (0, vendorClient_1.logApiCall)('ATTOM', `${endpoint} (Health Check)`, status, startTime);
+        logApiCall('ATTOM', `${endpoint} (Health Check)`, status, startTime);
         return {
             service: 'ATTOM API',
             enabled: true,
@@ -216,7 +176,7 @@ async function checkHealth() {
     }
     catch (error) {
         // Log the health check failure
-        (0, vendorClient_1.logApiCall)('ATTOM', `${endpoint} (Health Check)`, error.response?.status || 0, startTime, error);
+        logApiCall('ATTOM', `${endpoint} (Health Check)`, error.response?.status || 0, startTime, error);
         return {
             service: 'ATTOM API',
             enabled: true,
@@ -227,7 +187,7 @@ async function checkHealth() {
         };
     }
 }
-exports.default = {
+export default {
     searchByZip,
     getPropertyByAddress,
     getPropertyById,

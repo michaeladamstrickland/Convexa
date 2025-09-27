@@ -1,21 +1,15 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.UnifiedSearchController = void 0;
-const client_1 = require("@prisma/client");
-const attomClient_1 = __importDefault(require("../services/attomClient"));
-const batchSkipTraceService_1 = __importDefault(require("../services/batchSkipTraceService"));
-const addressNormalization_1 = require("../utils/addressNormalization");
-const prisma = new client_1.PrismaClient();
+import { PrismaClient } from '@prisma/client';
+import attomClient from '../services/attomClient';
+import batchSkipTraceService from '../services/batchSkipTraceService';
+import { normalizeAddress } from '../utils/addressNormalization';
+const prisma = new PrismaClient();
 /**
  * Unified Search Controller
  *
  * This controller integrates multiple data sources (ATTOM and BatchData)
  * to provide a comprehensive property search and lead generation system.
  */
-class UnifiedSearchController {
+export class UnifiedSearchController {
     /**
      * Search for a property by address
      *
@@ -33,7 +27,7 @@ class UnifiedSearchController {
             }
             // Normalize the address for deduplication
             const fullAddress = `${address}, ${city}, ${state} ${zipCode}`;
-            const normalizedAddress = (0, addressNormalization_1.normalizeAddress)(fullAddress);
+            const normalizedAddress = normalizeAddress(fullAddress);
             // Check if property already exists in our database
             let lead = await prisma.lead.findFirst({
                 where: {
@@ -45,7 +39,7 @@ class UnifiedSearchController {
             let totalCostCents = 0;
             // If we don't have the property, search ATTOM API
             if (!lead) {
-                const propertyData = await attomClient_1.default.getPropertyByAddress(address, city, state, zipCode);
+                const propertyData = await attomClient.getPropertyByAddress(address, city, state, zipCode);
                 if (propertyData) {
                     propertyFound = true;
                     totalCostCents += 5; // ATTOM lookup cost
@@ -83,7 +77,7 @@ class UnifiedSearchController {
                 // Check if we already have skip trace data
                 const needsSkipTrace = !lead.ownerPhone;
                 if (needsSkipTrace) {
-                    const skipTraceResult = await batchSkipTraceService_1.default.skipTraceByAddress({
+                    const skipTraceResult = await batchSkipTraceService.skipTraceByAddress({
                         address,
                         city,
                         state,
@@ -151,14 +145,14 @@ class UnifiedSearchController {
                 });
             }
             // Search ATTOM API for properties in this ZIP code
-            const properties = await attomClient_1.default.getPropertiesByZipCode(zipCode, limit);
+            const properties = await attomClient.getPropertiesByZipCode(zipCode, limit);
             const totalCostCents = 5; // ZIP code search cost
             // Save the properties to our database
             const leads = [];
             for (const property of properties) {
                 // Normalize the address
                 const fullAddress = `${property.propertyAddress}, ${property.city}, ${property.state} ${property.zipCode}`;
-                const normalizedAddress = (0, addressNormalization_1.normalizeAddress)(fullAddress);
+                const normalizedAddress = normalizeAddress(fullAddress);
                 // Check if property already exists in our database
                 let existingLead = await prisma.lead.findFirst({
                     where: {
@@ -204,7 +198,7 @@ class UnifiedSearchController {
                         state: lead.state,
                         zipCode: lead.zipCode
                     }));
-                    const skipTraceResults = await batchSkipTraceService_1.default.batchSkipTrace(skipTraceRequests);
+                    const skipTraceResults = await batchSkipTraceService.batchSkipTrace(skipTraceRequests);
                     // Update leads with skip trace data
                     for (let i = 0; i < leadsToSkipTrace.length; i++) {
                         const lead = leadsToSkipTrace[i];
@@ -287,7 +281,7 @@ class UnifiedSearchController {
                 });
             }
             // Skip trace the lead
-            const skipTraceResult = await batchSkipTraceService_1.default.skipTraceByAddress({
+            const skipTraceResult = await batchSkipTraceService.skipTraceByAddress({
                 address: lead.propertyAddress,
                 city: lead.city,
                 state: lead.state,
@@ -332,6 +326,5 @@ class UnifiedSearchController {
         }
     }
 }
-exports.UnifiedSearchController = UnifiedSearchController;
-exports.default = new UnifiedSearchController();
+export default new UnifiedSearchController();
 //# sourceMappingURL=unifiedSearchController.js.map

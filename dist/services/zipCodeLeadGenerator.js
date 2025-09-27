@@ -1,13 +1,12 @@
-"use strict";
 // ZIP CODE LEAD GENERATOR
 // Search specific zip codes for real estate leads using real data sources
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.ZipCodeLeadGenerator = void 0;
-const databaseService_1 = require("./databaseService");
-const logger_1 = require("../utils/logger");
-class ZipCodeLeadGenerator {
+import { DatabaseService } from './databaseService';
+import { logger } from '../utils/logger';
+export class ZipCodeLeadGenerator {
+    db;
+    targetZipCodes;
     constructor() {
-        this.db = new databaseService_1.DatabaseService();
+        this.db = new DatabaseService();
         // Phoenix/Scottsdale area zip codes - modify these for your target market
         this.targetZipCodes = [
             // Phoenix
@@ -36,9 +35,9 @@ class ZipCodeLeadGenerator {
      * Search specific zip code for all types of leads
      */
     async searchZipCode(zipCode) {
-        logger_1.logger.info(`🔍 Searching ZIP CODE: ${zipCode} for all lead types`);
+        logger.info(`🔍 Searching ZIP CODE: ${zipCode} for all lead types`);
         if (!this.targetZipCodes.includes(zipCode)) {
-            logger_1.logger.warn(`⚠️ Zip code ${zipCode} not in target area. Adding to search anyway.`);
+            logger.warn(`⚠️ Zip code ${zipCode} not in target area. Adding to search anyway.`);
         }
         const allLeads = [];
         try {
@@ -63,11 +62,11 @@ class ZipCodeLeadGenerator {
             // 7. Absentee owners in this zip
             const absenteeLeads = await this.searchAbsenteeByZip(zipCode);
             allLeads.push(...absenteeLeads);
-            logger_1.logger.info(`✅ ZIP ${zipCode} SEARCH COMPLETE: Found ${allLeads.length} total leads`);
+            logger.info(`✅ ZIP ${zipCode} SEARCH COMPLETE: Found ${allLeads.length} total leads`);
             return allLeads;
         }
         catch (error) {
-            logger_1.logger.error(`❌ Error searching zip code ${zipCode}:`, error);
+            logger.error(`❌ Error searching zip code ${zipCode}:`, error);
             return [];
         }
     }
@@ -408,7 +407,7 @@ class ZipCodeLeadGenerator {
             });
         }
         catch (error) {
-            logger_1.logger.error('Error saving lead to database:', error);
+            logger.error('Error saving lead to database:', error);
         }
     }
     delay(ms) {
@@ -448,5 +447,4 @@ class ZipCodeLeadGenerator {
         }
     }
 }
-exports.ZipCodeLeadGenerator = ZipCodeLeadGenerator;
 //# sourceMappingURL=zipCodeLeadGenerator.js.map

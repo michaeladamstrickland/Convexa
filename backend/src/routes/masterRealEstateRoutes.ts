@@ -1,5 +1,5 @@
 // Master Real Estate API Routes
-// Comprehensive lead generation with all premium data sources
+// Comprehensive data integration with all premium data sources
 
 import express from 'express';
 import { MasterRealEstateDataService } from '../services/masterRealEstateService';
@@ -16,25 +16,31 @@ const getMasterAPIConfig = (): MasterAPIConfig => {
       apiKey: process.env.ATTOM_API_KEY || '',
       baseUrl: 'https://api.gateway.attomdata.com/propertyapi/v1.0.0',
       rateLimit: 100,
+      costPerCall: 0.50,
       costPerRequest: 0.50,
       subscription: 'pro',
-      dataType: 'property'
+      dataType: 'property',
+      enabled: true
     },
     propMix: {
       apiKey: process.env.PROPMIX_API_KEY || '',
       baseUrl: 'https://api.propmix.io/v1',
       rateLimit: 200,
+      costPerCall: 0.25,
       costPerRequest: 0.25,
       subscription: 'pro',
-      dataType: 'property'
+      dataType: 'property',
+      enabled: true
     },
     estated: {
       apiKey: process.env.ESTATED_API_KEY || '',
       baseUrl: 'https://apis.estated.com/v4',
       rateLimit: 100,
+      costPerCall: 0.25,
       costPerRequest: 0.25,
       subscription: 'basic',
-      dataType: 'property'
+      dataType: 'property',
+      enabled: true
     },
     dataTree: {
       apiKey: process.env.DATA_TREE_API_KEY || '',

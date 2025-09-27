@@ -1,12 +1,10 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const jsx_runtime_1 = require("react/jsx-runtime");
-const scraper_1 = require("../components/scraper");
+import { jsx as _jsx } from "react/jsx-runtime";
+import { Scraper } from '../components/scraper';
 /**
  * Page component for the Scraper functionality
  */
 const ScraperPage = () => {
-    return (0, jsx_runtime_1.jsx)(scraper_1.Scraper, {});
+    return _jsx(Scraper, {});
 };
-exports.default = ScraperPage;
+export default ScraperPage;
 //# sourceMappingURL=ScraperPage.js.map

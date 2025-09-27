@@ -1,14 +1,11 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.AdvancedAnalyticsDashboard = void 0;
-const openai_1 = __importDefault(require("openai"));
-class AdvancedAnalyticsDashboard {
+import OpenAI from 'openai';
+export class AdvancedAnalyticsDashboard {
+    openai;
+    empire;
+    dashboardData;
+    updateInterval = null;
     constructor(empire) {
-        this.updateInterval = null;
-        this.openai = new openai_1.default({
+        this.openai = new OpenAI({
             apiKey: process.env.OPENAI_API_KEY
         });
         this.empire = empire;
@@ -517,5 +514,4 @@ sources creating sustainable competitive advantages.
         ];
     }
 }
-exports.AdvancedAnalyticsDashboard = AdvancedAnalyticsDashboard;
 //# sourceMappingURL=advancedAnalyticsDashboard.js.map

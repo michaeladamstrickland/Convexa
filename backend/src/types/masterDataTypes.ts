@@ -287,13 +287,13 @@ export interface APIEndpoint {
   apiKey: string;
   baseUrl: string;
   rateLimit?: number;
-  costPerCall: number;
+  costPerCall?: number;
   costPerRequest?: number;
   costPerLookup?: number;
   subscription?: 'free' | 'basic' | 'pro' | 'enterprise';
   requiresLicense?: boolean;
   dataType?: 'property' | 'contact' | 'legal' | 'mls' | 'ai' | 'verification';
-  enabled: boolean;
+  enabled?: boolean;
 }
 
 // Property Ownership & Public Records Types

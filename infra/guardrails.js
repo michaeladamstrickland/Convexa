@@ -97,7 +97,12 @@ class CircuitBreaker {
 
 // Daily budget tracker (in cents)
 class DailyBudget {
-  constructor({ capCents }) { this.capCents = Math.max(0, capCents); this.spentCents = 0; this._loadToday(); }
+  constructor({ capCents, demoMode = false }) {
+    this.capCents = Math.max(0, capCents);
+    this.spentCents = 0;
+    this.demoMode = demoMode;
+    this._loadToday();
+  }
   _loadToday() {
     if (!_db) return; // tolerant init
     try {
@@ -116,8 +121,8 @@ class DailyBudget {
   }
   add(cents) { this.spentCents += Math.max(0, Number(cents) || 0); }
   remaining() { return Math.max(0, this.capCents - this.spentCents); }
-  atCap() { return this.capCents > 0 && this.spentCents >= this.capCents; }
-  snapshot() { return { capCents: this.capCents, spentCents: this.spentCents, remainingCents: this.remaining() }; }
+  atCap() { return !this.demoMode && this.capCents > 0 && this.spentCents >= this.capCents; }
+  snapshot() { return { capCents: this.capCents, spentCents: this.spentCents, remainingCents: this.remaining(), demoMode: this.demoMode }; }
 }
 
 // Singletons
@@ -128,11 +133,17 @@ const breaker = new CircuitBreaker({
   halfOpenMs: envInt('CIRCUIT_HALF_OPEN_MS', 60000)
 });
 const bucket = new TokenBucket({ capacity: RPS, refillPerSec: RPS });
-let budget = new DailyBudget({ capCents: Math.round(100 * Number(process.env.SKIP_TRACE_DAILY_BUDGET_USD || 0)) });
+let budget = new DailyBudget({
+  capCents: Math.round(100 * Number(process.env.DAILY_SPEND_LIMIT || 0)),
+  demoMode: process.env.DEMO_MODE === 'true'
+});
 
 export function initGuardrails(db) {
   _db = db;
-  budget = new DailyBudget({ capCents: Math.round(100 * Number(process.env.SKIP_TRACE_DAILY_BUDGET_USD || 0)) });
+  budget = new DailyBudget({
+    capCents: Math.round(100 * Number(process.env.DAILY_SPEND_LIMIT || 0)),
+    demoMode: process.env.DEMO_MODE === 'true'
+  });
   budget._loadToday(); // Reload spentCents after db is available
 }
 

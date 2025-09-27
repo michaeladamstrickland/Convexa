@@ -1,23 +1,18 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-const dotenv_1 = __importDefault(require("dotenv"));
-const express_1 = __importDefault(require("express"));
-const cors_1 = __importDefault(require("cors"));
-const propertySearchRoutes_1 = __importDefault(require("./routes/propertySearchRoutes"));
-const systemRoutes_1 = __importDefault(require("./routes/systemRoutes"));
+import dotenv from 'dotenv';
+import express from 'express';
+import cors from 'cors';
+import propertySearchRoutes from './routes/propertySearchRoutes';
+import systemRoutes from './routes/systemRoutes';
 // Load environment variables
-dotenv_1.default.config();
+dotenv.config();
 // Initialize express app
-const app = (0, express_1.default)();
+const app = express();
 // Middleware
-app.use((0, cors_1.default)());
-app.use(express_1.default.json());
+app.use(cors());
+app.use(express.json());
 // Routes
-app.use('/api', propertySearchRoutes_1.default);
-app.use('/api/system', systemRoutes_1.default);
+app.use('/api', propertySearchRoutes);
+app.use('/api/system', systemRoutes);
 // Health check endpoint
 app.get('/health', (req, res) => {
     res.json({ status: 'OK', timestamp: new Date() });
@@ -36,5 +31,5 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
-exports.default = app;
+export default app;
 //# sourceMappingURL=app.js.map

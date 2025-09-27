@@ -30,8 +30,8 @@ const MAX_RETRIES = parseInt(process.env.SKIP_TRACE_MAX_RETRIES || '2', 10);
 const FALLBACK_ENABLED = process.env.SKIP_TRACE_FALLBACK_ENABLED === 'true';
 const PRIMARY_PROVIDER = process.env.SKIP_TRACE_PRIMARY_PROVIDER || 'batchdata';
 const RETRY_DELAY_MS = parseInt(process.env.SKIP_TRACE_RETRY_DELAY_MS || '2000', 10);
-const DEMO_MODE = process.env.SKIP_TRACE_DEMO_MODE === 'true';
-const ALLOW_DEMO = process.env.SKIP_TRACE_ALLOW_DEMO === 'true';
+const DEMO_MODE = process.env.DEMO_MODE === 'true';
+const ALLOW_DEMO = process.env.ALLOW_DEMO === 'true';
 
 // Provider mapping
 const providers = {
@@ -973,7 +973,7 @@ class SkipTraceService {
       // Guardrails: budget cap, breaker, RPS
       if (dailyBudget.atCap()) {
         const r = { success: false, leadId, phones: [], emails: [], cost: 0, provider: p, error: 'BudgetPause' };
-        r._debug = { ...(r._debug || {}), _httpStatus: 429 };
+        r._debug = { ...(r._debug || {}), _httpStatus: 429, problemJson: { code: 'daily_budget_exceeded', message: 'Daily spend limit reached. Operations are temporarily paused.' } };
         return r;
       }
       if (!circuitBreaker.allow()) {
@@ -1167,8 +1167,8 @@ class SkipTraceService {
       runId = null
     } = options;
     
-    // Hard constraint: if demo could be used, fail fast
-    if (DEMO_MODE || ALLOW_DEMO) {
+    // Hard constraint: if demo mode is active and not explicitly allowed, fail fast
+    if (DEMO_MODE && !ALLOW_DEMO) {
       return {
         success: false,
         leadId,
@@ -1176,7 +1176,8 @@ class SkipTraceService {
         emails: [],
         cost: 0,
         provider: 'error',
-        error: 'DEMO DETECTED'
+        error: 'DEMO_MODE_ACTIVE_NO_ALLOW_DEMO',
+        _debug: { _httpStatus: 429 }
       };
     }
 
@@ -1305,21 +1306,16 @@ class SkipTraceService {
       // Recompute hasContacts after optional sanitized retry
       const finalHasContacts = Array.isArray(result?.phones) && result.phones.length > 0 || Array.isArray(result?.emails) && result.emails.length > 0;
       if (!finalHasContacts) {
-        // Never synthesize demo unless explicitly allowed via separate flag
-        // Mark as failure so callers/metrics reflect the miss
-        if (result && result.success) {
-          result.success = false;
-          result.error = result.error || 'No contacts returned by provider';
-        }
+        // If no contacts found, and we are in DEMO_MODE with ALLOW_DEMO, generate a demo result.
+        // Otherwise, mark as a failure.
         if (DEMO_MODE && ALLOW_DEMO) {
-          // Optional: only if both DEMO_MODE and ALLOW_DEMO true
           result = this.generateDemoResult(leadId, lead);
+        } else {
+          if (result && result.success) {
+            result.success = false;
+            result.error = result.error || 'No contacts returned by provider';
+          }
         }
-      }
-
-      // Strict: do not auto-synthesize on general failure unless explicitly allowed
-      if (!result.success && DEMO_MODE && ALLOW_DEMO) {
-        result = this.generateDemoResult(leadId, lead);
       }
 
       // Save the result if successful

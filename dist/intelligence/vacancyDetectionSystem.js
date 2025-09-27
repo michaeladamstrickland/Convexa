@@ -1,15 +1,11 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.VacancyDetectionSystem = void 0;
-const openai_1 = __importDefault(require("openai"));
-const axios_1 = __importDefault(require("axios"));
-class VacancyDetectionSystem {
+import OpenAI from 'openai';
+import axios from 'axios';
+export class VacancyDetectionSystem {
+    openai;
+    googleMapsApiKey;
+    utilityProviders = [];
     constructor() {
-        this.utilityProviders = [];
-        this.openai = new openai_1.default({
+        this.openai = new OpenAI({
             apiKey: process.env.OPENAI_API_KEY
         });
         this.googleMapsApiKey = process.env.GOOGLE_MAPS_API_KEY || '';
@@ -34,7 +30,7 @@ class VacancyDetectionSystem {
         for (const address of properties) {
             try {
                 // USPS Address Validation API
-                const response = await axios_1.default.post('https://secure.shippingapis.com/ShippingAPI.dll', {
+                const response = await axios.post('https://secure.shippingapis.com/ShippingAPI.dll', {
                     API: 'Verify',
                     XML: `
             <AddressValidateRequest USERID=\"${process.env.USPS_USER_ID}\">
@@ -170,7 +166,7 @@ class VacancyDetectionSystem {
             try {
                 const imageUrl = `${baseUrl}?size=640x640&location=${encodeURIComponent(address)}&heading=${heading}&pitch=0&key=${this.googleMapsApiKey}`;
                 // Check if image is available
-                const response = await axios_1.default.head(imageUrl);
+                const response = await axios.head(imageUrl);
                 if (response.status === 200) {
                     images.push({
                         url: imageUrl,
@@ -566,5 +562,4 @@ class VacancyDetectionSystem {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
 }
-exports.VacancyDetectionSystem = VacancyDetectionSystem;
 //# sourceMappingURL=vacancyDetectionSystem.js.map

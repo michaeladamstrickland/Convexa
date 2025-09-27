@@ -7,7 +7,7 @@
 
 import batchDataAdapter, { SkipTraceResult } from './batchDataAdapter';
 import dotenv from 'dotenv';
-import { BetterSQLite3Database } from 'better-sqlite3';
+import Database from 'better-sqlite3';
 
 // Load environment variables
 dotenv.config();
@@ -20,13 +20,13 @@ const DAILY_QUOTA = parseInt(process.env.SKIP_TRACE_DAILY_QUOTA || '100', 10);
  * Skip Trace Service
  */
 class SkipTraceService {
-  private db: BetterSQLite3Database;
+  private db: Database.Database;
 
   /**
    * Constructor
    * @param db - SQLite database instance
    */
-  constructor(db: BetterSQLite3Database) {
+  constructor(db: Database.Database) {
     this.db = db;
     this.initDatabase();
   }

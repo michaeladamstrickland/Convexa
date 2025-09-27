@@ -1,8 +1,6 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const express_1 = require("express");
-const prisma_1 = require("../db/prisma");
-const router = (0, express_1.Router)();
+import { Router } from 'express';
+import { prisma } from '../db/prisma';
+const router = Router();
 function parseBool(v, def = true) { if (v === undefined)
     return def; return v === 'false' ? false : Boolean(v); }
 // Lightweight global metrics tracker for feed usage
@@ -98,7 +96,7 @@ router.get('/', async (req, res) => {
             filtersApplied.push('tagReasons');
         }
         parseBool(dedupedOnly, true); // placeholder for future multi-version listing retention
-        const p = prisma_1.prisma;
+        const p = prisma;
         const [totalCount, data] = await Promise.all([
             p.scrapedProperty.count({ where }),
             p.scrapedProperty.findMany({ where, orderBy: { createdAt: 'desc' }, skip, take })
@@ -123,5 +121,5 @@ router.get('/', async (req, res) => {
         res.status(500).json({ error: 'feed_query_failed', message: e?.message });
     }
 });
-exports.default = router;
+export default router;
 //# sourceMappingURL=publicProperties.js.map

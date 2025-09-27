@@ -1,18 +1,14 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.scraperWorker = exports.workerState = exports.metrics = void 0;
-exports.shutdownScraperWorker = shutdownScraperWorker;
-const bullmq_1 = require("bullmq");
-const index_1 = require("./index");
-const scraperQueue_1 = require("../queues/scraperQueue");
-const schemas_1 = require("../../backend/src/packages/schemas");
-const prisma_1 = require("../db/prisma");
-const scrapers_1 = require("../adapters/scrapers");
-const webhookQueue_1 = require("../queues/webhookQueue");
-const enqueueEnrichmentJob_1 = require("../utils/enqueueEnrichmentJob");
+import { Worker } from 'bullmq';
+import { registerWorker } from './index';
+import { SCRAPER_QUEUE_NAME } from '../queues/scraperQueue';
+import { parseScraperJobPayload } from '../../backend/src/packages/schemas';
+import { prisma } from '../db/prisma';
+import { runZillowScraper, runAuctionScraper } from '../adapters/scrapers';
+import { enqueueWebhookDelivery } from '../queues/webhookQueue';
+import { enqueuePropertyEnrichment } from '../utils/enqueueEnrichmentJob';
 // shared prisma from db/prisma
 // Simple in-memory metrics (resets on process restart)
-exports.metrics = {
+export const metrics = {
     processed: 0,
     success: 0,
     failed: 0,
@@ -22,49 +18,49 @@ exports.metrics = {
 async function runDispatcher(source, payload) {
     switch (source) {
         case 'zillow':
-            return await (0, scrapers_1.runZillowScraper)(payload);
+            return await runZillowScraper(payload);
         case 'auction':
-            return await (0, scrapers_1.runAuctionScraper)(payload);
+            return await runAuctionScraper(payload);
         default:
             return { items: [], meta: { scrapedCount: 0, durationMs: 0, source }, errors: ['scrape_error:unsupported_source'] };
     }
 }
 function recordMetrics(source, ok, duration) {
-    exports.metrics.processed++;
+    metrics.processed++;
     if (ok)
-        exports.metrics.success++;
+        metrics.success++;
     else
-        exports.metrics.failed++;
-    exports.metrics.durations.push(duration);
-    if (!exports.metrics.perSource.has(source))
-        exports.metrics.perSource.set(source, { success: 0, failed: 0 });
-    const bucket = exports.metrics.perSource.get(source);
+        metrics.failed++;
+    metrics.durations.push(duration);
+    if (!metrics.perSource.has(source))
+        metrics.perSource.set(source, { success: 0, failed: 0 });
+    const bucket = metrics.perSource.get(source);
     ok ? bucket.success++ : bucket.failed++;
-    if (exports.metrics.processed % 10 === 0) {
-        const avg = exports.metrics.durations.reduce((a, b) => a + b, 0) / exports.metrics.durations.length;
+    if (metrics.processed % 10 === 0) {
+        const avg = metrics.durations.reduce((a, b) => a + b, 0) / metrics.durations.length;
         console.log('[scraperWorker][metrics]', {
-            processed: exports.metrics.processed,
-            success: exports.metrics.success,
-            failed: exports.metrics.failed,
+            processed: metrics.processed,
+            success: metrics.success,
+            failed: metrics.failed,
             avgMs: Math.round(avg),
-            perSource: Array.from(exports.metrics.perSource.entries())
+            perSource: Array.from(metrics.perSource.entries())
         });
     }
 }
 const MAX_ATTEMPTS = 3;
 // Worker state for diagnostics
-exports.workerState = {
+export const workerState = {
     active: false,
     activeJobs: 0,
     lastJobCompletedAt: null
 };
 async function processJob(job) {
-    const payload = (0, schemas_1.parseScraperJobPayload)(job.data);
+    const payload = parseScraperJobPayload(job.data);
     const startedAt = new Date();
     const jobId = (job.id ?? `${Date.now()}-${Math.random().toString(16).slice(2)}`).toString();
-    exports.workerState.activeJobs++;
+    workerState.activeJobs++;
     // Upsert initial record (queued -> running)
-    await prisma_1.prisma.scraperJob.upsert({
+    await prisma.scraperJob.upsert({
         where: { id: jobId },
         update: { status: 'running', startedAt },
         create: {
@@ -83,20 +79,20 @@ async function processJob(job) {
         for (const item of result.items) {
             const addr = item.address || 'Unknown Address';
             try {
-                const created = await prisma_1.prisma.scrapedProperty.create({
+                const created = await prisma.scrapedProperty.create({
                     data: { source: payload.source, zip: payload.zip, address: addr, data: item }
                 });
                 item.deduped = false;
                 // Auto-enqueue enrichment for new properties (non-deduped)
                 try {
-                    await (0, enqueueEnrichmentJob_1.enqueuePropertyEnrichment)(created.id);
+                    await enqueuePropertyEnrichment(created.id);
                 }
                 catch { }
                 // property.new webhook dispatch
                 try {
-                    const subs = await prisma_1.prisma.webhookSubscription.findMany({ where: { isActive: true, eventTypes: { has: 'property.new' } } });
+                    const subs = await prisma.webhookSubscription.findMany({ where: { isActive: true, eventTypes: { has: 'property.new' } } });
                     for (const s of subs) {
-                        await (0, webhookQueue_1.enqueueWebhookDelivery)({ subscriptionId: s.id, eventType: 'property.new', payload: { source: payload.source, zip: payload.zip, address: addr } });
+                        await enqueueWebhookDelivery({ subscriptionId: s.id, eventType: 'property.new', payload: { source: payload.source, zip: payload.zip, address: addr } });
                     }
                 }
                 catch { }
@@ -106,7 +102,7 @@ async function processJob(job) {
                     dedupedCount++;
                     item.deduped = true;
                     try {
-                        await prisma_1.prisma.scrapedProperty.update({
+                        await prisma.scrapedProperty.update({
                             where: { source_zip_address: { source: payload.source, zip: payload.zip, address: addr } },
                             data: { data: item }
                         });
@@ -128,7 +124,7 @@ async function processJob(job) {
             result.meta.sourceAdapterVersion = 'test-adapter';
         }
         const duration = Date.now() - execStart;
-        await prisma_1.prisma.scraperJob.update({
+        await prisma.scraperJob.update({
             where: { id: jobId },
             data: {
                 resultPayload: result,
@@ -138,15 +134,15 @@ async function processJob(job) {
         });
         // job.completed webhook
         try {
-            const subs = await prisma_1.prisma.webhookSubscription.findMany({ where: { isActive: true, eventTypes: { has: 'job.completed' } } });
+            const subs = await prisma.webhookSubscription.findMany({ where: { isActive: true, eventTypes: { has: 'job.completed' } } });
             for (const s of subs) {
-                await (0, webhookQueue_1.enqueueWebhookDelivery)({ subscriptionId: s.id, eventType: 'job.completed', payload: { jobId, source: payload.source, zip: payload.zip, meta: result.meta } });
+                await enqueueWebhookDelivery({ subscriptionId: s.id, eventType: 'job.completed', payload: { jobId, source: payload.source, zip: payload.zip, meta: result.meta } });
             }
         }
         catch { }
         recordMetrics(payload.source, true, duration);
         console.log(`[WORKER] Job #${jobId} from source=${payload.source} status=completed duration=${duration}ms items=${result.meta.scrapedCount}`);
-        exports.workerState.lastJobCompletedAt = new Date();
+        workerState.lastJobCompletedAt = new Date();
         return result;
     }
     catch (err) {
@@ -160,12 +156,12 @@ async function processJob(job) {
         else if (!message.startsWith('scrape_error:') && !message.startsWith('validation_error:') && !message.startsWith('upstream_error:')) {
             message = `scrape_error:${message}`;
         }
-        const current = await prisma_1.prisma.scraperJob.findUnique({ where: { id: jobId } });
+        const current = await prisma.scraperJob.findUnique({ where: { id: jobId } });
         const attempt = (current?.attempt ?? 0) + 1;
         const prevErrors = current?.previousErrors ?? [];
         prevErrors.push(message);
         const willRetry = attempt < MAX_ATTEMPTS;
-        await prisma_1.prisma.scraperJob.update({
+        await prisma.scraperJob.update({
             where: { id: jobId },
             data: {
                 status: willRetry ? 'queued' : 'failed',
@@ -196,35 +192,35 @@ async function processJob(job) {
         throw err;
     }
     finally {
-        exports.workerState.activeJobs = Math.max(0, exports.workerState.activeJobs - 1);
+        workerState.activeJobs = Math.max(0, workerState.activeJobs - 1);
     }
 }
-exports.scraperWorker = new bullmq_1.Worker(scraperQueue_1.SCRAPER_QUEUE_NAME, processJob, {
+export const scraperWorker = new Worker(SCRAPER_QUEUE_NAME, processJob, {
     connection: { url: process.env.REDIS_URL || 'redis://localhost:6379' }
 });
 // Ensure the worker is tracked for centralized shutdown in tests
 try {
-    (0, index_1.registerWorker)(exports.scraperWorker);
+    registerWorker(scraperWorker);
 }
 catch { }
-exports.workerState.active = true;
-console.log('[WORKER] Scraper worker started queue=' + scraperQueue_1.SCRAPER_QUEUE_NAME);
-exports.scraperWorker.on('failed', (job, err) => {
+workerState.active = true;
+console.log('[WORKER] Scraper worker started queue=' + SCRAPER_QUEUE_NAME);
+scraperWorker.on('failed', (job, err) => {
     console.error('[scraperWorker] Job failed', job?.id, err?.message);
 });
-exports.scraperWorker.on('completed', job => {
+scraperWorker.on('completed', job => {
     // Detailed per-job log already emitted in processJob try block; keep lightweight event hook
 });
-exports.scraperWorker.on('closed', () => {
-    exports.workerState.active = false;
+scraperWorker.on('closed', () => {
+    workerState.active = false;
 });
-async function shutdownScraperWorker() {
+export async function shutdownScraperWorker() {
     try {
-        await exports.scraperWorker.close?.();
+        await scraperWorker.close?.();
     }
     catch { }
     try {
-        await exports.scraperWorker.connection?.disconnect?.();
+        await scraperWorker.connection?.disconnect?.();
     }
     catch { }
 }

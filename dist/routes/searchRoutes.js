@@ -1,12 +1,7 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-const express_1 = __importDefault(require("express"));
-const searchService_1 = __importDefault(require("../services/searchService"));
+import express from 'express';
+import searchService from '../services/searchService';
 // Create router
-const router = express_1.default.Router();
+const router = express.Router();
 // GET /api/search - Handle search with query parameters
 router.get('/', async (req, res) => {
     try {
@@ -26,7 +21,7 @@ router.get('/', async (req, res) => {
             sortBy: req.query.sortBy,
             sortOrder: req.query.sortOrder || 'desc',
         };
-        const results = await searchService_1.default.searchLeads(params);
+        const results = await searchService.searchLeads(params);
         res.json(results);
     }
     catch (error) {
@@ -38,7 +33,7 @@ router.get('/', async (req, res) => {
 router.post('/', async (req, res) => {
     try {
         const params = req.body;
-        const results = await searchService_1.default.searchLeads(params);
+        const results = await searchService.searchLeads(params);
         res.json(results);
     }
     catch (error) {
@@ -49,7 +44,7 @@ router.post('/', async (req, res) => {
 // GET /api/search/analytics - Get lead analytics
 router.get('/analytics', async (_req, res) => {
     try {
-        const analytics = await searchService_1.default.getLeadAnalytics();
+        const analytics = await searchService.getLeadAnalytics();
         res.json({ analytics });
     }
     catch (error) {
@@ -60,7 +55,7 @@ router.get('/analytics', async (_req, res) => {
 // POST /api/search/clear-cache - Clear search cache
 router.post('/clear-cache', (_req, res) => {
     try {
-        const result = searchService_1.default.clearCache();
+        const result = searchService.clearCache();
         res.json(result);
     }
     catch (error) {
@@ -68,5 +63,5 @@ router.post('/clear-cache', (_req, res) => {
         res.status(500).json({ error: 'Internal server error' });
     }
 });
-exports.default = router;
+export default router;
 //# sourceMappingURL=searchRoutes.js.map

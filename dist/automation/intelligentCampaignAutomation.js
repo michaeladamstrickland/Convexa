@@ -1,23 +1,20 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.IntelligentCampaignAutomation = void 0;
-const dealExecutionEngine_1 = require("./dealExecutionEngine");
-const automatedLeadScoring_1 = require("./automatedLeadScoring");
-const openai_1 = __importDefault(require("openai"));
-class IntelligentCampaignAutomation {
+import { DealExecutionEngine } from './dealExecutionEngine';
+import { AutomatedLeadScoring } from './automatedLeadScoring';
+import OpenAI from 'openai';
+export class IntelligentCampaignAutomation {
+    openai;
+    dealEngine;
+    leadScoring;
+    campaignTemplates = new Map();
+    automationRules = [];
+    activeCampaigns = new Map();
+    performanceData = new Map();
     constructor() {
-        this.campaignTemplates = new Map();
-        this.automationRules = [];
-        this.activeCampaigns = new Map();
-        this.performanceData = new Map();
-        this.openai = new openai_1.default({
+        this.openai = new OpenAI({
             apiKey: process.env.OPENAI_API_KEY
         });
-        this.dealEngine = new dealExecutionEngine_1.DealExecutionEngine();
-        this.leadScoring = new automatedLeadScoring_1.AutomatedLeadScoring();
+        this.dealEngine = new DealExecutionEngine();
+        this.leadScoring = new AutomatedLeadScoring();
         this.initializeDefaultTemplates();
         this.initializeAutomationRules();
     }
@@ -579,5 +576,4 @@ class IntelligentCampaignAutomation {
         }
     }
 }
-exports.IntelligentCampaignAutomation = IntelligentCampaignAutomation;
 //# sourceMappingURL=intelligentCampaignAutomation.js.map

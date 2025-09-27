@@ -1,17 +1,11 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.SystemHealthController = void 0;
-const attomService_1 = __importDefault(require("../services/attomService"));
-const batchService_1 = __importDefault(require("../services/batchService"));
+import attomService from '../services/attomService';
+import batchService from '../services/batchService';
 /**
  * System Health Controller
  *
  * Provides endpoints to check the status of the system and its integrations
  */
-class SystemHealthController {
+export class SystemHealthController {
     /**
      * Get the overall system health status
      *
@@ -27,10 +21,10 @@ class SystemHealthController {
         };
         try {
             // Check ATTOM API health
-            const attomHealth = await attomService_1.default.checkHealth();
+            const attomHealth = await attomService.checkHealth();
             healthStatus.services.push(attomHealth);
             // Check BatchData API health
-            const batchHealth = await batchService_1.default.checkHealth();
+            const batchHealth = await batchService.checkHealth();
             healthStatus.services.push(batchHealth);
             // Determine overall status
             const hasUnhealthyServices = healthStatus.services.some(service => service.status === 'unhealthy');
@@ -65,7 +59,7 @@ class SystemHealthController {
             // Check ATTOM API with a simple test
             let attomResult;
             try {
-                const attomTest = await attomService_1.default.getPropertyById('1234567');
+                const attomTest = await attomService.getPropertyById('1234567');
                 attomResult = {
                     service: 'ATTOM API',
                     status: attomTest.status === 'error' ? 'unhealthy' : 'healthy',
@@ -84,7 +78,7 @@ class SystemHealthController {
             // Check BatchData API with a simple test
             let batchResult;
             try {
-                const batchTest = await batchService_1.default.skipTraceByAddress('123 Main St', 'Beverly Hills', 'CA', '90210');
+                const batchTest = await batchService.skipTraceByAddress('123 Main St', 'Beverly Hills', 'CA', '90210');
                 batchResult = {
                     service: 'BatchData API',
                     status: batchTest.status === 'error' ? 'unhealthy' : 'healthy',
@@ -111,6 +105,5 @@ class SystemHealthController {
         }
     }
 }
-exports.SystemHealthController = SystemHealthController;
-exports.default = new SystemHealthController();
+export default new SystemHealthController();
 //# sourceMappingURL=systemHealthController.js.map

@@ -135,24 +135,6 @@ export declare const _internalSchemas: {
         }>;
         errors: z.ZodArray<z.ZodString, "many">;
     }, "strip", z.ZodTypeAny, {
-        meta: {
-            source: string;
-            scrapedCount: number;
-            durationMs: number;
-            historyMode?: boolean | undefined;
-            historyWindow?: {
-                end: string;
-                items: number;
-                start: string;
-            }[] | undefined;
-            filtersApplied?: string[] | undefined;
-            filteredOutCount?: number | undefined;
-            totalItems?: number | undefined;
-            dedupedCount?: number | undefined;
-            errorsCount?: number | undefined;
-            scrapeDurationMs?: number | undefined;
-            sourceAdapterVersion?: string | undefined;
-        };
         errors: string[];
         items: {
             url: string;
@@ -163,7 +145,6 @@ export declare const _internalSchemas: {
             sqft?: number | undefined;
             deduped?: boolean | undefined;
         }[];
-    }, {
         meta: {
             source: string;
             scrapedCount: number;
@@ -182,6 +163,7 @@ export declare const _internalSchemas: {
             scrapeDurationMs?: number | undefined;
             sourceAdapterVersion?: string | undefined;
         };
+    }, {
         errors: string[];
         items: {
             url: string;
@@ -192,6 +174,24 @@ export declare const _internalSchemas: {
             sqft?: number | undefined;
             deduped?: boolean | undefined;
         }[];
+        meta: {
+            source: string;
+            scrapedCount: number;
+            durationMs: number;
+            historyMode?: boolean | undefined;
+            historyWindow?: {
+                end: string;
+                items: number;
+                start: string;
+            }[] | undefined;
+            filtersApplied?: string[] | undefined;
+            filteredOutCount?: number | undefined;
+            totalItems?: number | undefined;
+            dedupedCount?: number | undefined;
+            errorsCount?: number | undefined;
+            scrapeDurationMs?: number | undefined;
+            sourceAdapterVersion?: string | undefined;
+        };
     }>;
 };
 //# sourceMappingURL=scrapers.d.ts.map

@@ -1,43 +1,5 @@
-"use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.skipTraceByAddress = skipTraceByAddress;
-exports.processSkipTraceResults = processSkipTraceResults;
-exports.checkHealth = checkHealth;
-const dotenv = __importStar(require("dotenv"));
-const vendorClient_1 = require("../utils/vendorClient");
+import * as dotenv from "dotenv";
+import { makeClient, logApiCall } from "../utils/vendorClient";
 dotenv.config();
 // Check if BatchData integration is enabled
 const isBatchEnabled = process.env.FEATURE_BATCH_ENABLED !== 'false';
@@ -46,7 +8,7 @@ const batchBaseUrl = process.env.BATCHDATA_BASE_URL || 'https://api.batchdata.co
 const batchApiKey = process.env.BATCHDATA_API_KEY || '';
 // Only create the client if BatchData is enabled and API key is provided
 const batch = isBatchEnabled && batchApiKey
-    ? (0, vendorClient_1.makeClient)(batchBaseUrl, {
+    ? makeClient(batchBaseUrl, {
         'X-API-Key': batchApiKey,
         'Content-Type': 'application/json'
     })
@@ -87,7 +49,7 @@ function trackApiUsage(endpoint) {
  * @param lastName - Optional owner last name for better matching
  * @returns Skip trace results or empty object if feature disabled
  */
-async function skipTraceByAddress(address, city, state, zipCode, firstName, lastName) {
+export async function skipTraceByAddress(address, city, state, zipCode, firstName, lastName) {
     // Check if BatchData API is enabled
     if (!isBatchEnabled || !batch) {
         console.warn('BatchData API is disabled. Returning empty results.');
@@ -123,7 +85,7 @@ async function skipTraceByAddress(address, city, state, zipCode, firstName, last
         // Track API usage
         trackApiUsage(endpoint);
         // Log the successful API call
-        (0, vendorClient_1.logApiCall)('BatchData', `${endpoint} (Address: ${address})`, status, startTime);
+        logApiCall('BatchData', `${endpoint} (Address: ${address})`, status, startTime);
         return {
             result: data.result || null,
             status: 'success',
@@ -132,7 +94,7 @@ async function skipTraceByAddress(address, city, state, zipCode, firstName, last
     }
     catch (error) {
         // Log the failed API call
-        (0, vendorClient_1.logApiCall)('BatchData', `${endpoint} (Address: ${address})`, error.response?.status || 0, startTime, error);
+        logApiCall('BatchData', `${endpoint} (Address: ${address})`, error.response?.status || 0, startTime, error);
         // Return empty results with an error status
         return {
             result: null,
@@ -147,7 +109,7 @@ async function skipTraceByAddress(address, city, state, zipCode, firstName, last
  * @param skipTraceResult - Raw skip trace API result
  * @returns Formatted contact data
  */
-function processSkipTraceResults(skipTraceResult) {
+export function processSkipTraceResults(skipTraceResult) {
     if (!skipTraceResult || !skipTraceResult.result) {
         return {
             phones: [],
@@ -206,7 +168,7 @@ function processSkipTraceResults(skipTraceResult) {
  *
  * @returns Status of the BatchData API
  */
-async function checkHealth() {
+export async function checkHealth() {
     // If BatchData is disabled or client wasn't initialized, return disabled status
     if (!isBatchEnabled || !batch) {
         return {
@@ -228,7 +190,7 @@ async function checkHealth() {
         };
         const { status } = await batch.post(endpoint, payload);
         // Log the health check
-        (0, vendorClient_1.logApiCall)('BatchData', `${endpoint} (Health Check)`, status, startTime);
+        logApiCall('BatchData', `${endpoint} (Health Check)`, status, startTime);
         return {
             service: 'BatchData API',
             enabled: true,
@@ -238,7 +200,7 @@ async function checkHealth() {
     }
     catch (error) {
         // Log the health check failure
-        (0, vendorClient_1.logApiCall)('BatchData', `${endpoint} (Health Check)`, error.response?.status || 0, startTime, error);
+        logApiCall('BatchData', `${endpoint} (Health Check)`, error.response?.status || 0, startTime, error);
         return {
             service: 'BatchData API',
             enabled: true,
@@ -249,7 +211,7 @@ async function checkHealth() {
         };
     }
 }
-exports.default = {
+export default {
     skipTraceByAddress,
     processSkipTraceResults,
     checkHealth

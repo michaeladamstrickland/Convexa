@@ -1,27 +1,22 @@
-"use strict";
 /*
  * ZIP Search Integration
  *
  * This file shows how to integrate the ZIP search routes into the main server.
  * Copy and paste these sections into your server.ts file.
  */
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
 // Import section - add to your imports
-const better_sqlite3_1 = __importDefault(require("better-sqlite3"));
-const path_1 = __importDefault(require("path"));
-const fs_1 = __importDefault(require("fs"));
+import BetterSqlite3 from 'better-sqlite3';
+import path from 'path';
+import fs from 'fs';
 // Database connection - add near other database connections
 const setupZipSearchDb = () => {
-    const rootDbPath = path_1.default.resolve(__dirname, '..', 'prisma', 'dev.db');
-    if (!fs_1.default.existsSync(rootDbPath)) {
+    const rootDbPath = path.resolve(__dirname, '..', 'prisma', 'dev.db');
+    if (!fs.existsSync(rootDbPath)) {
         console.error(`Database file not found at ${rootDbPath}`);
         return null;
     }
     try {
-        const db = new better_sqlite3_1.default(rootDbPath, { readonly: false });
+        const db = new BetterSqlite3(rootDbPath, { readonly: false });
         console.log(`Connected to SQLite database with ${db.prepare('SELECT COUNT(*) as count FROM leads').get().count} leads`);
         return db;
     }

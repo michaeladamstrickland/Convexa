@@ -3,7 +3,10 @@ import { authenticate } from '../middleware/auth';
 
 const router = Router();
 
-router.use(authenticate);
+// Apply authentication middleware to all routes
+router.use((req, res, next) => {
+  authenticate(req as any, res, next).catch(next);
+});
 
 router.get('/', (req, res) => {
   res.json({ success: true, message: 'Organizations API' });

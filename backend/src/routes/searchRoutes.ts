@@ -297,7 +297,7 @@ router.post('/update-temperature', async (req, res) => {
       await prisma.lead.update({
         where: { id: leadId },
         data: {
-          motivation_score: analysis.motivationScore,
+          motivationScore: analysis.motivationScore,
           lead_score: analysis.dealScore,
         },
       });
@@ -338,9 +338,9 @@ router.post('/update-all-temperatures', async (req, res) => {
     const leads = await prisma.lead.findMany({
       where: {
         OR: [
-          { temperature_tag: null },
-          { temperature_tag: '' },
-          { temperature_tag: 'unknown' },
+          { temperatureTag: null },
+          { temperatureTag: '' },
+          { temperatureTag: 'unknown' },
         ],
       },
     });
@@ -360,7 +360,7 @@ router.post('/update-all-temperatures', async (req, res) => {
         await prisma.lead.update({
           where: { id: typedLead.id },
           data: {
-            temperature_tag: temperatureTag,
+            temperatureTag: temperatureTag,
           },
         });
         

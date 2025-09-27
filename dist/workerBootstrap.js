@@ -1,6 +1,4 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-require("./workers/scraperWorker");
+import './workers/scraperWorker';
 console.log('[workerBootstrap] Scraper worker initialized. Listening for jobs...');
 // Keep process alive
 process.on('SIGINT', () => {

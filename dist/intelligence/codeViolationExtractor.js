@@ -1,15 +1,10 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.CodeViolationExtractor = void 0;
-const openai_1 = __importDefault(require("openai"));
-const puppeteer_1 = __importDefault(require("puppeteer"));
-class CodeViolationExtractor {
+import OpenAI from 'openai';
+import puppeteer from 'puppeteer';
+export class CodeViolationExtractor {
+    openai;
+    municipalSources = [];
     constructor() {
-        this.municipalSources = [];
-        this.openai = new openai_1.default({
+        this.openai = new OpenAI({
             apiKey: process.env.OPENAI_API_KEY
         });
         this.initializeMunicipalSources();
@@ -30,7 +25,7 @@ class CodeViolationExtractor {
     async scrapeMunicipalPortals(markets) {
         console.log('🕷️ Scraping municipal code enforcement portals...');
         const violations = [];
-        const browser = await puppeteer_1.default.launch({
+        const browser = await puppeteer.launch({
             headless: true,
             args: ['--no-sandbox', '--disable-setuid-sandbox']
         });
@@ -574,5 +569,4 @@ class CodeViolationExtractor {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
 }
-exports.CodeViolationExtractor = CodeViolationExtractor;
 //# sourceMappingURL=codeViolationExtractor.js.map
