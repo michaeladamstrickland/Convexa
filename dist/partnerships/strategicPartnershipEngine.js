@@ -1,15 +1,11 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.StrategicPartnershipEngine = void 0;
-const openai_1 = __importDefault(require("openai"));
-class StrategicPartnershipEngine {
+import OpenAI from 'openai';
+export class StrategicPartnershipEngine {
+    openai;
+    activePartnerships = new Map();
+    partnershipPortfolio;
+    partnerOpportunities = [];
     constructor() {
-        this.activePartnerships = new Map();
-        this.partnerOpportunities = [];
-        this.openai = new openai_1.default({
+        this.openai = new OpenAI({
             apiKey: process.env.OPENAI_API_KEY
         });
         this.partnershipPortfolio = this.initializePortfolio();
@@ -584,5 +580,4 @@ class StrategicPartnershipEngine {
         console.log(`⚡ Applying optimizations to ${partnership.partner_name}...`);
     }
 }
-exports.StrategicPartnershipEngine = StrategicPartnershipEngine;
 //# sourceMappingURL=strategicPartnershipEngine.js.map

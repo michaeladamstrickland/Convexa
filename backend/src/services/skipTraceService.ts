@@ -259,7 +259,7 @@ export class SkipTraceService {
         fullName: request.fullName || `${request.firstName} ${request.lastName}`,
         phones: request.phone ? [{
           number: request.phone,
-          type: 'unknown' as const,
+          type: 'mobile' as const, // Default to mobile since we don't know the type
           isValid: true,
         }] : [],
         emails: request.email ? [{

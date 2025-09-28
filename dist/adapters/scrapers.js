@@ -1,38 +1,33 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports._internalSchemas = void 0;
-exports.runZillowScraper = runZillowScraper;
-exports.runAuctionScraper = runAuctionScraper;
-const zod_1 = require("zod");
-const ResultSchema = zod_1.z.object({
-    items: zod_1.z.array(zod_1.z.object({
-        address: zod_1.z.string().min(3),
-        price: zod_1.z.number().nonnegative().optional().default(0),
-        url: zod_1.z.string().url().or(zod_1.z.string().min(5)),
-        beds: zod_1.z.number().int().positive().optional(),
-        sqft: zod_1.z.number().int().positive().optional(),
-        propertyType: zod_1.z.string().optional(),
-        deduped: zod_1.z.boolean().optional()
+import { z } from 'zod';
+const ResultSchema = z.object({
+    items: z.array(z.object({
+        address: z.string().min(3),
+        price: z.number().nonnegative().optional().default(0),
+        url: z.string().url().or(z.string().min(5)),
+        beds: z.number().int().positive().optional(),
+        sqft: z.number().int().positive().optional(),
+        propertyType: z.string().optional(),
+        deduped: z.boolean().optional()
     })),
-    meta: zod_1.z.object({
-        scrapedCount: zod_1.z.number().int().nonnegative(),
-        durationMs: zod_1.z.number().int().nonnegative(),
-        source: zod_1.z.string(),
-        historyMode: zod_1.z.boolean().optional(),
-        historyWindow: zod_1.z.array(zod_1.z.object({
-            start: zod_1.z.string(),
-            end: zod_1.z.string(),
-            items: zod_1.z.number().int().nonnegative()
+    meta: z.object({
+        scrapedCount: z.number().int().nonnegative(),
+        durationMs: z.number().int().nonnegative(),
+        source: z.string(),
+        historyMode: z.boolean().optional(),
+        historyWindow: z.array(z.object({
+            start: z.string(),
+            end: z.string(),
+            items: z.number().int().nonnegative()
         })).optional(),
-        filtersApplied: zod_1.z.array(zod_1.z.string()).optional(),
-        filteredOutCount: zod_1.z.number().int().nonnegative().optional(),
-        totalItems: zod_1.z.number().int().nonnegative().optional(),
-        dedupedCount: zod_1.z.number().int().nonnegative().optional(),
-        errorsCount: zod_1.z.number().int().nonnegative().optional(),
-        scrapeDurationMs: zod_1.z.number().int().nonnegative().optional(),
-        sourceAdapterVersion: zod_1.z.string().optional()
+        filtersApplied: z.array(z.string()).optional(),
+        filteredOutCount: z.number().int().nonnegative().optional(),
+        totalItems: z.number().int().nonnegative().optional(),
+        dedupedCount: z.number().int().nonnegative().optional(),
+        errorsCount: z.number().int().nonnegative().optional(),
+        scrapeDurationMs: z.number().int().nonnegative().optional(),
+        sourceAdapterVersion: z.string().optional()
     }),
-    errors: zod_1.z.array(zod_1.z.string())
+    errors: z.array(z.string())
 });
 function normalizeAddress(listing) {
     return (listing.propertyAddress ||
@@ -93,7 +88,7 @@ async function withBrowser(fn, close) {
         catch { /* ignore */ }
     }
 }
-async function runZillowScraper(input) {
+export async function runZillowScraper(input) {
     const start = Date.now();
     const maxPages = input.options?.maxPages ?? 3;
     const zip = input.zip;
@@ -200,7 +195,7 @@ async function runZillowScraper(input) {
     }
     return result;
 }
-async function runAuctionScraper(input) {
+export async function runAuctionScraper(input) {
     const start = Date.now();
     const maxPages = input.options?.maxPages ?? 3;
     const location = input.zip; // treat zip as location hint
@@ -296,5 +291,5 @@ async function runAuctionScraper(input) {
     }
     return result;
 }
-exports._internalSchemas = { ResultSchema };
+export const _internalSchemas = { ResultSchema };
 //# sourceMappingURL=scrapers.js.map

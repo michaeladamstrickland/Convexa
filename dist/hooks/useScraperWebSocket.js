@@ -1,22 +1,19 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.useScraperWebSocket = useScraperWebSocket;
-const react_1 = require("react");
+import { useState, useEffect, useCallback, useRef } from 'react';
 /**
  * Custom hook for connecting to the scraper WebSocket
  */
-function useScraperWebSocket(options = {}) {
+export function useScraperWebSocket(options = {}) {
     const { autoConnect = true, userId = 'anonymous', url = `ws://${window.location.host}/api/ws/scraper`, maxReconnectAttempts = 10, initialReconnectInterval = 1000, maxReconnectInterval = 30000, authToken, } = options;
     // Build the WebSocket URL with authentication
-    const wsUrl = (0, react_1.useRef)(`${url}?userId=${userId}${authToken ? `&token=${authToken}` : ''}`);
-    const [socket, setSocket] = (0, react_1.useState)(null);
-    const [isConnected, setIsConnected] = (0, react_1.useState)(false);
-    const [lastMessage, setLastMessage] = (0, react_1.useState)(null);
-    const [jobUpdates, setJobUpdates] = (0, react_1.useState)([]);
-    const [reconnectCount, setReconnectCount] = (0, react_1.useState)(0);
-    const reconnectIntervalRef = (0, react_1.useRef)(initialReconnectInterval);
+    const wsUrl = useRef(`${url}?userId=${userId}${authToken ? `&token=${authToken}` : ''}`);
+    const [socket, setSocket] = useState(null);
+    const [isConnected, setIsConnected] = useState(false);
+    const [lastMessage, setLastMessage] = useState(null);
+    const [jobUpdates, setJobUpdates] = useState([]);
+    const [reconnectCount, setReconnectCount] = useState(0);
+    const reconnectIntervalRef = useRef(initialReconnectInterval);
     // Connect to WebSocket with exponential backoff
-    const connect = (0, react_1.useCallback)(() => {
+    const connect = useCallback(() => {
         if (socket !== null) {
             socket.close();
         }
@@ -68,7 +65,7 @@ function useScraperWebSocket(options = {}) {
         setSocket(newSocket);
     }, [wsUrl, socket, reconnectCount, maxReconnectAttempts, initialReconnectInterval, maxReconnectInterval]);
     // Disconnect from WebSocket
-    const disconnect = (0, react_1.useCallback)(() => {
+    const disconnect = useCallback(() => {
         if (socket !== null) {
             socket.close();
             setSocket(null);
@@ -76,7 +73,7 @@ function useScraperWebSocket(options = {}) {
         }
     }, [socket]);
     // Send message to WebSocket
-    const sendMessage = (0, react_1.useCallback)((data) => {
+    const sendMessage = useCallback((data) => {
         if (socket !== null && isConnected) {
             socket.send(JSON.stringify(data));
             return true;
@@ -84,11 +81,11 @@ function useScraperWebSocket(options = {}) {
         return false;
     }, [socket, isConnected]);
     // Send ping to keep connection alive
-    const sendPing = (0, react_1.useCallback)(() => {
+    const sendPing = useCallback(() => {
         return sendMessage({ type: 'ping', timestamp: new Date().toISOString() });
     }, [sendMessage]);
     // Auto-connect on mount and handle reconnection
-    (0, react_1.useEffect)(() => {
+    useEffect(() => {
         let pingInterval;
         if (autoConnect) {
             connect();

@@ -156,7 +156,7 @@ export const createLead = catchAsync(async (req: AuthenticatedRequest, res: Resp
       bedrooms: lead.bedrooms || undefined,
       bathrooms: lead.bathrooms || undefined,
       squareFootage: lead.squareFootage || undefined,
-      tags: lead.tags,
+      tags: typeof lead.tags === 'string' ? [lead.tags] : (lead.tags || []),
     }).then(async (analysis) => {
       await prisma.lead.update({
         where: { id: lead.id },

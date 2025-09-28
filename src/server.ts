@@ -79,6 +79,17 @@ export const dlqDepth = new Gauge({
   labelNames: ['queue_name'],
 });
 
+export const convexaWeeklyExportsTotal = new Counter({
+  name: 'convexa_weekly_exports_total',
+  help: 'Total number of weekly exports.',
+});
+
+export const convexaImportRowsTotal = new Counter({
+  name: 'convexa_import_rows_total',
+  help: 'Total number of rows imported, labeled by result (success/failure).',
+  labelNames: ['result'],
+});
+
 // Register default metrics
 client.collectDefaultMetrics();
 
@@ -142,6 +153,13 @@ class LeadFlowAIServer {
     this.app.use('/api/admin', basicAuthMiddleware, webhookAdmin);
     this.app.use('/api/calls', callRoutes);
     this.app.use('/api/deals', dealRoutes);
+
+    // New route for weekly exports
+    this.app.post('/api/exports/bundle', basicAuthMiddleware, (req, res) => {
+      convexaWeeklyExportsTotal.inc();
+      logger.info('Weekly export bundle endpoint hit, incrementing convexa_weekly_exports_total');
+      res.json({ success: true, message: 'Export counted.' });
+    });
 
     // Apply basic auth to /metrics endpoint
     this.app.use('/metrics', basicAuthMiddleware);

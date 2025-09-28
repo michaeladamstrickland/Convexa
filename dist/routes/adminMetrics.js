@@ -1,44 +1,12 @@
-"use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
-Object.defineProperty(exports, "__esModule", { value: true });
-const express_1 = require("express");
-const prisma_1 = require("../db/prisma");
-const matchmakingQueue_1 = require("../queues/matchmakingQueue");
-const enqueueEnrichmentJob_1 = require("../utils/enqueueEnrichmentJob");
-const webhookQueue_1 = require("../queues/webhookQueue");
-const router = (0, express_1.Router)();
+import { Router } from 'express';
+import { prisma } from '../db/prisma';
+import { enqueueMatchmakingJob } from '../queues/matchmakingQueue';
+import { enqueuePropertyEnrichment } from '../utils/enqueueEnrichmentJob';
+import { enqueueWebhookDelivery } from '../queues/webhookQueue';
+import { convexaImportRowsTotal } from '../server'; // Import the new metric
+import csv from 'csv-parser';
+import { Readable } from 'stream';
+const router = Router();
 // ---- CRM Activity Logging ----
 const crmMetrics = global.__CRM_ACTIVITY_METRICS__ || { total: 0, webhook: { success: 0, fail: 0 } };
 global.__CRM_ACTIVITY_METRICS__ = crmMetrics;
@@ -48,7 +16,7 @@ router.post('/crm-activity', async (req, res) => {
         const { type, propertyId, leadId, userId, metadata, emitWebhook = true } = req.body || {};
         if (!type)
             return res.status(400).json({ error: 'missing_type' });
-        const p = prisma_1.prisma;
+        const p = prisma;
         const row = await p.crmActivity.create({ data: { type, propertyId, leadId, userId, metadata } });
         crmMetrics.total++;
         if (emitWebhook) {
@@ -57,7 +25,7 @@ router.post('/crm-activity', async (req, res) => {
                 const interested = subs.filter(s => Array.isArray(s.eventTypes) && s.eventTypes.includes('crm.activity'));
                 if (interested.length) {
                     const payload = { id: row.id, type: row.type, propertyId: row.propertyId, leadId: row.leadId, userId: row.userId, metadata: row.metadata, createdAt: row.createdAt };
-                    await Promise.all(interested.map(s => (0, webhookQueue_1.enqueueWebhookDelivery)({ subscriptionId: s.id, eventType: 'crm.activity', payload })));
+                    await Promise.all(interested.map(s => enqueueWebhookDelivery({ subscriptionId: s.id, eventType: 'crm.activity', payload })));
                     crmMetrics.webhook.success += interested.length;
                 }
             }
@@ -93,7 +61,7 @@ router.get('/crm-activity', async (req, res) => {
                 where.createdAt.lte = new Date(to);
         }
         const orderBy = { createdAt: (String(order).toLowerCase() === 'asc' ? 'asc' : 'desc') };
-        const p = prisma_1.prisma;
+        const p = prisma;
         const rows = await p.crmActivity.findMany({ where, orderBy, take: take + 1, ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}) });
         const nextCursor = rows.length > take ? rows[take].id : null;
         const data = rows.slice(0, take);
@@ -113,7 +81,7 @@ router.get('/dashboard-metrics', async (req, res) => {
         const start = parseDate(startDate) || new Date(end.getTime() - 7 * 24 * 60 * 60 * 1000);
         // constrain
         const whereJobs = { createdAt: { gte: start, lte: end } };
-        const p = prisma_1.prisma;
+        const p = prisma;
         // Aggregate jobs basic counts
         const jobsProcessed = await p.scraperJob.count({ where: whereJobs });
         // listingsScraped & dedupedCount via resultPayload meta (JSON paths -> scan subset) fallback: load limited set
@@ -175,7 +143,7 @@ router.get('/jobs/timeline', async (req, res) => {
         const skip = parseInt(offset) || 0;
         const validSort = ['createdAt', 'duration', 'listings'];
         const sortSel = validSort.includes(sortBy) ? sortBy : 'createdAt';
-        const p = prisma_1.prisma;
+        const p = prisma;
         const jobs = await p.scraperJob.findMany({
             orderBy: sortSel === 'createdAt' ? { createdAt: 'desc' } : undefined,
             take, skip,
@@ -258,7 +226,7 @@ router.get('/export-leads', async (req, res) => {
         }
         const sortable = ['createdAt', 'investmentScore', 'price'];
         const orderBy = sortable.includes(sortBy) ? { [sortBy]: 'desc' } : { createdAt: 'desc' };
-        const p = prisma_1.prisma;
+        const p = prisma;
         const [rows, totalCount] = await Promise.all([
             p.scrapedProperty.findMany({ where, orderBy, take, skip }),
             p.scrapedProperty.count({ where })
@@ -321,13 +289,13 @@ router.get('/export-leads', async (req, res) => {
 router.post('/matchmaking-jobs', async (req, res) => {
     try {
         const filterJSON = req.body?.filterJSON || {};
-        const job = await prisma_1.prisma.matchmakingJob.create({ data: { filterJSON, status: 'queued' } });
+        const job = await prisma.matchmakingJob.create({ data: { filterJSON, status: 'queued' } });
         try {
-            const { matchmakingMetrics } = await Promise.resolve().then(() => __importStar(require('../workers/matchmakingWorker')));
+            const { matchmakingMetrics } = await import('../workers/matchmakingWorker');
             matchmakingMetrics.statusCounts.set('queued', (matchmakingMetrics.statusCounts.get('queued') || 0) + 1);
         }
         catch { }
-        await (0, matchmakingQueue_1.enqueueMatchmakingJob)(job.id);
+        await enqueueMatchmakingJob(job.id);
         console.log(JSON.stringify({ level: 'info', component: 'matchmaking', action: 'enqueued', matchmakingJobId: job.id, filterPreview: filterJSON, timestamp: new Date().toISOString() }));
         // metrics
         global.__MATCHMAKING_METRICS__ = global.__MATCHMAKING_METRICS__ || { triggeredTotal: 0, autoTriggeredTotal: 0, replayTotal: 0 };
@@ -344,10 +312,10 @@ router.post('/enrich/:propertyId', async (req, res) => {
         const { propertyId } = req.params;
         if (!propertyId)
             return res.status(400).json({ success: false, error: 'missing_property_id' });
-        const prop = await prisma_1.prisma.scrapedProperty.findUnique({ where: { id: propertyId }, select: { id: true } });
+        const prop = await prisma.scrapedProperty.findUnique({ where: { id: propertyId }, select: { id: true } });
         if (!prop)
             return res.status(404).json({ success: false, error: 'property_not_found' });
-        await (0, enqueueEnrichmentJob_1.enqueuePropertyEnrichment)(propertyId);
+        await enqueuePropertyEnrichment(propertyId);
         console.log(JSON.stringify({ level: 'info', component: 'enrichment', action: 'enqueued_manual', propertyId, timestamp: new Date().toISOString() }));
         return res.status(202).json({ success: true, enqueued: true, propertyId });
     }
@@ -374,7 +342,7 @@ router.get('/matchmaking-jobs', async (req, res) => {
         // Filter by propertyId/source if encoded in filterJSON
         if (propertyId || source) {
             // naive: fetch and filter in memory due to JSON path limitations in some Prisma versions
-            const rows = await prisma_1.prisma.matchmakingJob.findMany({ orderBy: { createdAt: 'desc' }, take, skip });
+            const rows = await prisma.matchmakingJob.findMany({ orderBy: { createdAt: 'desc' }, take, skip });
             const filtered = rows.filter((r) => {
                 try {
                     const f = r.filterJSON || {};
@@ -384,12 +352,12 @@ router.get('/matchmaking-jobs', async (req, res) => {
                     return true;
                 }
             });
-            const total = await prisma_1.prisma.matchmakingJob.count({});
+            const total = await prisma.matchmakingJob.count({});
             return res.json({ data: filtered, meta: { totalCount: total, pagination: { limit: take, offset: skip } } });
         }
         const [rows, total] = await Promise.all([
-            prisma_1.prisma.matchmakingJob.findMany({ where, orderBy: { createdAt: 'desc' }, take, skip }),
-            prisma_1.prisma.matchmakingJob.count({ where })
+            prisma.matchmakingJob.findMany({ where, orderBy: { createdAt: 'desc' }, take, skip }),
+            prisma.matchmakingJob.count({ where })
         ]);
         res.json({ data: rows, meta: { totalCount: total, pagination: { limit: take, offset: skip } } });
     }
@@ -397,16 +365,40 @@ router.get('/matchmaking-jobs', async (req, res) => {
         res.status(500).json({ error: 'matchmaking_list_failed', message: e?.message });
     }
 });
+// GET /api/admin/trigger-500-error - for testing alerts
+router.get('/trigger-500-error', (req, res) => {
+    throw new Error('Test 500 error triggered by admin endpoint');
+});
+// POST /api/admin/import/csv - for testing import metrics
+router.post('/import/csv', async (req, res) => {
+    if (!req.body || typeof req.body !== 'string') {
+        return res.status(400).json({ error: 'missing_csv_data' });
+    }
+    let rowsProcessed = 0;
+    const stream = Readable.from([req.body]);
+    stream.pipe(csv())
+        .on('data', (row) => {
+        rowsProcessed++;
+        convexaImportRowsTotal.inc({ result: 'success' }); // Increment for each row
+    })
+        .on('end', () => {
+        res.json({ success: true, message: `Processed ${rowsProcessed} rows.`, rowsProcessed });
+    })
+        .on('error', (err) => {
+        convexaImportRowsTotal.inc({ result: 'failure' });
+        res.status(500).json({ error: 'csv_processing_failed', message: err.message });
+    });
+});
 // POST /api/admin/matchmaking-jobs/:id/replay
 router.post('/matchmaking-jobs/:id/replay', async (req, res) => {
     try {
         const { id } = req.params;
-        const mm = await prisma_1.prisma.matchmakingJob.findUnique({ where: { id } });
+        const mm = await prisma.matchmakingJob.findUnique({ where: { id } });
         if (!mm)
             return res.status(404).json({ error: 'not_found' });
         // Requeue
-        await prisma_1.prisma.matchmakingJob.update({ where: { id }, data: { status: 'queued', completedAt: null } });
-        await (0, matchmakingQueue_1.enqueueMatchmakingJob)(id);
+        await prisma.matchmakingJob.update({ where: { id }, data: { status: 'queued', completedAt: null } });
+        await enqueueMatchmakingJob(id);
         global.__MATCHMAKING_METRICS__ = global.__MATCHMAKING_METRICS__ || { triggeredTotal: 0, autoTriggeredTotal: 0, replayTotal: 0 };
         global.__MATCHMAKING_METRICS__.replayTotal++;
         res.json({ success: true, replayed: true, id });
@@ -439,7 +431,7 @@ router.get('/delivery-history', async (req, res) => {
         }
         if (targetUrl) {
             // Map targetUrl to subscription ids and filter
-            const subs = await prisma_1.prisma.webhookSubscription.findMany({ where: { targetUrl } }).catch(() => []);
+            const subs = await prisma.webhookSubscription.findMany({ where: { targetUrl } }).catch(() => []);
             const ids = subs.map((s) => s.id);
             if (ids.length === 0)
                 return res.json({ data: [], meta: { totalCount: 0, filtersApplied: { ...filtersApplied, targetUrl }, pagination: { limit: take, offset: skip }, sortBy: 'createdAt' } });
@@ -449,7 +441,7 @@ router.get('/delivery-history', async (req, res) => {
         // propertyId filter: best effort by scanning recent failures with payload or logs with jobId mapping (if present)
         // Here, extend to search DeliveryLog where payload contained propertyId serialized in a separate table is not available; skip if unsupported.
         const orderBy = { createdAt: 'desc' };
-        const p = prisma_1.prisma;
+        const p = prisma;
         // Wire details fields needed by UI: include jobId, attemptsMade, timestamps
         const [rows, total] = await Promise.all([
             p.webhookDeliveryLog.findMany({ where, orderBy, take, skip }).catch(() => []),
@@ -487,5 +479,5 @@ router.get('/delivery-history', async (req, res) => {
 // Expose metrics reference for devQueueRoutes metrics endpoint to scrape
 ;
 global.__EXPORT_METRICS__ = exportMetrics;
-exports.default = router;
+export default router;
 //# sourceMappingURL=adminMetrics.js.map

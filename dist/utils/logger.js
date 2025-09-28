@@ -1,19 +1,31 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.logger = void 0;
-const winston_1 = __importDefault(require("winston"));
-exports.logger = winston_1.default.createLogger({
+import winston from 'winston';
+import 'winston-mail'; // Import winston-mail to register the Mail transport
+const { combine, timestamp, errors, json, colorize, simple } = winston.format;
+export const logger = winston.createLogger({
     level: 'info',
-    format: winston_1.default.format.combine(winston_1.default.format.timestamp(), winston_1.default.format.errors({ stack: true }), winston_1.default.format.json()),
+    format: combine(timestamp(), errors({ stack: true }), json()),
     defaultMeta: { service: 'convexa-ai' },
     transports: [
-        new winston_1.default.transports.File({ filename: 'error.log', level: 'error' }),
-        new winston_1.default.transports.File({ filename: 'combined.log' }),
-        new winston_1.default.transports.Console({
-            format: winston_1.default.format.combine(winston_1.default.format.colorize(), winston_1.default.format.simple())
+        new winston.transports.File({ filename: 'logs/error.log', level: 'error' }),
+        new winston.transports.File({ filename: 'logs/combined.log' }),
+        new winston.transports.Console({
+            format: combine(colorize(), simple())
+        }),
+        new winston.transports.Mail({
+            level: 'error', // Only send emails for error level logs
+            to: process.env.ALERT_TO_LIST,
+            from: process.env.ALERT_FROM,
+            host: process.env.SMTP_HOST,
+            port: parseInt(process.env.SMTP_PORT || '587', 10),
+            username: process.env.SMTP_USER,
+            password: process.env.SMTP_PASS,
+            ssl: true, // Use SSL/TLS
+            html: true, // Send HTML emails
+            subject: 'Convexa AI Alert: {{level}} - {{message}}',
+            // Add a throttle to prevent too many emails
+            // This is a basic throttle, more advanced throttling might be needed
+            // For now, we'll rely on the rate-limit in the alert manager for specific alerts.
+            // This transport will send an email for every 'error' log.
         })
     ]
 });

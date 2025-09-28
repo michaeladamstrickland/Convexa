@@ -1,14 +1,11 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.AutomatedLeadScoring = void 0;
-const openai_1 = __importDefault(require("openai"));
-class AutomatedLeadScoring {
+import OpenAI from 'openai';
+export class AutomatedLeadScoring {
+    openai;
+    qualificationCriteria;
+    scoringModel;
+    processedDeals = new Map();
     constructor() {
-        this.processedDeals = new Map();
-        this.openai = new openai_1.default({
+        this.openai = new OpenAI({
             apiKey: process.env.OPENAI_API_KEY
         });
         // Default qualification criteria - can be customized
@@ -559,5 +556,4 @@ class AutomatedLeadScoring {
             .sort((a, b) => b.motivation_score - a.motivation_score);
     }
 }
-exports.AutomatedLeadScoring = AutomatedLeadScoring;
 //# sourceMappingURL=automatedLeadScoring.js.map

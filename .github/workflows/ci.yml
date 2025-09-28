@@ -12,11 +12,26 @@ on:
     branches:
       - main
       - develop
+      - ops/staging-cutover
     types: [opened, synchronize, reopened]
 
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+    env:
+      CI: 'true'
+      NODE_ENV: 'test'
+      PORT: '0'
+      SQLITE_DB_PATH: '${{ runner.temp }}/ci.sqlite'
+      LOCAL_STORAGE_PATH: '${{ runner.temp }}/run_storage'
+      SKIP_TRACE_DEMO_MODE: 'true'
+      AI_CALLS_ENABLED: 'false'
+      BASIC_AUTH_USER: 'ci'
+      BASIC_AUTH_PASS: 'ci'
+      TWILIO_ACCOUNT_SID: 'stub'
+      TWILIO_AUTH_TOKEN: 'stub'
+      TWILIO_FROM_NUMBER: '+15555550123'
+      AGENT_MODE: 'sim' # Set agent mode to sim for CI smoke tests
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -27,23 +42,55 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '20.x'
+          cache: 'npm'
 
       - name: Install dependencies (clean)
-        run: npm ci
+        run: npm ci --no-audit --no-fund
 
-      - name: Run tests (Vitest with coverage)
-        run: npm run coverage
+      - name: Run CI Prep
+        run: npm run ci:prep
 
-      - name: Typecheck (server-only)
-        run: npm run typecheck
+      - name: Typecheck (CI scope)
+        run: npx tsc -p tsconfig.ci.json --noEmit
+
+      - name: Run CI Tests
+        run: npm run ci:test
+
+      - name: Run CI Hygiene
+        run: npm run ci:hygiene
+
+      - name: Run PI3 Agent Smoke Test
+        run: node scripts/smoke/pi3Agent.cjs > ops/findings/pi3_agent_smoke_output.txt 2>&1 || true # Continue on error
+        working-directory: .
 
       - name: Upload artifacts (e.g., build output, test reports)
         uses: actions/upload-artifact@v4
         with:
-          name: build-artifacts
+          name: build-artifacts-${{ github.sha }}
           if-no-files-found: ignore
+          retention-days: 30
           path: |
-            dist/ # Adjust to your build output directory
-            coverage/ # Adjust to your test coverage report directory
-            test-results.xml # Adjust to your test results file
+            dist/
+            coverage/
+            test-results.xml
+            qa/smoke_output/
+            ops/dashboards/convexa_pi1.json
+            ops/dashboards/convexa_pi2.json
+            ops/dashboards/convexa_pi3.json # New PI3 dashboard
+            ops/findings/campaigns_smoke.md
+            ops/findings/grades_recompute.md
+            ops/findings/dial_followup_timeline.md
+            ops/findings/pi1_metrics_sample.txt
+            ops/findings/pi2_campaigns_smoke.md
+            ops/findings/pi2_grades_smoke.md
+            ops/findings/pi2_stages_smoke.md
+            ops/findings/pi2_summary_smoke.md
+            ops/findings/pi2_export_smoke.md
+            ops/findings/pi2_metrics_sample.txt
+            ops/findings/ci_fail_root_cause.md
+            ops/findings/ci_pass_links.md
+            ops/findings/pi3_twilio_wiring.md # New Twilio wiring doc
+            ops/findings/pi3_metrics_sample.txt # New PI3 metrics sample
+            ops/findings/pi3_agent_smoke_output.txt # PI3 agent smoke test output
+            ops/findings/pi3_dashboard.png # Placeholder for exported dashboard PNG

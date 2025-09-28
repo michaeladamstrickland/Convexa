@@ -1,0 +1,22 @@
+{
+  "input_filename": "test.csv",
+  "headers_detected": [
+    "address",
+    "owner_name"
+  ],
+  "dedupe_key": "normalized_address|owner_name|email|phone",
+  "rows_total": 2,
+  "rows_valid": 2,
+  "rows_invalid": 0,
+  "created": 1,
+  "merged": 0,
+  "skipped": 1,
+  "warnings": [
+    {
+      "row": 2,
+      "reason": "duplicate_in_batch",
+      "key": "123 main st|John Doe"
+    }
+  ],
+  "duration_ms": 7
+}

@@ -1,42 +1,7 @@
-"use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.AttomClient = void 0;
-const dotenv = __importStar(require("dotenv"));
-const addressNormalization_1 = require("../utils/addressNormalization");
-const vendorClient_1 = require("../utils/vendorClient");
+import * as dotenv from 'dotenv';
+import { normalizeAddress } from '../utils/addressNormalization';
+import { makeClient, logApiCall, retryWithBackoff } from '../utils/vendorClient';
+import { convexaCacheHitTotal, convexaCacheTotal, convexaQuotaFraction } from '../server';
 dotenv.config();
 /**
  * ATTOM API Property Data Client
@@ -44,26 +9,31 @@ dotenv.config();
  * This service handles communication with the ATTOM API for property data lookups
  * and integrates with our Lead model for data storage.
  */
-class AttomClient {
+export class AttomClient {
+    client;
+    apiKey;
+    maxRetries = 3;
+    costPerLookupCents = 5; // Update with actual cost
+    dailyCap;
+    cache = new Map();
+    cacheTtlSeconds;
+    // Track daily API usage
+    dailySpendCents = 0;
+    lastResetDay = new Date().getDate();
     constructor() {
-        this.maxRetries = 3;
-        this.costPerLookupCents = 5; // Update with actual cost
-        this.cache = new Map();
-        // Track daily API usage
-        this.dailySpendCents = 0;
-        this.lastResetDay = new Date().getDate();
         this.apiKey = process.env.ATTOM_API_KEY || '';
         this.dailyCap = parseInt(process.env.DAILY_CAP_ATTOM_CENTS || '1000', 10);
         this.cacheTtlSeconds = parseInt(process.env.CACHE_TTL_SECONDS || '900', 10);
         if (!this.apiKey) {
             throw new Error('ATTOM API key not found in environment variables');
         }
-        this.client = (0, vendorClient_1.makeClient)('https://api.gateway.attomdata.com/propertyapi/v1', {
+        this.client = makeClient('https://api.gateway.attomdata.com/propertyapi/v1', {
             'apiKey': this.apiKey,
             'Accept': 'application/json'
         });
         // Reset the daily spend counter if it's a new day
         this.checkDailyReset();
+        this.updateQuotaMetrics(); // Initial update
     }
     /**
      * Search for properties by address
@@ -75,12 +45,13 @@ class AttomClient {
      * @returns Property details or null if not found
      */
     async getPropertyByAddress(address, city, state, zip) {
-        const normalizedAddress = (0, addressNormalization_1.normalizeAddress)(`${address}, ${city}, ${state} ${zip}`);
+        const normalizedAddress = normalizeAddress(`${address}, ${city}, ${state} ${zip}`);
         const cacheKey = `address:${normalizedAddress}`;
         // Check cache first
         const cached = this.getFromCache(cacheKey);
         if (cached) {
             console.log(`Cache hit for address: ${normalizedAddress}`);
+            convexaCacheHitTotal.inc({ operation: 'get', cache_name: 'attom_client' });
             return cached;
         }
         // Check daily cap
@@ -129,6 +100,7 @@ class AttomClient {
         const cached = this.getFromCache(cacheKey);
         if (cached) {
             console.log(`Cache hit for ZIP code: ${zipCode}`);
+            convexaCacheHitTotal.inc({ operation: 'get', cache_name: 'attom_client' });
             return cached;
         }
         // Check daily cap
@@ -161,7 +133,7 @@ class AttomClient {
                 const city = property.address?.locality || '';
                 const state = property.address?.countrySubd || '';
                 const zip = property.address?.postal1 || '';
-                const normalizedAddress = (0, addressNormalization_1.normalizeAddress)(`${propertyAddress}, ${city}, ${state} ${zip}`);
+                const normalizedAddress = normalizeAddress(`${propertyAddress}, ${city}, ${state} ${zip}`);
                 // Map to lead
                 const lead = this.mapPropertyToLead(property, normalizedAddress);
                 leads.push(lead);
@@ -187,6 +159,7 @@ class AttomClient {
         const cached = this.getFromCache(cacheKey);
         if (cached) {
             console.log(`Cache hit for ATTOM ID: ${attomId}`);
+            convexaCacheHitTotal.inc({ operation: 'get', cache_name: 'attom_client' });
             return cached;
         }
         // Check daily cap
@@ -214,7 +187,7 @@ class AttomClient {
             const city = property.address?.locality || '';
             const state = property.address?.countrySubd || '';
             const zip = property.address?.postal1 || '';
-            const normalizedAddress = (0, addressNormalization_1.normalizeAddress)(`${address}, ${city}, ${state} ${zip}`);
+            const normalizedAddress = normalizeAddress(`${address}, ${city}, ${state} ${zip}`);
             // Map the ATTOM data to our Lead model
             const result = this.mapPropertyToLead(property, normalizedAddress);
             // Cache the result
@@ -303,6 +276,7 @@ class AttomClient {
         catch (error) {
             console.error('Error tracking API usage:', error);
         }
+        this.updateQuotaMetrics(); // Update after API usage
     }
     /**
      * Make API request with automatic retry logic
@@ -310,13 +284,13 @@ class AttomClient {
     async makeRequestWithRetry(endpoint, config) {
         const startTime = Date.now();
         try {
-            const response = await (0, vendorClient_1.retryWithBackoff)(() => this.client.get(endpoint, config), this.maxRetries, 250, this.isRetryableError);
-            (0, vendorClient_1.logApiCall)('ATTOM', endpoint, response.status, startTime);
+            const response = await retryWithBackoff(() => this.client.get(endpoint, config), this.maxRetries, 250, this.isRetryableError);
+            logApiCall('ATTOM', endpoint, response.status, startTime);
             return response;
         }
         catch (error) {
             const axiosError = error;
-            (0, vendorClient_1.logApiCall)('ATTOM', endpoint, axiosError.response?.status || 0, startTime, axiosError);
+            logApiCall('ATTOM', endpoint, axiosError.response?.status || 0, startTime, axiosError);
             throw error;
         }
     }
@@ -359,6 +333,7 @@ class AttomClient {
      * Add item to cache
      */
     addToCache(key, data) {
+        convexaCacheTotal.inc({ operation: 'set', cache_name: 'attom_client' });
         this.cache.set(key, {
             data,
             timestamp: Date.now()
@@ -368,6 +343,7 @@ class AttomClient {
      * Get item from cache, return null if expired
      */
     getFromCache(key) {
+        convexaCacheTotal.inc({ operation: 'get', cache_name: 'attom_client' });
         const cached = this.cache.get(key);
         if (!cached)
             return null;
@@ -377,6 +353,13 @@ class AttomClient {
             return null;
         }
         return cached.data;
+    }
+    /**
+     * Update the convexa_quota_fraction metric.
+     */
+    updateQuotaMetrics() {
+        const quotaFraction = this.dailyCap > 0 ? this.dailySpendCents / this.dailyCap : 0;
+        convexaQuotaFraction.set({ resource: 'attom_api' }, quotaFraction);
     }
     /**
      * Check API health
@@ -404,6 +387,5 @@ class AttomClient {
         }
     }
 }
-exports.AttomClient = AttomClient;
-exports.default = new AttomClient();
+export default new AttomClient();
 //# sourceMappingURL=attomClient.js.map

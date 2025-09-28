@@ -1,21 +1,40 @@
 import winston from 'winston';
+import 'winston-mail'; // Import winston-mail to register the Mail transport
+
+const { combine, timestamp, errors, json, colorize, simple } = winston.format;
 
 export const logger = winston.createLogger({
   level: 'info',
-  format: winston.format.combine(
-    winston.format.timestamp(),
-    winston.format.errors({ stack: true }),
-    winston.format.json()
+  format: combine(
+    timestamp(),
+    errors({ stack: true }),
+    json()
   ),
   defaultMeta: { service: 'convexa-ai' },
   transports: [
-    new winston.transports.File({ filename: 'error.log', level: 'error' }),
-    new winston.transports.File({ filename: 'combined.log' }),
+    new winston.transports.File({ filename: 'logs/error.log', level: 'error' }),
+    new winston.transports.File({ filename: 'logs/combined.log' }),
     new winston.transports.Console({
-      format: winston.format.combine(
-        winston.format.colorize(),
-        winston.format.simple()
+      format: combine(
+        colorize(),
+        simple()
       )
+    }),
+    new (winston.transports as any).Mail({
+      level: 'error', // Only send emails for error level logs
+      to: process.env.ALERT_TO_LIST,
+      from: process.env.ALERT_FROM,
+      host: process.env.SMTP_HOST,
+      port: parseInt(process.env.SMTP_PORT || '587', 10),
+      username: process.env.SMTP_USER,
+      password: process.env.SMTP_PASS,
+      ssl: true, // Use SSL/TLS
+      html: true, // Send HTML emails
+      subject: 'Convexa AI Alert: {{level}} - {{message}}',
+      // Add a throttle to prevent too many emails
+      // This is a basic throttle, more advanced throttling might be needed
+      // For now, we'll rely on the rate-limit in the alert manager for specific alerts.
+      // This transport will send an email for every 'error' log.
     })
   ]
 });

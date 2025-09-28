@@ -1,9 +1,5 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.triggerDailyScheduler = triggerDailyScheduler;
-exports.startDailyScheduler = startDailyScheduler;
-const scraperQueue_1 = require("../queues/scraperQueue");
-const prisma_1 = require("../db/prisma");
+import { enqueueScraperJob } from '../queues/scraperQueue';
+import { prisma } from '../db/prisma';
 let started = false;
 let lastRunDay = null;
 const ranSourcesToday = new Set();
@@ -18,13 +14,13 @@ function parseTargetTime() {
 async function alreadyEnqueuedToday(source) {
     const start = new Date();
     start.setHours(0, 0, 0, 0);
-    const existing = await prisma_1.prisma.scraperJob.findFirst({
+    const existing = await prisma.scraperJob.findFirst({
         where: { source: source, createdAt: { gte: start } },
         select: { id: true }
     });
     return !!existing;
 }
-async function triggerDailyScheduler(force = false) {
+export async function triggerDailyScheduler(force = false) {
     const zip = process.env.DEFAULT_SCRAPE_ZIP || '08081';
     const sources = ['zillow', 'auction'];
     const enqueued = [];
@@ -51,7 +47,7 @@ async function triggerDailyScheduler(force = false) {
             continue;
         }
         try {
-            const { id } = await (0, scraperQueue_1.enqueueScraperJob)({ source, zip });
+            const { id } = await enqueueScraperJob({ source, zip });
             ranSourcesToday.add(source);
             enqueued.push({ source, jobId: id, skipped: false });
         }
@@ -61,7 +57,7 @@ async function triggerDailyScheduler(force = false) {
     }
     return { date: todayKey(), enqueued };
 }
-function startDailyScheduler() {
+export function startDailyScheduler() {
     if (started)
         return;
     started = true;
@@ -88,6 +84,6 @@ function startDailyScheduler() {
         catch (e) {
             console.error('[SCHEDULER] Error in daily scheduler loop', e.message);
         }
-    }, 60000); // check every minute
+    }, 60_000); // check every minute
 }
 //# sourceMappingURL=dailyScheduler.js.map

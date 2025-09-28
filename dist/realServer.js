@@ -1,29 +1,27 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-const express_1 = __importDefault(require("express"));
-const cors_1 = __importDefault(require("cors"));
-const realDataService_1 = require("./services/realDataService");
-const databaseService_1 = require("./services/databaseService");
-const logger_1 = require("./utils/logger");
+import express from 'express';
+import cors from 'cors';
+import { RealDataService } from './services/realDataService';
+import { DatabaseService } from './services/databaseService';
+import { logger } from './utils/logger';
 class LeadFlowAIRealServer {
+    app;
+    realDataService;
+    databaseService;
+    isRunning = false;
     constructor() {
-        this.isRunning = false;
-        this.app = (0, express_1.default)();
-        this.realDataService = new realDataService_1.RealDataService();
-        this.databaseService = new databaseService_1.DatabaseService();
+        this.app = express();
+        this.realDataService = new RealDataService();
+        this.databaseService = new DatabaseService();
         this.setupMiddleware();
         this.setupRoutes();
     }
     setupMiddleware() {
-        this.app.use((0, cors_1.default)());
-        this.app.use(express_1.default.json());
-        this.app.use(express_1.default.urlencoded({ extended: true }));
+        this.app.use(cors());
+        this.app.use(express.json());
+        this.app.use(express.urlencoded({ extended: true }));
         // Request logging
         this.app.use((req, res, next) => {
-            logger_1.logger.info(`${req.method} ${req.path}`, {
+            logger.info(`${req.method} ${req.path}`, {
                 ip: req.ip,
                 userAgent: req.get('User-Agent')
             });
@@ -64,7 +62,7 @@ class LeadFlowAIRealServer {
                 });
             }
             catch (error) {
-                logger_1.logger.error('Failed to get leads:', error);
+                logger.error('Failed to get leads:', error);
                 res.status(500).json({
                     success: false,
                     error: 'Failed to retrieve leads'
@@ -84,7 +82,7 @@ class LeadFlowAIRealServer {
                 });
             }
             catch (error) {
-                logger_1.logger.error('Failed to get high-value leads:', error);
+                logger.error('Failed to get high-value leads:', error);
                 res.status(500).json({
                     success: false,
                     error: 'Failed to retrieve high-value leads'
@@ -95,7 +93,7 @@ class LeadFlowAIRealServer {
         this.app.post('/pipeline/run', async (req, res) => {
             try {
                 this.isRunning = true;
-                logger_1.logger.info('🚀 Starting real lead generation pipeline...');
+                logger.info('🚀 Starting real lead generation pipeline...');
                 const results = await this.realDataService.runDailyPipeline();
                 res.json({
                     success: true,
@@ -107,7 +105,7 @@ class LeadFlowAIRealServer {
             }
             catch (error) {
                 this.isRunning = false;
-                logger_1.logger.error('Pipeline execution failed:', error);
+                logger.error('Pipeline execution failed:', error);
                 res.status(500).json({
                     success: false,
                     error: 'Pipeline execution failed'
@@ -127,7 +125,7 @@ class LeadFlowAIRealServer {
                 });
             }
             catch (error) {
-                logger_1.logger.error('Probate scraping failed:', error);
+                logger.error('Probate scraping failed:', error);
                 res.status(500).json({
                     success: false,
                     error: 'Probate scraping failed'
@@ -146,7 +144,7 @@ class LeadFlowAIRealServer {
                 });
             }
             catch (error) {
-                logger_1.logger.error('Violation scraping failed:', error);
+                logger.error('Violation scraping failed:', error);
                 res.status(500).json({
                     success: false,
                     error: 'Violation scraping failed'
@@ -165,7 +163,7 @@ class LeadFlowAIRealServer {
                 });
             }
             catch (error) {
-                logger_1.logger.error('Tax delinquency scraping failed:', error);
+                logger.error('Tax delinquency scraping failed:', error);
                 res.status(500).json({
                     success: false,
                     error: 'Tax delinquency scraping failed'
@@ -188,7 +186,7 @@ class LeadFlowAIRealServer {
                 });
             }
             catch (error) {
-                logger_1.logger.error('Failed to get revenue metrics:', error);
+                logger.error('Failed to get revenue metrics:', error);
                 res.status(500).json({
                     success: false,
                     error: 'Failed to retrieve revenue metrics'
@@ -213,7 +211,7 @@ class LeadFlowAIRealServer {
                 });
             }
             catch (error) {
-                logger_1.logger.error('Failed to get analytics:', error);
+                logger.error('Failed to get analytics:', error);
                 res.status(500).json({
                     success: false,
                     error: 'Failed to retrieve analytics'
@@ -233,7 +231,7 @@ class LeadFlowAIRealServer {
                 });
             }
             catch (error) {
-                logger_1.logger.error('Failed to update lead status:', error);
+                logger.error('Failed to update lead status:', error);
                 res.status(500).json({
                     success: false,
                     error: 'Failed to update lead status'
@@ -265,11 +263,11 @@ class LeadFlowAIRealServer {
     }
     start(port = 3001) {
         this.app.listen(port, () => {
-            logger_1.logger.info(`🚀 Convexa AI Real Data Server running on port ${port}`);
-            logger_1.logger.info(`📊 Health check: http://localhost:${port}/health`);
-            logger_1.logger.info(`🎯 Leads API: http://localhost:${port}/leads`);
-            logger_1.logger.info(`⚡ Pipeline: http://localhost:${port}/pipeline/run`);
-            logger_1.logger.info(`💰 Revenue: http://localhost:${port}/revenue`);
+            logger.info(`🚀 Convexa AI Real Data Server running on port ${port}`);
+            logger.info(`📊 Health check: http://localhost:${port}/health`);
+            logger.info(`🎯 Leads API: http://localhost:${port}/leads`);
+            logger.info(`⚡ Pipeline: http://localhost:${port}/pipeline/run`);
+            logger.info(`💰 Revenue: http://localhost:${port}/revenue`);
             console.log('\n🎯 REAL LEAD GENERATION READY!');
             console.log('================================================');
             console.log('✅ Database: Connected');
@@ -282,5 +280,5 @@ class LeadFlowAIRealServer {
 // Start the server
 const server = new LeadFlowAIRealServer();
 server.start(3001);
-exports.default = server;
+export default server;
 //# sourceMappingURL=realServer.js.map

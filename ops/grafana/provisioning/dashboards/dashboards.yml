@@ -9,3 +9,6 @@ providers:
     options:
       path: /etc/grafana/dashboards
       foldersFromFilesStructure: true
+      # Add PI3 dashboard
+      # The actual path will be /etc/grafana/dashboards/convexa_pi3.json
+      # Grafana will pick up any .json files in this directory

@@ -1,0 +1,28 @@
+{
+  "export_date": "2025-09-25T21:12:09.108Z",
+  "period": {
+    "from": "2025-09-18T21:12:09.104Z",
+    "to": "2025-09-25T21:12:09.104Z"
+  },
+  "counts": {
+    "leads": 1,
+    "graded_leads": 1,
+    "dispositions": 0,
+    "followups": 0,
+    "timeline_events": 0
+  },
+  "breakdowns": {
+    "by_status": {
+      "new": 1
+    },
+    "by_temperature": {
+      "warm": 1
+    },
+    "by_stage": {
+      "new": 1
+    },
+    "by_grade": {
+      "D": 1
+    }
+  }
+}

@@ -1,14 +1,10 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.LeadFlowAILauncher = void 0;
-const leadFlowAIEmpire_1 = require("./empire/leadFlowAIEmpire");
-const dotenv_1 = __importDefault(require("dotenv"));
+import { LeadFlowAIEmpire } from './empire/leadFlowAIEmpire';
+import dotenv from 'dotenv';
 // Load environment variables
-dotenv_1.default.config();
+dotenv.config();
 class LeadFlowAILauncher {
+    empire;
+    config;
     constructor(config) {
         this.config = {
             mode: 'development',
@@ -19,7 +15,7 @@ class LeadFlowAILauncher {
             ...config
         };
         // Initialize the Empire with configuration
-        this.empire = new leadFlowAIEmpire_1.LeadFlowAIEmpire({
+        this.empire = new LeadFlowAIEmpire({
             daily_lead_target: this.config.daily_lead_target,
             monthly_revenue_goal: this.config.monthly_revenue_goal,
             max_concurrent_campaigns: 1000,
@@ -192,7 +188,6 @@ class LeadFlowAILauncher {
         return data;
     }
 }
-exports.LeadFlowAILauncher = LeadFlowAILauncher;
 // CLI Interface for direct execution
 async function main() {
     console.log(`🏰 CONVEXA AI EMPIRE - PHASE 2 LAUNCHER`);
@@ -236,6 +231,8 @@ async function main() {
         process.exit(1);
     }
 }
+// Export for use as module
+export { LeadFlowAILauncher };
 // Run if called directly
 if (require.main === module) {
     main().catch(error => {

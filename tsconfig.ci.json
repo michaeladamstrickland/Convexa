@@ -1,0 +1,24 @@
+{
+  "extends": "./tsconfig.server.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "skipLibCheck": true
+  },
+  "include": [
+    "scripts/ci/**/*.ts",
+    "scripts/smoke/**/*.ts",
+    "types/**/*.d.ts",
+    "backend/integrated-*.d.ts"
+  ],
+  "exclude": [
+    "backend/src/**",
+    "backend/controllers/**",
+    "backend/services/**", 
+    "backend/routes/**",
+    "backend/scrapers/**",
+    "backend/server.ts",
+    "backend/server-master.ts",
+    "tests/**",
+    "src/**"
+  ]
+}

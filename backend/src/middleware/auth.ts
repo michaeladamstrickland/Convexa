@@ -1,9 +1,23 @@
 import { Request, Response, NextFunction } from 'express';
-import jwt from 'jsonwebtoken';
+import jwt, { JwtPayload } from 'jsonwebtoken';
 import { PrismaClient } from '@prisma/client';
 import { AppError } from './errorHandler';
 
 const prisma = new PrismaClient();
+
+// Extend the Express Request interface to add our custom user type
+declare global {
+  namespace Express {
+    interface Request {
+      user?: {
+        id: string;
+        email: string;
+        organizationId: string;
+        role: string;
+      } | JwtPayload;
+    }
+  }
+}
 
 export interface AuthenticatedRequest extends Request {
   user?: {

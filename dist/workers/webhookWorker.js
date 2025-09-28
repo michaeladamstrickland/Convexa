@@ -1,34 +1,27 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.webhookWorker = exports.webhookMetrics = void 0;
-exports.shutdownWebhookWorker = shutdownWebhookWorker;
-const bullmq_1 = require("bullmq");
-const node_fetch_1 = __importDefault(require("node-fetch"));
-const crypto_1 = __importDefault(require("crypto"));
-const prisma_1 = require("../db/prisma");
-const webhookQueue_1 = require("../queues/webhookQueue");
-const index_1 = require("./index");
+import { Worker } from 'bullmq';
+import fetch from 'node-fetch';
+import crypto from 'crypto';
+import { prisma } from '../db/prisma';
+import { WEBHOOK_QUEUE_NAME } from '../queues/webhookQueue';
+import { registerWorker } from './index';
 // Simple in-memory metrics for Prometheus exposition
-exports.webhookMetrics = {
+export const webhookMetrics = {
     delivered: 0,
     failed: 0,
     durations: [],
 };
-exports.webhookWorker = new bullmq_1.Worker(webhookQueue_1.WEBHOOK_QUEUE_NAME, async (job) => {
+export const webhookWorker = new Worker(WEBHOOK_QUEUE_NAME, async (job) => {
     const started = Date.now();
     const data = job.data;
     const maxAttempts = job.opts.attempts || parseInt(process.env.WEBHOOK_MAX_ATTEMPTS || '5', 10);
     try {
-        const sub = await prisma_1.prisma.webhookSubscription.findUnique({ where: { id: data.subscriptionId } });
+        const sub = await prisma.webhookSubscription.findUnique({ where: { id: data.subscriptionId } });
         if (!sub || !sub.isActive)
             return;
         const body = JSON.stringify({ event: data.eventType, data: data.payload });
         const ts = Date.now().toString();
-        const sig = crypto_1.default.createHmac('sha256', sub.signingSecret).update(body).digest('hex');
-        const resp = await (0, node_fetch_1.default)(sub.targetUrl, {
+        const sig = crypto.createHmac('sha256', sub.signingSecret).update(body).digest('hex');
+        const resp = await fetch(sub.targetUrl, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -56,7 +49,7 @@ exports.webhookWorker = new bullmq_1.Worker(webhookQueue_1.WEBHOOK_QUEUE_NAME, a
             timestamp: new Date().toISOString()
         }));
         // Log delivery success (one row per successful delivery event)
-        await prisma_1.prisma.webhookDeliveryLog.create({
+        await prisma.webhookDeliveryLog.create({
             data: {
                 subscriptionId: data.subscriptionId,
                 eventType: data.eventType,
@@ -68,22 +61,22 @@ exports.webhookWorker = new bullmq_1.Worker(webhookQueue_1.WEBHOOK_QUEUE_NAME, a
         }).catch(() => { });
         if (data.failureId) {
             // Successful replay/resolution
-            await prisma_1.prisma.webhookDeliveryFailure.update({ where: { id: data.failureId }, data: { isResolved: true, replayedAt: new Date(), replayJobId: job.id.toString() } }).catch(() => { });
-            await prisma_1.prisma.webhookDeliveryLog.updateMany({ where: { subscriptionId: data.subscriptionId, eventType: data.eventType, status: 'failed', isResolved: false }, data: { isResolved: true } }).catch(() => { });
+            await prisma.webhookDeliveryFailure.update({ where: { id: data.failureId }, data: { isResolved: true, replayedAt: new Date(), replayJobId: job.id.toString() } }).catch(() => { });
+            await prisma.webhookDeliveryLog.updateMany({ where: { subscriptionId: data.subscriptionId, eventType: data.eventType, status: 'failed', isResolved: false }, data: { isResolved: true } }).catch(() => { });
             const mode = data.replayMode === 'bulk' ? 'bulk' : 'single';
             const metrics = ensureReplayMetricStore();
             metrics[mode].success++;
             console.log(JSON.stringify({ level: 'info', component: 'webhookReplay', status: 'resolved', failureId: data.failureId, replayJobId: job.id, subscriptionId: data.subscriptionId, eventType: data.eventType, timestamp: new Date().toISOString() }));
         }
-        exports.webhookMetrics.delivered++;
-        exports.webhookMetrics.durations.push(Date.now() - started);
+        webhookMetrics.delivered++;
+        webhookMetrics.durations.push(Date.now() - started);
     }
     catch (e) {
         const attemptsMade = job.attemptsMade + 1; // includes this attempt
         if (attemptsMade >= maxAttempts) {
-            exports.webhookMetrics.failed++;
-            exports.webhookMetrics.durations.push(Date.now() - started);
-            await prisma_1.prisma.webhookDeliveryFailure.create({
+            webhookMetrics.failed++;
+            webhookMetrics.durations.push(Date.now() - started);
+            await prisma.webhookDeliveryFailure.create({
                 data: {
                     subscriptionId: data.subscriptionId,
                     eventType: data.eventType,
@@ -95,7 +88,7 @@ exports.webhookWorker = new bullmq_1.Worker(webhookQueue_1.WEBHOOK_QUEUE_NAME, a
                 }
             }).catch(() => { });
             // Insert failure log row
-            await prisma_1.prisma.webhookDeliveryLog.create({
+            await prisma.webhookDeliveryLog.create({
                 data: {
                     subscriptionId: data.subscriptionId,
                     eventType: data.eventType,
@@ -123,19 +116,19 @@ function ensureReplayMetricStore() {
     }
     return global.__WEBHOOK_REPLAY_METRICS__;
 }
-async function shutdownWebhookWorker() {
+export async function shutdownWebhookWorker() {
     try {
-        await exports.webhookWorker.close?.();
+        await webhookWorker.close?.();
     }
     catch { }
     try {
-        await exports.webhookWorker.connection?.disconnect?.();
+        await webhookWorker.connection?.disconnect?.();
     }
     catch { }
 }
 try {
-    (0, index_1.registerWorker)(exports.webhookWorker);
+    registerWorker(webhookWorker);
 }
 catch { }
-console.log(JSON.stringify({ level: 'info', component: 'webhookWorker', msg: 'worker_started', queue: webhookQueue_1.WEBHOOK_QUEUE_NAME, timestamp: new Date().toISOString() }));
+console.log(JSON.stringify({ level: 'info', component: 'webhookWorker', msg: 'worker_started', queue: WEBHOOK_QUEUE_NAME, timestamp: new Date().toISOString() }));
 //# sourceMappingURL=webhookWorker.js.map

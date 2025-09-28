@@ -1,15 +1,11 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.RevenueDiversificationEngine = void 0;
-const openai_1 = __importDefault(require("openai"));
-class RevenueDiversificationEngine {
+import OpenAI from 'openai';
+export class RevenueDiversificationEngine {
+    openai;
+    activeStreams = new Map();
+    revenueMetrics;
+    marketOpportunities = [];
     constructor() {
-        this.activeStreams = new Map();
-        this.marketOpportunities = [];
-        this.openai = new openai_1.default({
+        this.openai = new OpenAI({
             apiKey: process.env.OPENAI_API_KEY
         });
         this.revenueMetrics = this.initializeRevenueMetrics();
@@ -488,5 +484,4 @@ class RevenueDiversificationEngine {
         return monthlyTotal * 12 * (1 + avgGrowthRate);
     }
 }
-exports.RevenueDiversificationEngine = RevenueDiversificationEngine;
 //# sourceMappingURL=revenueDiversificationEngine.js.map

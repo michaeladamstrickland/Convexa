@@ -1,0 +1,21 @@
+address,owner_name,phone,email,estimated_value,equity,motivation_score,temperature_tag,source_type,status,notes,city,state,zip
+123 Main St, John Doe,5551234567,john@example.com,350000,120000,65,warm,manual,new,First sample,Anytown,CA,90210
+123 Main St, John Doe,5551234567,john@example.com,350000,120000,65,warm,manual,new,Duplicate row,Anytown,CA,90210
+456 Oak Ave, Jane Smith,,jane@example.com,425000,,80,hot,manual,new,,Otherville,TX,73301
+789 Pine Rd, Bob Lee,5559876543,,275000,50000,30,cold,manual,in_progress,Low motivation,Somewhere,WA,98101
+, Missing Address,,,,,,,,,,,
+101 Maple Ln, Alice Kim,5551112222,alice@sample.net,500000,200000,90,hot,manual,new,High equity,Sometown,NY,10001
+202 Birch St, Alice Kim,5551112222,,300000,100000,50,warm,manual,new,,Sometown,NY,10001
+303 Cedar Blvd, Carlos Ruiz,,carlos@sample.net,410000,110000,70,warm,manual,new,,Sometown,NY,10001
+404 Elm Cir, Diana Prince,5552223333,,600000,250000,85,hot,manual,new,,Metropolis,IL,62960
+505 Spruce Ct, Evan Young,5553334444,evan@sample.net,320000,90000,40,cold,manual,new,,Star City,FL,32004
+606 Walnut Dr, Fiona Glenanne,5554445555,,280000,70000,55,warm,manual,new,,Miami,FL,33101
+707 Ash Way, George Michaels,5555556666,gm@sample.net,360000,120000,60,warm,manual,new,,Anytown,CA,90210
+808 Palm St, Hannah Lee,,hlee@sample.net,450000,150000,75,hot,manual,new,,Anytown,CA,90210
+909 Cypress Ave, Ian Curtis,5556667777,,330000,80000,35,cold,manual,new,,Anytown,CA,90210
+111 Redwood Rd, Julia Child,5557778888,julia@sample.net,515000,210000,95,hot,manual,new,,Portland,OR,97201
+222 Sequoia St, Kevin Hart,,kh@sample.net,295000,60000,20,cold,manual,new,,Portland,OR,97201
+333 Magnolia Ave, Linda Park,5558889999,,385000,95000,45,warm,manual,new,,Portland,OR,97201
+444 Hickory Ln, Mark Twain,,mtwain@sample.net,270000,50000,25,cold,manual,new,,Portland,OR,97201
+555 Chestnut Blvd, Nina Simone,5559990000,,610000,300000,88,hot,manual,new,,New Orleans,LA,70112
+666 Poplar Dr, Oscar Wilde,,ow@sample.net,420000,125000,52,warm,manual,new,,New Orleans,LA,70112

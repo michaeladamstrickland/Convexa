@@ -1,14 +1,10 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.mapScoreToTemperature = mapScoreToTemperature;
-exports.calculateHeuristicScore = calculateHeuristicScore;
 /**
  * Maps an AI score to a temperature tag
  *
  * @param score The AI score to map (0-100)
  * @returns Temperature tag: 'DEAD' | 'WARM' | 'HOT' | 'ON_FIRE'
  */
-function mapScoreToTemperature(score) {
+export function mapScoreToTemperature(score) {
     if (score < 40) {
         return 'DEAD';
     }
@@ -29,7 +25,7 @@ function mapScoreToTemperature(score) {
  * @param lead Lead properties for score calculation
  * @returns Score from 0-100
  */
-function calculateHeuristicScore(lead) {
+export function calculateHeuristicScore(lead) {
     let score = 0;
     // Base score from motivation_score (if available)
     if (lead.motivation_score !== undefined) {

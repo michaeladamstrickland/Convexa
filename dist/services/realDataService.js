@@ -1,11 +1,10 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.RealDataService = void 0;
-const databaseService_1 = require("./databaseService");
-const logger_1 = require("../utils/logger");
-class RealDataService {
+import { DatabaseService } from './databaseService';
+import { logger } from '../utils/logger';
+export class RealDataService {
+    db;
+    apiKeys;
     constructor() {
-        this.db = new databaseService_1.DatabaseService();
+        this.db = new DatabaseService();
         this.apiKeys = {
             propertyData: process.env.PROPERTY_API_KEY,
             skipTrace: process.env.SKIP_TRACE_API_KEY,
@@ -18,7 +17,7 @@ class RealDataService {
      * This is real public data available for free
      */
     async scrapeProbateRecords(county = 'maricopa') {
-        logger_1.logger.info(`🏛️ Scraping ${county} county probate records...`);
+        logger.info(`🏛️ Scraping ${county} county probate records...`);
         try {
             const probateLeads = [];
             // Maricopa County Superior Court - Public Records
@@ -50,11 +49,11 @@ class RealDataService {
                     probateLeads.push(lead);
                 }
             }
-            logger_1.logger.info(`✅ Found ${probateLeads.length} new probate leads`);
+            logger.info(`✅ Found ${probateLeads.length} new probate leads`);
             return probateLeads;
         }
         catch (error) {
-            logger_1.logger.error('❌ Error scraping probate records:', error);
+            logger.error('❌ Error scraping probate records:', error);
             return [];
         }
     }
@@ -63,7 +62,7 @@ class RealDataService {
      * Phoenix, Scottsdale, Tempe public violation databases
      */
     async scrapeCodeViolations(city = 'phoenix') {
-        logger_1.logger.info(`🚨 Scraping ${city} code violations...`);
+        logger.info(`🚨 Scraping ${city} code violations...`);
         try {
             const violationLeads = [];
             // Phoenix Code Enforcement - Public database
@@ -95,11 +94,11 @@ class RealDataService {
                     }
                 }
             }
-            logger_1.logger.info(`✅ Found ${violationLeads.length} new violation leads`);
+            logger.info(`✅ Found ${violationLeads.length} new violation leads`);
             return violationLeads;
         }
         catch (error) {
-            logger_1.logger.error('❌ Error scraping code violations:', error);
+            logger.error('❌ Error scraping code violations:', error);
             return [];
         }
     }
@@ -108,7 +107,7 @@ class RealDataService {
      * County assessor public databases
      */
     async scrapeTaxDelinquencies(county = 'maricopa') {
-        logger_1.logger.info(`💰 Scraping ${county} tax delinquency records...`);
+        logger.info(`💰 Scraping ${county} tax delinquency records...`);
         try {
             const taxLeads = [];
             // Maricopa County Assessor - Public tax records
@@ -134,11 +133,11 @@ class RealDataService {
                     }
                 }
             }
-            logger_1.logger.info(`✅ Found ${taxLeads.length} new tax delinquency leads`);
+            logger.info(`✅ Found ${taxLeads.length} new tax delinquency leads`);
             return taxLeads;
         }
         catch (error) {
-            logger_1.logger.error('❌ Error scraping tax records:', error);
+            logger.error('❌ Error scraping tax records:', error);
             return [];
         }
     }
@@ -147,7 +146,7 @@ class RealDataService {
      * Enhance leads with contact information using skip trace services
      */
     async enhanceWithContactInfo(leads) {
-        logger_1.logger.info(`📞 Enhancing ${leads.length} leads with contact information...`);
+        logger.info(`📞 Enhancing ${leads.length} leads with contact information...`);
         const enhancedLeads = [];
         for (const lead of leads) {
             try {
@@ -160,10 +159,10 @@ class RealDataService {
                 }
             }
             catch (error) {
-                logger_1.logger.error(`❌ Error enhancing lead ${lead.id}:`, error);
+                logger.error(`❌ Error enhancing lead ${lead.id}:`, error);
             }
         }
-        logger_1.logger.info(`✅ Enhanced ${enhancedLeads.length} leads with contact info`);
+        logger.info(`✅ Enhanced ${enhancedLeads.length} leads with contact info`);
         return enhancedLeads;
     }
     // PHASE 3: AUTOMATED LEAD GENERATION PIPELINE
@@ -171,7 +170,7 @@ class RealDataService {
      * Run complete daily lead generation pipeline
      */
     async runDailyPipeline() {
-        logger_1.logger.info('🚀 Starting daily lead generation pipeline...');
+        logger.info('🚀 Starting daily lead generation pipeline...');
         const results = {
             probate_leads: 0,
             violation_leads: 0,
@@ -198,11 +197,11 @@ class RealDataService {
             const metrics = await this.db.getRevenueMetrics();
             results.total_leads = metrics.total_leads;
             results.estimated_value = metrics.total_estimated_value;
-            logger_1.logger.info('✅ Daily pipeline completed successfully');
+            logger.info('✅ Daily pipeline completed successfully');
             return results;
         }
         catch (error) {
-            logger_1.logger.error('❌ Daily pipeline failed:', error);
+            logger.error('❌ Daily pipeline failed:', error);
             throw error;
         }
     }
@@ -342,5 +341,4 @@ class RealDataService {
         };
     }
 }
-exports.RealDataService = RealDataService;
 //# sourceMappingURL=realDataService.js.map

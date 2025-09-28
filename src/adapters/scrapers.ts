@@ -123,7 +123,7 @@ export async function runZillowScraper(input: AdapterInput): Promise<DispatcherR
 
   // Allow disabling heavy browser scrapes for local fast dev
   if (process.env.USE_REAL_SCRAPERS === 'false') {
-    let rawItems = [
+    const rawItems = [
       { address: `DEV ${zip} Example 1`, price: 400000, url: `https://example.com/zillow/${zip}/1`, beds: 3, sqft: 1800, propertyType: 'single_family' },
       { address: `DEV ${zip} Example 2`, price: 395000, url: `https://example.com/zillow/${zip}/2`, beds: 2, sqft: 1400, propertyType: 'townhome' }
     ];
@@ -156,7 +156,7 @@ export async function runZillowScraper(input: AdapterInput): Promise<DispatcherR
     realMode = false;
   }
   if (!realMode) {
-    let rawItems = [
+    const rawItems = [
       { address: `FAKE ${zip} Zillow 1`, price: 410000, url: `https://example.com/zillow/${zip}/f1`, beds: 3, sqft: 1700, propertyType: 'single_family' },
       { address: `FAKE ${zip} Zillow 2`, price: 405000, url: `https://example.com/zillow/${zip}/f2`, beds: 2, sqft: 1250, propertyType: 'townhome' }
     ];
@@ -236,7 +236,7 @@ export async function runAuctionScraper(input: AdapterInput): Promise<Dispatcher
   const errors: string[] = [];
 
   if (process.env.USE_REAL_SCRAPERS === 'false') {
-    let rawItems = [ { address: `Auction ${location} Court House`, price: 210000, url: `https://example.com/auction/${location}/1`, beds: 3, sqft: 1600, propertyType: 'foreclosure' } ];
+    const rawItems = [ { address: `Auction ${location} Court House`, price: 210000, url: `https://example.com/auction/${location}/1`, beds: 3, sqft: 1600, propertyType: 'foreclosure' } ];
     const { filtered, applied, filteredOutCount, total } = applyFilters(rawItems, input.filters);
     return {
       items: filtered,
@@ -264,7 +264,7 @@ export async function runAuctionScraper(input: AdapterInput): Promise<Dispatcher
     realMode = false;
   }
   if (!realMode) {
-    let rawItems = [ { address: `FAKE Auction ${location} Courthouse`, price: 205000, url: `https://example.com/auction/${location}/f1`, beds: 3, sqft: 1500, propertyType: 'foreclosure' } ];
+    const rawItems = [ { address: `FAKE Auction ${location} Courthouse`, price: 205000, url: `https://example.com/auction/${location}/f1`, beds: 3, sqft: 1500, propertyType: 'foreclosure' } ];
     const { filtered, applied, filteredOutCount, total } = applyFilters(rawItems, input.filters);
     return {
       items: filtered,

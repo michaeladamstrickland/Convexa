@@ -1,10 +1,8 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.DatabaseService = void 0;
-const client_1 = require("@prisma/client");
-class DatabaseService {
+import { PrismaClient } from '@prisma/client';
+export class DatabaseService {
+    prisma;
     constructor() {
-        this.prisma = new client_1.PrismaClient();
+        this.prisma = new PrismaClient();
     }
     // Lead Management
     async createLead(leadData) {
@@ -247,5 +245,4 @@ class DatabaseService {
         await this.prisma.$disconnect();
     }
 }
-exports.DatabaseService = DatabaseService;
 //# sourceMappingURL=databaseService.js.map
