@@ -298,7 +298,6 @@ router.post('/update-temperature', async (req, res) => {
         where: { id: leadId },
         data: {
           motivationScore: analysis.motivationScore,
-          lead_score: analysis.dealScore,
         },
       });
       
@@ -309,8 +308,8 @@ router.post('/update-temperature', async (req, res) => {
     const updatedLead = await prisma.lead.update({
       where: { id: leadId },
       data: {
-        temperature_tag: temperatureTag,
-        updated_at: new Date(),
+        temperatureTag: temperatureTag,
+        updatedAt: new Date(),
       },
     });
     
