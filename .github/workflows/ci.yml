@@ -51,6 +51,9 @@ jobs:
       - name: Run CI Prep
         run: npm run ci:prep
 
+      - name: Typecheck (CI scope)
+        run: npx tsc -p tsconfig.ci.json --noEmit
+
       - name: Run CI Tests
         run: npm run ci:test
 

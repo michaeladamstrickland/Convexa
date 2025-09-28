@@ -1,15 +1,15 @@
 # API Surface
 
-Generated on: 2025-09-24T19:46:37.925Z
+Generated on: 2025-09-27T11:54:20.147Z
 
-Total routes: 42
+Total routes: 49
 
 ## Authentication Summary
 
-- **basic-auth**: 8 routes
+- **basic-auth**: 11 routes
 - **api-key**: 22 routes
 - **token-auth**: 2 routes
-- **none**: 10 routes
+- **none**: 14 routes
 
 ## Routes by Category
 
@@ -21,21 +21,16 @@ Total routes: 42
 | GET | /admin/artifact-download | basic-auth | get_admin_artifactdownload | ✅ Active |
 | GET | /admin/artifacts | basic-auth | get_admin_artifacts | ✅ Active |
 | POST | /admin/export/weekly-bundle | basic-auth | post_admin_export_weeklybundle | ✅ Active |
+| POST | /admin/grade/apply-calibration | basic-auth | post_admin_grade_applycalibration | ✅ Active |
+| POST | /admin/grade/calibrate | basic-auth | post_admin_grade_calibrate | ✅ Active |
 | POST | /admin/grade/recompute | basic-auth | post_admin_grade_recompute | ✅ Active |
 | POST | /admin/import/csv | basic-auth | post_admin_import_csv | ✅ Active |
-
-### ATTOM Data
-
-| Method | Path | Auth | Metrics Label | Status |
-|--------|------|------|---------------|--------|
-| GET | /api/attom/property/address | api-key | get_api_attom_property_address | ✅ Active |
-| GET | /api/attom/property/zip | api-key | get_api_attom_property_zip | ✅ Active |
-| GET | /api/attom/status | api-key | get_api_attom_status | ✅ Active |
 
 ### API
 
 | Method | Path | Auth | Metrics Label | Status |
 |--------|------|------|---------------|--------|
+| POST | /api/ai/call-summary | basic-auth | post_api_ai_callsummary | ✅ Active |
 | GET | /api/campaigns/search | api-key | get_api_campaigns_search | ✅ Active |
 | GET | /api/db-info | api-key | get_api_dbinfo | ✅ Active |
 | GET | /api/debug/attempt-reasons-today | api-key | get_api_debug_attemptreasonstoday | ✅ Active |
@@ -53,6 +48,14 @@ Total routes: 42
 | GET | /api/skiptrace/quota | api-key | get_api_skiptrace_quota | ✅ Active |
 | GET | /api/status | api-key | get_api_status | ✅ Active |
 
+### ATTOM Data
+
+| Method | Path | Auth | Metrics Label | Status |
+|--------|------|------|---------------|--------|
+| GET | /api/attom/property/address | api-key | get_api_attom_property_address | ✅ Active |
+| GET | /api/attom/property/zip | api-key | get_api_attom_property_zip | ✅ Active |
+| GET | /api/attom/status | api-key | get_api_attom_status | ✅ Active |
+
 ### Search
 
 | Method | Path | Auth | Metrics Label | Status |
@@ -68,7 +71,9 @@ Total routes: 42
 |--------|------|------|---------------|--------|
 | POST | /dial | none | post_dial | ✅ Active |
 | GET | /followups | none | get_followups | ✅ Active |
+| POST | /import/test-data | none | post_import_testdata | ✅ Active |
 | GET | /leads | none | get_leads | ✅ Active |
+| GET | /stages/board | none | get_stages_board | ✅ Active |
 | POST | /twilio/recording-complete | token-auth | post_twilio_recordingcomplete | ✅ Active |
 
 ### Monitoring
@@ -83,10 +88,12 @@ Total routes: 42
 
 | Method | Path | Auth | Metrics Label | Status |
 |--------|------|------|---------------|--------|
+| GET | /ops/ai-call-summary | none | get_ops_aicallsummary | ✅ Active |
 | GET | /ops/artifacts | none | get_ops_artifacts | ✅ Active |
 | GET | /ops/campaigns | none | get_ops_campaigns | ✅ Active |
 | GET | /ops/followups | none | get_ops_followups | ✅ Active |
 | GET | /ops/grading | none | get_ops_grading | ✅ Active |
 | GET | /ops/import | basic-auth | get_ops_import | ✅ Active |
 | GET | /ops/leads | none | get_ops_leads | ✅ Active |
+| GET | /ops/stages | none | get_ops_stages | ✅ Active |
 

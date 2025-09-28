@@ -3064,6 +3064,115 @@ const startServer = async (options = {}) => {
     }
   }
 
+  // Helper function to build WHERE clauses and parameters safely
+  function buildCampaignWhere(type, q) {
+    // q may carry extra filters from query string; ignore if not needed
+    const where = [];
+    const params = [];
+
+    switch (type) {
+      case 'distressed':
+        where.push('(motivation_score >= ? OR temperature_tag IN (?,?))');
+        params.push(70, 'hot', 'warm');
+        break;
+
+      case 'divorce':
+        where.push('(notes LIKE ?)');
+        params.push('%divorce%');
+        break;
+
+      case 'preforeclosure':
+        where.push('(condition_score <= ? OR notes LIKE ?)');
+        params.push(40, '%foreclosure%');
+        break;
+
+      case 'inheritance':
+        where.push('(is_probate = 1 OR notes LIKE ?)');
+        params.push('%inherit%');
+        break;
+
+      case 'vacant':
+        where.push('(is_vacant = 1)');
+        break;
+
+      case 'absentee':
+        // ✅ FIX: no string interpolation, no double quotes as literals
+        // Absentee heuristic: owner exists but address might indicate absentee ownership
+        where.push(`(
+          owner_name IS NOT NULL AND
+          owner_name <> '' AND
+          (notes LIKE ? OR notes LIKE ?)
+        )`);
+        params.push('%out of state%', '%non-resident%');
+        break;
+
+      default: {
+        // make invalid type a clean 400
+        const err = new Error('invalid campaign type');
+        err.status = 400;
+        throw err;
+      }
+    }
+
+    return { where, params };
+  }
+
+  // Optional guardrail function to catch double-quoted literals
+  function assertNoDoubleQuotedLiterals(sql) {
+    if (process.env.SQL_GUARD === '1' && /=\s*""/.test(sql)) {
+      throw new Error('Double-quoted empty string detected in SQL (use single quotes or parameters).');
+    }
+    return sql;
+  }
+
+  // Primary API endpoint for campaigns with safe SQL building
+  app.get('/api/campaigns', (req, res) => {
+    try {
+      const type = String(req.query.type || '').toLowerCase();
+      const page = Math.max(parseInt(String(req.query.page || '1'), 10) || 1, 1);
+      const limit = Math.min(Math.max(parseInt(String(req.query.limit || '20'), 10) || 20, 1), 100);
+      const offset = (page - 1) * limit;
+
+      const { where, params } = buildCampaignWhere(type, req.query);
+
+      const whereSql = where.length ? `WHERE ${where.join(' AND ')}` : '';
+      const sql = assertNoDoubleQuotedLiterals(`
+        SELECT id, address, owner_name, status, motivation_score, temperature_tag
+        FROM leads
+        ${whereSql}
+        ORDER BY created_at DESC
+        LIMIT ? OFFSET ?
+      `);
+      const rows = db.prepare(sql).all(...params, limit, offset);
+
+      const totalSql = assertNoDoubleQuotedLiterals(`
+        SELECT COUNT(*) AS cnt
+        FROM leads
+        ${whereSql}
+      `);
+      const { cnt } = db.prepare(totalSql).get(...params);
+
+      res.json({
+        ok: true,
+        type,
+        page,
+        limit,
+        total: cnt,
+        has_more: offset + rows.length < cnt,
+        rows,
+      });
+    } catch (e) {
+      // Map to Problem+JSON
+      const status = e.status || 500;
+      res.status(status).json({
+        type: 'problem+json',
+        title: status === 400 ? 'Bad Request' : 'Internal Server Error',
+        status,
+        detail: e.message,
+      });
+    }
+  });
+
   // API endpoint for campaign property search
   app.get('/api/campaigns/search', (req, res) => {
     try {
@@ -3118,9 +3227,9 @@ const startServer = async (options = {}) => {
             criteria_used.push('vacant flag');
             break;
           case 'absentee':
-            // Heuristic: owner mailing address different or out-of-area phone numbers
-            where.push("(owner_name IS NOT NULL AND owner_name != '')");
-            criteria_used.push('owner presence (absentee heuristic)');
+            // Fixed: use single quotes and safe comparison, proper column names
+            where.push("(owner_name IS NOT NULL AND owner_name <> '' AND (notes LIKE '%out of state%' OR notes LIKE '%non-resident%'))");
+            criteria_used.push('owner presence with absentee indicators');
             break;
           default:
             // Fallback to general filters without specific type criteria
